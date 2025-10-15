@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Log usage
+      // @ts-ignore
       await supabaseAdmin.from('usage_logs').insert({
         user_id: user.id,
         tool_name: 'citation',

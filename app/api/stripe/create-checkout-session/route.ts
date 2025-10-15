@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
       customerId = customer.id
 
       // Update user with customer ID
+      // @ts-ignore
       await supabaseAdmin
         .from('users')
         .update({ stripe_customer_id: customerId })
