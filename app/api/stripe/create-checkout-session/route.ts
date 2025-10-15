@@ -3,6 +3,9 @@ import { stripe, PLAN_PRICES } from '@/lib/stripe'
 import { getUserFromToken } from '@/lib/auth-helpers'
 import { supabaseAdmin } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function POST(request: NextRequest) {
   try {
     const { planType } = await request.json()

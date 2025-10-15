@@ -3,6 +3,9 @@ import { getUserFromToken, checkSubscriptionAccess, checkDailyUsage, incrementDa
 import { paraphraseText, estimateTokens } from '@/lib/openai'
 import { supabaseAdmin } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function POST(request: NextRequest) {
   try {
     const { text } = await request.json()

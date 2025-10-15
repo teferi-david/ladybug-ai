@@ -3,6 +3,9 @@ import { stripe, PLAN_PRICES } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import Stripe from 'stripe'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const sig = request.headers.get('stripe-signature')
