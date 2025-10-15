@@ -1,12 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
-import Image from 'next/image'
 
 export function Navbar() {
   const pathname = usePathname()
@@ -36,8 +36,15 @@ export function Navbar() {
     <nav className="border-b bg-white">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-sm">L</span>
+          <div className="relative w-8 h-8">
+            <Image 
+              src="/logo.jpg" 
+              alt="Ladybug AI Logo" 
+              width={32}
+              height={32}
+              className="rounded-full object-cover"
+              priority
+            />
           </div>
           <span className="text-xl font-bold">Ladybug AI</span>
         </Link>
