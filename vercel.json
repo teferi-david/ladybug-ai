@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/resetDailyUsage",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
+
