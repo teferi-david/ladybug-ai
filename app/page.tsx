@@ -36,9 +36,11 @@ export default function HomePage() {
           setShowUpgradeModal(true)
         } else if (response.status === 500) {
           // Server configuration error (likely missing env variables)
-          alert('⚠️ Service not configured yet. Please complete setup:\n\n1. Add Supabase credentials\n2. Add OpenAI API key\n3. Check DEPLOYMENT_CHECKLIST.md for details')
+          console.error('API Error Details:', data)
+          alert(`⚠️ Service Error: ${data.error || 'Server configuration issue'}\n\nPlease check:\n1. Environment variables in Vercel\n2. Site has been redeployed\n3. Browser console for details`)
         } else {
-          alert(data.error || 'An error occurred')
+          console.error('API Error:', response.status, data)
+          alert(data.error || `Error: ${response.status} - Please check console`)
         }
         return
       }
