@@ -34,6 +34,9 @@ export default function HomePage() {
         if (response.status === 403) {
           setUpgradeMessage(data.message)
           setShowUpgradeModal(true)
+        } else if (response.status === 500) {
+          // Server configuration error (likely missing env variables)
+          alert('⚠️ Service not configured yet. Please complete setup:\n\n1. Add Supabase credentials\n2. Add OpenAI API key\n3. Check DEPLOYMENT_CHECKLIST.md for details')
         } else {
           alert(data.error || 'An error occurred')
         }
@@ -42,7 +45,8 @@ export default function HomePage() {
 
       setHumanizerOutput(data.result)
     } catch (error) {
-      alert('An error occurred. Please try again.')
+      console.error('Free trial error:', error)
+      alert('⚠️ Unable to connect to API. Please ensure:\n\n1. Environment variables are set in Vercel\n2. Services are configured (see DEPLOYMENT_CHECKLIST.md)\n3. Site has been redeployed after adding env vars')
     } finally {
       setHumanizerLoading(false)
     }
