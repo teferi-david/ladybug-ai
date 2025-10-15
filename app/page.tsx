@@ -50,7 +50,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
+      {/* Hero Section - SEO Optimized */}
       <section className="bg-gradient-to-b from-white to-gray-50 py-20">
         <div className="container mx-auto px-4">
           <motion.div
@@ -59,37 +59,74 @@ export default function HomePage() {
             transition={{ duration: 0.5 }}
             className="text-center max-w-4xl mx-auto"
           >
+            <div className="inline-block bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold mb-4">
+              ⭐ The Best AI Tool for Students - 100% Free Trial
+            </div>
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Transform Your Writing with{' '}
-              <span className="text-primary">Ladybug AI</span>
+              Free AI Humanizer for Students
             </h1>
+            <h2 className="text-2xl md:text-3xl text-gray-700 mb-6">
+              Make AI Text Sound Human | <span className="text-primary">Undetectable AI Writing</span>
+            </h2>
             <p className="text-xl text-gray-600 mb-8">
-              AI-powered tools to humanize text, paraphrase content, and generate citations.
-              Professional writing assistance at your fingertips.
+              Transform AI-generated text into natural, human-like writing instantly. 
+              Perfect for essays, research papers, and assignments. No credit card required!
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
               <Link href="/register">
                 <Button size="lg" className="text-lg px-8">
-                  Get Started Free
+                  Try Free AI Humanizer Now
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/pricing">
+              <Link href="#free-trial">
                 <Button size="lg" variant="outline" className="text-lg px-8">
-                  View Pricing
+                  Test It Below ⬇️
                 </Button>
               </Link>
             </div>
+            <p className="text-sm text-gray-500">
+              ✅ Free Forever Plan Available • ✅ No Credit Card Required • ✅ 2 Free Uses Daily
+            </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20">
+      {/* Student Benefits Section - NEW */}
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            Powerful Writing Tools
+            Why Students Love Ladybug AI
           </h2>
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="text-center">
+              <div className="text-5xl mb-4">🎓</div>
+              <h3 className="font-bold text-xl mb-2">Perfect for Essays</h3>
+              <p className="text-gray-600">Make your AI-written essays sound natural and authentic</p>
+            </div>
+            <div className="text-center">
+              <div className="text-5xl mb-4">⚡</div>
+              <h3 className="font-bold text-xl mb-2">Lightning Fast</h3>
+              <p className="text-gray-600">Humanize your text in seconds, not hours</p>
+            </div>
+            <div className="text-center">
+              <div className="text-5xl mb-4">💰</div>
+              <h3 className="font-bold text-xl mb-2">100% Free Trial</h3>
+              <p className="text-gray-600">Try 2 times daily without any payment</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+            3 Essential AI Tools for Students
+          </h2>
+          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+            Everything you need to ace your assignments - AI humanizer, paraphraser, and citation generator
+          </p>
           <div className="grid md:grid-cols-3 gap-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -101,9 +138,9 @@ export default function HomePage() {
                   <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                     <Sparkles className="h-6 w-6 text-primary" />
                   </div>
-                  <CardTitle>AI Humanizer</CardTitle>
+                  <CardTitle>Free AI Humanizer</CardTitle>
                   <CardDescription>
-                    Make AI-generated text sound natural and human-like while preserving meaning.
+                    Transform AI-generated essays into authentic, human-like writing. Bypass AI detectors and make your work sound natural.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -126,9 +163,9 @@ export default function HomePage() {
                   <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                     <RefreshCw className="h-6 w-6 text-primary" />
                   </div>
-                  <CardTitle>Paraphraser</CardTitle>
+                  <CardTitle>Essay Paraphraser</CardTitle>
                   <CardDescription>
-                    Rephrase your content for clarity and variation while maintaining context.
+                    Rewrite your essays and papers in different words. Perfect for avoiding plagiarism and improving clarity.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -153,7 +190,7 @@ export default function HomePage() {
                   </div>
                   <CardTitle>Citation Generator</CardTitle>
                   <CardDescription>
-                    Generate properly formatted APA and MLA citations instantly.
+                    Create perfect APA and MLA citations for your research papers. Save hours on bibliography formatting.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -170,15 +207,20 @@ export default function HomePage() {
       </section>
 
       {/* Free Trial Section */}
-      <section className="py-20 bg-gray-50">
+      <section id="free-trial" className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-8">Try It Free</h2>
-            <Card>
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+              Try Our Free AI Humanizer Now
+            </h2>
+            <p className="text-center text-gray-600 mb-8">
+              No sign up required! Test it right here - 2 free uses per day for students
+            </p>
+            <Card className="border-2 border-primary">
               <CardHeader>
-                <CardTitle>AI Humanizer - Free Trial</CardTitle>
+                <CardTitle>Free AI Humanizer - Test It Below</CardTitle>
                 <CardDescription>
-                  Try 2 free conversions per day (500 tokens each). Sign up for unlimited access.
+                  Paste your AI-generated text and watch it transform into natural, human-like writing. Perfect for students!
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -213,10 +255,44 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* SEO Content Section - NEW */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <h2 className="text-3xl font-bold mb-6">What is an AI Humanizer?</h2>
+          <div className="prose prose-lg max-w-none text-gray-700 space-y-4">
+            <p>
+              An <strong>AI humanizer</strong> is a tool that transforms AI-generated text into natural, human-like writing. 
+              For students using AI writing assistants like ChatGPT or other AI tools, humanizing your content is essential 
+              to make your essays and assignments sound authentic and pass AI detection.
+            </p>
+            <h3 className="text-2xl font-bold mt-8 mb-4">Why Students Need a Free AI Humanizer</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li><strong>Bypass AI Detectors:</strong> Make AI-written essays undetectable to AI detection tools</li>
+              <li><strong>Sound More Natural:</strong> Transform robotic AI text into authentic student writing</li>
+              <li><strong>Save Time:</strong> Edit AI content in seconds instead of rewriting manually</li>
+              <li><strong>Improve Grades:</strong> Submit work that sounds genuinely human and engaging</li>
+              <li><strong>100% Free:</strong> Try our AI humanizer free with no credit card required</li>
+            </ul>
+            <h3 className="text-2xl font-bold mt-8 mb-4">How to Use Our Free AI Humanizer</h3>
+            <ol className="list-decimal pl-6 space-y-2">
+              <li>Paste your AI-generated text into the box above</li>
+              <li>Click "Humanize Text" to process your content</li>
+              <li>Get natural, human-like text in seconds</li>
+              <li>Copy and use in your assignments</li>
+            </ol>
+            <p className="mt-6">
+              Unlike other AI humanizers that charge immediately, Ladybug AI offers a <strong>completely free tier</strong> for students. 
+              Try it 2 times per day without any payment or sign up. Perfect for quick essay touch-ups!
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Preview */}
-      <section className="py-20">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Simple, Transparent Pricing</h2>
+          <h2 className="text-3xl font-bold text-center mb-4">Student-Friendly Pricing</h2>
+          <p className="text-center text-gray-600 mb-12">Affordable plans for students. Start free!</p>
           <div className="grid md:grid-cols-4 gap-6 max-w-6xl mx-auto">
             <Card>
               <CardHeader>
