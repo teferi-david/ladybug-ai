@@ -4,56 +4,40 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
+  console.log('Test API GET called')
   return NextResponse.json({
     status: 'ok',
-    message: 'Test API endpoint is working',
     method: 'GET',
+    message: 'Test GET request successful!',
     timestamp: new Date().toISOString(),
     url: request.url,
     headers: Object.fromEntries(request.headers.entries())
-  })
+  }, { status: 200 })
 }
 
 export async function POST(request: NextRequest) {
+  console.log('Test API POST called')
   try {
     const body = await request.json()
     return NextResponse.json({
       status: 'ok',
-      message: 'Test API endpoint is working',
       method: 'POST',
+      message: 'Test POST request successful!',
+      receivedBody: body,
       timestamp: new Date().toISOString(),
       url: request.url,
-      body: body,
       headers: Object.fromEntries(request.headers.entries())
-    })
-  } catch (error) {
+    }, { status: 200 })
+  } catch (error: any) {
+    console.error('Error parsing POST body:', error)
     return NextResponse.json({
       status: 'error',
-      message: 'Failed to parse JSON body',
       method: 'POST',
+      message: 'Failed to parse request body.',
+      error: error.message,
       timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'Unknown error'
+      url: request.url,
+      headers: Object.fromEntries(request.headers.entries())
     }, { status: 400 })
   }
-}
-
-// Handle any other HTTP methods
-export async function PUT(request: NextRequest) {
-  return NextResponse.json({
-    error: 'Method not allowed',
-    message: 'This endpoint only accepts GET and POST requests',
-    method: 'PUT',
-    allowed: ['GET', 'POST'],
-    endpoint: '/api/test'
-  }, { status: 405 })
-}
-
-export async function DELETE(request: NextRequest) {
-  return NextResponse.json({
-    error: 'Method not allowed',
-    message: 'This endpoint only accepts GET and POST requests',
-    method: 'DELETE',
-    allowed: ['GET', 'POST'],
-    endpoint: '/api/test'
-  }, { status: 405 })
 }

@@ -9,6 +9,9 @@ export const runtime = 'nodejs'
 // Handle GET requests for debugging
 export async function GET(request: NextRequest) {
   console.log('GET request received at /api/humanize')
+  console.log('Request URL:', request.url)
+  console.log('Request method:', request.method)
+  console.log('Request headers:', Object.fromEntries(request.headers.entries()))
   return NextResponse.json({
     error: 'Method not allowed',
     message: 'This endpoint only accepts POST requests',
@@ -48,6 +51,9 @@ export async function DELETE(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('Humanize API called')
+    console.log('Request URL:', request.url)
+    console.log('Request method:', request.method)
+    console.log('Request headers:', Object.fromEntries(request.headers.entries()))
     
     const { text } = await request.json()
 

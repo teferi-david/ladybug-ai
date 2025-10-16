@@ -19,6 +19,7 @@ export default function HomePage() {
   const [freeUsesRemaining, setFreeUsesRemaining] = useState(2)
   const [copied, setCopied] = useState(false)
   const [wordCount, setWordCount] = useState(0)
+  const [testResult, setTestResult] = useState('')
 
   const countWords = (text: string): number => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length
@@ -27,6 +28,37 @@ export default function HomePage() {
   const handleInputChange = (value: string) => {
     setHumanizerInput(value)
     setWordCount(countWords(value))
+  }
+
+  const testAPIConnection = async () => {
+    try {
+      console.log('Testing API connection...')
+      setTestResult('Testing...')
+      
+      // Test GET request
+      const getResponse = await fetch('/api/test', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      
+      const getData = await getResponse.json()
+      console.log('GET test result:', getData)
+      
+      // Test POST request
+      const postResponse = await fetch('/api/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ test: 'data' })
+      })
+      
+      const postData = await postResponse.json()
+      console.log('POST test result:', postData)
+      
+      setTestResult(`✅ API Working!\nGET: ${getResponse.status}\nPOST: ${postResponse.status}\n\nGET Response: ${JSON.stringify(getData, null, 2)}\n\nPOST Response: ${JSON.stringify(postData, null, 2)}`)
+    } catch (error: any) {
+      console.error('API test failed:', error)
+      setTestResult(`❌ API Test Failed!\nError: ${error.message}\n\nThis means the API routes are not working properly.`)
+    }
   }
 
   const handleFreeTrial = async (tool: 'humanizer' | 'paraphraser' | 'citation', input: string) => {
@@ -314,6 +346,19 @@ export default function HomePage() {
                           : 'Free trials used up - upgrade for unlimited access!'
                         }
                       </p>
+                      <Button 
+                        onClick={testAPIConnection}
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2"
+                      >
+                        🔧 Test API Connection
+                      </Button>
+                      {testResult && (
+                        <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left">
+                          <pre className="text-sm whitespace-pre-wrap">{testResult}</pre>
+                        </div>
+                      )}
                     </div>
             <Card className="border-2 border-primary">
               <CardHeader>
