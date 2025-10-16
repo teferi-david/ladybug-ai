@@ -16,9 +16,18 @@ export default function HomePage() {
   const [humanizerLoading, setHumanizerLoading] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState('')
+  const [freeUsesRemaining, setFreeUsesRemaining] = useState(2)
+  const [copied, setCopied] = useState(false)
 
   const handleFreeTrial = async (tool: 'humanizer' | 'paraphraser' | 'citation', input: string) => {
     if (!input.trim()) return
+
+    // Check if user has free uses remaining
+    if (freeUsesRemaining <= 0) {
+      setUpgradeMessage("You've used your 2 free trials! Upgrade for unlimited access or purchase a one-time session.")
+      setShowUpgradeModal(true)
+      return
+    }
 
     try {
       setHumanizerLoading(true)
@@ -46,12 +55,65 @@ export default function HomePage() {
       }
 
       setHumanizerOutput(data.result)
+      setFreeUsesRemaining(prev => prev - 1)
     } catch (error) {
       console.error('Free trial error:', error)
       alert('⚠️ Unable to connect to API. Please ensure:\n\n1. Environment variables are set in Vercel\n2. Services are configured (see DEPLOYMENT_CHECKLIST.md)\n3. Site has been redeployed after adding env vars')
     } finally {
       setHumanizerLoading(false)
     }
+  }
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(humanizerOutput)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy text: ', err)
+    }
+  }
+
+  const highlightDifferences = (original: string, humanized: string) => {
+    const originalWords = original.split(' ')
+    const humanizedWords = humanized.split(' ')
+    const result: JSX.Element[] = []
+    
+    let i = 0, j = 0
+    while (i < originalWords.length && j < humanizedWords.length) {
+      if (originalWords[i].toLowerCase() === humanizedWords[j].toLowerCase()) {
+        result.push(<span key={`same-${i}`}>{originalWords[i]} </span>)
+        i++
+        j++
+      } else {
+        // Find the next matching word
+        let found = false
+        for (let k = j + 1; k < humanizedWords.length; k++) {
+          if (originalWords[i].toLowerCase() === humanizedWords[k].toLowerCase()) {
+            // Highlight the changed words
+            for (let l = j; l < k; l++) {
+              result.push(<span key={`changed-${l}`} className="bg-yellow-200 px-1 rounded">{humanizedWords[l]} </span>)
+            }
+            j = k
+            found = true
+            break
+          }
+        }
+        if (!found) {
+          result.push(<span key={`changed-${j}`} className="bg-yellow-200 px-1 rounded">{humanizedWords[j]} </span>)
+          j++
+        }
+        i++
+      }
+    }
+    
+    // Add remaining humanized words
+    while (j < humanizedWords.length) {
+      result.push(<span key={`added-${j}`} className="bg-green-200 px-1 rounded">{humanizedWords[j]} </span>)
+      j++
+    }
+    
+    return result
   }
 
   return (
@@ -222,6 +284,14 @@ export default function HomePage() {
             <p className="text-center text-gray-600 mb-8">
               No sign up required! Test it right here - 2 free uses per day for students
             </p>
+            <div className="text-center mb-6">
+              <p className="text-lg text-gray-600">
+                {freeUsesRemaining > 0 
+                  ? `You have ${freeUsesRemaining} free trial${freeUsesRemaining === 1 ? '' : 's'} remaining`
+                  : 'Free trials used up - upgrade for unlimited access!'
+                }
+              </p>
+            </div>
             <Card className="border-2 border-primary">
               <CardHeader>
                 <CardTitle>Free AI Humanizer - Test It Below</CardTitle>
@@ -237,21 +307,42 @@ export default function HomePage() {
                     className="min-h-[120px]"
                     value={humanizerInput}
                     onChange={(e) => setHumanizerInput(e.target.value)}
+                    disabled={freeUsesRemaining <= 0}
                   />
                 </div>
                 <Button
                   onClick={() => handleFreeTrial('humanizer', humanizerInput)}
-                  disabled={humanizerLoading || !humanizerInput.trim()}
+                  disabled={humanizerLoading || !humanizerInput.trim() || freeUsesRemaining <= 0}
                   className="w-full"
                 >
-                  {humanizerLoading ? 'Processing...' : 'Humanize Text'}
+                  {humanizerLoading ? 'Processing...' : 
+                   freeUsesRemaining <= 0 ? 'Upgrade to Continue' : 
+                   'Humanize Text'}
                 </Button>
                 {humanizerLoading && <LoadingSpinner />}
                 {humanizerOutput && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Output</label>
-                    <div className="p-4 bg-gray-50 rounded-lg border">
-                      {humanizerOutput}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Humanized Text (Changes Highlighted)</label>
+                      <div className="p-4 bg-gray-50 rounded-lg border">
+                        {highlightDifferences(humanizerInput, humanizerOutput)}
+                      </div>
+                      <div className="mt-2 flex gap-2">
+                        <Button
+                          onClick={copyToClipboard}
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-2"
+                        >
+                          {copied ? 'Copied!' : 'Copy Text'}
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Full Humanized Text</label>
+                      <div className="p-4 bg-white rounded-lg border">
+                        {humanizerOutput}
+                      </div>
                     </div>
                   </div>
                 )}
