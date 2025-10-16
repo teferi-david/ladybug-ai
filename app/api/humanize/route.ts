@@ -8,6 +8,8 @@ export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Humanize API called')
+    
     const { text } = await request.json()
 
     if (!text || typeof text !== 'string') {
@@ -19,6 +21,8 @@ export async function POST(request: NextRequest) {
 
     // Estimate tokens
     const tokens = estimateTokens(text)
+    
+    console.log('Processing request:', { wordCount, tokens })
 
     // Get user from auth header
     const authHeader = request.headers.get('authorization')
@@ -48,7 +52,9 @@ export async function POST(request: NextRequest) {
       }
 
       // Process the request
+      console.log('Calling humanizeText...')
       const result = await humanizeText(text)
+      console.log('humanizeText completed')
 
       // Decrement single-use credits if applicable
       if (user.current_plan === 'single-use') {
@@ -91,7 +97,9 @@ export async function POST(request: NextRequest) {
       }
 
       // Process the request
+      console.log('Calling humanizeText (free tier)...')
       const result = await humanizeText(text)
+      console.log('humanizeText completed (free tier)')
 
       // Increment usage
       await incrementDailyUsage(null, ip, 'humanizer')
