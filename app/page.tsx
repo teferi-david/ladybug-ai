@@ -46,18 +46,41 @@ export default function HomePage() {
         body: JSON.stringify({ text: input }),
       })
 
-      const data = await response.json()
-      console.log('Response:', data)
+      console.log('Response status:', response.status)
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+
+      // Check if response is ok
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      // Get response text first to handle empty responses
+      const responseText = await response.text()
+      console.log('Raw response text:', responseText)
+
+      if (!responseText) {
+        throw new Error('Server returned empty response')
+      }
+
+      // Parse JSON
+      let data
+      try {
+        data = JSON.parse(responseText)
+        console.log('Parsed response:', data)
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError)
+        throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}...`)
+      }
 
       if (data.status === 'success') {
         setHumanizerOutput(data.result)
         setFreeUsesRemaining(prev => prev - 1)
       } else {
-        alert(`❌ Error: ${data.error}`)
+        alert(`❌ Error: ${data.error || data.message || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Humanizer error:', error)
-      alert(`❌ Humanizer Error!\n\n${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(`❌ Humanizer Error!\n\n${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease check:\n1. Environment variables in Vercel\n2. OpenAI API key is valid\n3. Site has been redeployed`)
     } finally {
       setHumanizerLoading(false)
     }
@@ -291,6 +314,26 @@ export default function HomePage() {
                           : 'Free trials used up - upgrade for unlimited access!'
                         }
                       </p>
+                      <Button 
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/simple-test', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ test: 'data' }),
+                            })
+                            const data = await response.json()
+                            alert(`✅ API Test: ${data.status}\nMessage: ${data.message}`)
+                          } catch (error) {
+                            alert(`❌ API Test Failed: ${error}`)
+                          }
+                        }}
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2"
+                      >
+                        🧪 Test API
+                      </Button>
                     </div>
             <Card className="border-2 border-primary">
               <CardHeader>
