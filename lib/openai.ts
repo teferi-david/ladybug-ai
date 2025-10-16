@@ -1,49 +1,34 @@
-import OpenAI from 'openai'
+import { humanizeText as localHumanizeText } from './microHumanizer'
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error('OPENAI_API_KEY is not defined')
-}
-
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
-
+// Use local micro-humanizer instead of OpenAI
 export async function humanizeText(text: string): Promise<string> {
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a writing assistant that rewrites AI-generated text to sound more natural and human-like while preserving the original meaning and key information. Make the text flow naturally, vary sentence structure, and use conversational language where appropriate.',
-      },
-      {
-        role: 'user',
-        content: `Rewrite this text to sound more natural and human-like while keeping the meaning:\n\n${text}`,
-      },
-    ],
-    temperature: 0.7,
-  })
-
-  return completion.choices[0]?.message?.content || text
+  try {
+    const result = await localHumanizeText(text, {
+      insertAnecdote: true,
+      preferWe: false,
+      randomSeed: Date.now(), // Random seed for varied output
+    })
+    return result.humanizedText
+  } catch (error) {
+    console.error('Error in local humanizer:', error)
+    // Fallback: return original text
+    return text
+  }
 }
 
 export async function paraphraseText(text: string): Promise<string> {
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a writing assistant that paraphrases text in clear, natural English. Maintain the original meaning while using different words and sentence structures. Make the output clear and easy to understand.',
-      },
-      {
-        role: 'user',
-        content: `Paraphrase this text in clear, natural English:\n\n${text}`,
-      },
-    ],
-    temperature: 0.7,
-  })
-
-  return completion.choices[0]?.message?.content || text
+  try {
+    // Use the same humanizer with different settings for paraphrasing
+    const result = await localHumanizeText(text, {
+      insertAnecdote: false, // No anecdotes for paraphrasing
+      preferWe: false,
+      randomSeed: Date.now() + 1000, // Different seed for variation
+    })
+    return result.humanizedText
+  } catch (error) {
+    console.error('Error in local paraphraser:', error)
+    return text
+  }
 }
 
 export async function generateCitation(citationData: {
@@ -57,32 +42,102 @@ export async function generateCitation(citationData: {
 }): Promise<string> {
   const { type, author, title, year, publisher, url, accessDate } = citationData
 
-  const prompt = `Generate a properly formatted ${type.toUpperCase()} citation with the following information:
-${author ? `Author: ${author}` : ''}
-${title ? `Title: ${title}` : ''}
-${year ? `Year: ${year}` : ''}
-${publisher ? `Publisher: ${publisher}` : ''}
-${url ? `URL: ${url}` : ''}
-${accessDate ? `Access Date: ${accessDate}` : ''}
+  try {
+    if (type === 'apa') {
+      return generateAPACitation(author, title, year, publisher, url, accessDate)
+    } else {
+      return generateMLACitation(author, title, year, publisher, url, accessDate)
+    }
+  } catch (error) {
+    console.error('Error generating citation:', error)
+    return 'Error generating citation. Please check your inputs.'
+  }
+}
 
-Provide only the formatted citation, nothing else.`
+// Local APA citation generator
+function generateAPACitation(
+  author?: string,
+  title?: string,
+  year?: string,
+  publisher?: string,
+  url?: string,
+  accessDate?: string
+): string {
+  const parts: string[] = []
 
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content: `You are a citation formatting expert. Generate accurate ${type.toUpperCase()} citations following the latest style guide rules. Return only the formatted citation.`,
-      },
-      {
-        role: 'user',
-        content: prompt,
-      },
-    ],
-    temperature: 0.3,
-  })
+  // Author (Last, F. M.)
+  if (author) {
+    parts.push(`${author}.`)
+  }
 
-  return completion.choices[0]?.message?.content || 'Error generating citation'
+  // Year
+  if (year) {
+    parts.push(`(${year}).`)
+  }
+
+  // Title (italicized in actual formatting)
+  if (title) {
+    parts.push(`*${title}*.`)
+  }
+
+  // Publisher
+  if (publisher) {
+    parts.push(`${publisher}.`)
+  }
+
+  // URL and access date
+  if (url) {
+    if (accessDate) {
+      parts.push(`Retrieved ${accessDate}, from ${url}`)
+    } else {
+      parts.push(`Retrieved from ${url}`)
+    }
+  }
+
+  return parts.join(' ') || 'Incomplete citation information'
+}
+
+// Local MLA citation generator
+function generateMLACitation(
+  author?: string,
+  title?: string,
+  year?: string,
+  publisher?: string,
+  url?: string,
+  accessDate?: string
+): string {
+  const parts: string[] = []
+
+  // Author (Last, First)
+  if (author) {
+    parts.push(`${author}.`)
+  }
+
+  // Title (italicized)
+  if (title) {
+    parts.push(`*${title}*.`)
+  }
+
+  // Publisher
+  if (publisher) {
+    parts.push(`${publisher},`)
+  }
+
+  // Year
+  if (year) {
+    parts.push(`${year}.`)
+  }
+
+  // URL and access date
+  if (url) {
+    if (accessDate) {
+      parts.push(`${url}. Accessed ${accessDate}.`)
+    } else {
+      parts.push(`${url}.`)
+    }
+  }
+
+  return parts.join(' ') || 'Incomplete citation information'
 }
 
 // Estimate token count (rough approximation: 1 token ≈ 4 characters)

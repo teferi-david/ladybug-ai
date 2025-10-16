@@ -89,19 +89,13 @@ export async function POST(request: NextRequest) {
     console.error('Error in citation API:', error)
     
     // Provide helpful error messages
-    if (error?.message?.includes('OPENAI_API_KEY')) {
-      return NextResponse.json({ 
-        error: 'OpenAI API not configured. Please add OPENAI_API_KEY to environment variables.' 
-      }, { status: 500 })
-    }
-    
     if (error?.message?.includes('SUPABASE')) {
-      return NextResponse.json({ 
-        error: 'Database not configured. Please add Supabase credentials to environment variables.' 
+      return NextResponse.json({
+        error: 'Database not configured. Please add Supabase credentials to environment variables.'
       }, { status: 500 })
     }
     
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Service temporarily unavailable. Please try again or contact support.',
       details: process.env.NODE_ENV === 'development' ? error?.message : undefined
     }, { status: 500 })
