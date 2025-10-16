@@ -25,12 +25,12 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
           <DialogTitle>Upgrade Required</DialogTitle>
           <DialogDescription>
             {message ||
-              "You've used your free Ladybug AI trials for today. Upgrade for unlimited access or purchase a one-time 2,000-token session for $3.99."}
+              "You've used your free Ladybug AI trials for today. Start your 3-day trial for just $1.49 to get unlimited access to all our AI tools!"}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col sm:flex-row gap-2">
           <Link href="/pricing" className="w-full sm:w-auto">
-            <Button className="w-full">Upgrade Plan</Button>
+            <Button className="w-full">Start 3 Day Trial</Button>
           </Link>
           <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
             Close

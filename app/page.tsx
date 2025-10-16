@@ -300,7 +300,7 @@ export default function HomePage() {
                       <p className="text-lg text-gray-600">
                         {freeUsesRemaining > 0 
                           ? `You have ${freeUsesRemaining} free trial${freeUsesRemaining === 1 ? '' : 's'} remaining • 200 word limit`
-                          : 'Free trials used up - upgrade for unlimited access!'
+                          : 'Free trials used up - start your 3-day trial for unlimited access!'
                         }
                       </p>
                       <Button 
@@ -388,21 +388,27 @@ export default function HomePage() {
                     </p>
                   )}
                 </div>
-                <Button
-                  onClick={() => handleFreeTrial('humanizer', humanizerInput)}
-                  disabled={
-                    humanizerLoading || 
-                    !humanizerInput.trim() || 
-                    freeUsesRemaining <= 0 || 
-                    wordCount > (freeUsesRemaining > 0 ? 200 : 2500)
-                  }
-                  className="w-full"
-                >
-                  {humanizerLoading ? 'Processing...' : 
-                   freeUsesRemaining <= 0 ? 'Upgrade to Continue' : 
-                   wordCount > (freeUsesRemaining > 0 ? 200 : 2500) ? 'Text Too Long' :
-                   'Humanize Text'}
-                </Button>
+                        {freeUsesRemaining <= 0 ? (
+                          <Link href="/pricing" className="w-full">
+                            <Button className="w-full">
+                              Start 3 Day Trial
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Button
+                            onClick={() => handleFreeTrial('humanizer', humanizerInput)}
+                            disabled={
+                              humanizerLoading ||
+                              !humanizerInput.trim() ||
+                              wordCount > 200
+                            }
+                            className="w-full"
+                          >
+                            {humanizerLoading ? 'Processing...' :
+                             wordCount > 200 ? 'Text Too Long' :
+                             'Humanize Text'}
+                          </Button>
+                        )}
                 {humanizerLoading && <LoadingSpinner />}
                         {humanizerOutput && (
                           <div className="space-y-4">
