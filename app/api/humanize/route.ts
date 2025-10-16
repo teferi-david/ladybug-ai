@@ -92,8 +92,17 @@ export async function POST(request: NextRequest) {
 
       // Process the request
       console.log('Calling humanizeText...')
-      const result = await humanizeText(text)
-      console.log('humanizeText completed')
+      console.log('Input text:', text.substring(0, 100) + '...')
+      
+      let result
+      try {
+        result = await humanizeText(text)
+        console.log('humanizeText completed')
+        console.log('Output text:', result.substring(0, 100) + '...')
+      } catch (openaiError: any) {
+        console.error('OpenAI error:', openaiError)
+        throw new Error(`OpenAI processing failed: ${openaiError.message}`)
+      }
 
       // Decrement single-use credits if applicable
       if (user.current_plan === 'single-use') {
@@ -137,8 +146,17 @@ export async function POST(request: NextRequest) {
 
       // Process the request
       console.log('Calling humanizeText (free tier)...')
-      const result = await humanizeText(text)
-      console.log('humanizeText completed (free tier)')
+      console.log('Input text:', text.substring(0, 100) + '...')
+      
+      let result
+      try {
+        result = await humanizeText(text)
+        console.log('humanizeText completed (free tier)')
+        console.log('Output text:', result.substring(0, 100) + '...')
+      } catch (openaiError: any) {
+        console.error('OpenAI error (free tier):', openaiError)
+        throw new Error(`OpenAI processing failed: ${openaiError.message}`)
+      }
 
       // Increment usage
       await incrementDailyUsage(null, ip, 'humanizer')
