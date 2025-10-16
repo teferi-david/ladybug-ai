@@ -55,6 +55,28 @@ export default function HomePage() {
 
     try {
       setHumanizerLoading(true)
+      
+      // First, test if API is reachable
+      console.log('Testing API health...')
+      try {
+        const healthResponse = await fetch('/api/health')
+        if (!healthResponse.ok) {
+          throw new Error(`Health check failed: ${healthResponse.status}`)
+        }
+        const healthData = await healthResponse.json()
+        console.log('Health check result:', healthData)
+        
+        if (!healthData.allEnvVarsSet) {
+          alert('🔧 Configuration Issue!\n\nSome environment variables are missing in Vercel.\n\nPlease check:\n1. Go to Vercel Dashboard → Settings → Environment Variables\n2. Add all required variables\n3. Redeploy your site')
+          return
+        }
+      } catch (healthError) {
+        console.error('Health check failed:', healthError)
+        alert('🌐 API Not Available!\n\nThe API server is not responding.\n\nPossible causes:\n1. Site is still deploying\n2. API routes are not working\n3. Check Vercel deployment status')
+        return
+      }
+      
+      console.log('Calling main API...')
       const response = await fetch(`/api/${tool}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -94,7 +116,15 @@ export default function HomePage() {
       setFreeUsesRemaining(prev => prev - 1)
     } catch (error) {
       console.error('Free trial error:', error)
-      alert('⚠️ Unable to connect to API. Please ensure:\n\n1. Environment variables are set in Vercel\n2. Services are configured (see DEPLOYMENT_CHECKLIST.md)\n3. Site has been redeployed after adding env vars')
+      
+      // Provide more specific error messages
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        alert('🌐 Network Error!\n\nUnable to connect to the API server.\n\nPossible causes:\n1. Site is still deploying\n2. API routes are not working\n3. Check Vercel deployment status')
+      } else if (error instanceof Error) {
+        alert(`❌ API Error: ${error.message}\n\nPlease check:\n1. Environment variables in Vercel\n2. Site deployment status\n3. Browser console for details`)
+      } else {
+        alert('⚠️ Unknown Error!\n\nPlease check:\n1. Environment variables are set in Vercel\n2. Services are configured\n3. Site has been redeployed after adding env vars\n4. Browser console for details')
+      }
     } finally {
       setHumanizerLoading(false)
     }
