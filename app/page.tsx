@@ -39,6 +39,11 @@ export default function HomePage() {
       console.log('Making request to:', `/api/${tool}`)
       console.log('Request method: POST')
       console.log('Request body:', { text: input })
+      console.log('Request headers:', {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
+      })
       
       const response = await fetch(`/api/${tool}`, {
         method: 'POST',
@@ -377,6 +382,34 @@ export default function HomePage() {
                         <Button 
                           onClick={async () => {
                             try {
+                              const response = await fetch('/api/humanize', {
+                                method: 'POST',
+                                headers: { 
+                                  'Content-Type': 'application/json',
+                                  'Accept': 'application/json',
+                                  'Cache-Control': 'no-cache'
+                                },
+                                body: JSON.stringify({ text: 'This is a test sentence for humanization.' }),
+                              })
+                              const data = await response.json()
+                              if (data.status === 'success') {
+                                alert(`✅ Humanize API Test: ${data.status}\n\nInput: "This is a test sentence for humanization."\nOutput: "${data.result}"\n\nHumanize API is working correctly!`)
+                              } else {
+                                alert(`❌ Humanize API Test Failed: ${data.error}`)
+                              }
+                            } catch (error) {
+                              alert(`❌ Humanize API Test Error: ${error}`)
+                            }
+                          }}
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2"
+                        >
+                          🧪 Test Humanize API
+                        </Button>
+                        <Button 
+                          onClick={async () => {
+                            try {
                               const response = await fetch('/api/health', {
                                 method: 'GET',
                                 headers: { 'Content-Type': 'application/json' },
@@ -396,6 +429,39 @@ export default function HomePage() {
                           className="mt-2"
                         >
                           🏥 Health Check
+                        </Button>
+                        <Button 
+                          onClick={async () => {
+                            try {
+                              // Test GET request
+                              const getResponse = await fetch('/api/diagnostic', {
+                                method: 'GET',
+                                headers: { 'Content-Type': 'application/json' },
+                              })
+                              const getData = await getResponse.json()
+                              
+                              // Test POST request
+                              const postResponse = await fetch('/api/diagnostic', {
+                                method: 'POST',
+                                headers: { 
+                                  'Content-Type': 'application/json',
+                                  'Accept': 'application/json',
+                                  'Cache-Control': 'no-cache'
+                                },
+                                body: JSON.stringify({ test: 'POST request' }),
+                              })
+                              const postData = await postResponse.json()
+                              
+                              alert(`✅ Diagnostic Test Results:\n\nGET: ${getData.status} - ${getData.message}\nPOST: ${postData.status} - ${postData.message}\n\nBoth methods working correctly!`)
+                            } catch (error) {
+                              alert(`❌ Diagnostic Test Error: ${error}`)
+                            }
+                          }}
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2"
+                        >
+                          🔍 Diagnostic Test
                         </Button>
                       </div>
                     </div>
