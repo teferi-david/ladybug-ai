@@ -18,9 +18,33 @@ export default function HomePage() {
   const [upgradeMessage, setUpgradeMessage] = useState('')
   const [freeUsesRemaining, setFreeUsesRemaining] = useState(2)
   const [copied, setCopied] = useState(false)
+  const [wordCount, setWordCount] = useState(0)
+
+  const countWords = (text: string): number => {
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length
+  }
+
+  const handleInputChange = (value: string) => {
+    setHumanizerInput(value)
+    setWordCount(countWords(value))
+  }
 
   const handleFreeTrial = async (tool: 'humanizer' | 'paraphraser' | 'citation', input: string) => {
     if (!input.trim()) return
+
+    const words = countWords(input)
+    const maxWords = freeUsesRemaining > 0 ? 200 : 2500 // Free: 200 words, Paid: 2500 words
+
+    // Check word limit
+    if (words > maxWords) {
+      if (freeUsesRemaining > 0) {
+        setUpgradeMessage(`Free trial limited to 200 words. Your text has ${words} words. Upgrade for 2500 word limit.`)
+      } else {
+        setUpgradeMessage(`Text too long. Maximum 2500 words allowed. Your text has ${words} words.`)
+      }
+      setShowUpgradeModal(true)
+      return
+    }
 
     // Check if user has free uses remaining
     if (freeUsesRemaining <= 0) {
@@ -287,7 +311,7 @@ export default function HomePage() {
             <div className="text-center mb-6">
               <p className="text-lg text-gray-600">
                 {freeUsesRemaining > 0 
-                  ? `You have ${freeUsesRemaining} free trial${freeUsesRemaining === 1 ? '' : 's'} remaining`
+                  ? `You have ${freeUsesRemaining} free trial${freeUsesRemaining === 1 ? '' : 's'} remaining • 200 word limit`
                   : 'Free trials used up - upgrade for unlimited access!'
                 }
               </p>
@@ -301,22 +325,44 @@ export default function HomePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Input Text</label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium">Input Text</label>
+                    <span className="text-sm text-gray-500">
+                      {wordCount} / {freeUsesRemaining > 0 ? '200' : '2500'} words
+                      {wordCount > (freeUsesRemaining > 0 ? 200 : 2500) && (
+                        <span className="text-red-500 ml-1">(over limit)</span>
+                      )}
+                    </span>
+                  </div>
                   <Textarea
                     placeholder="Paste your AI-generated text here..."
                     className="min-h-[120px]"
                     value={humanizerInput}
-                    onChange={(e) => setHumanizerInput(e.target.value)}
+                    onChange={(e) => handleInputChange(e.target.value)}
                     disabled={freeUsesRemaining <= 0}
                   />
+                  {wordCount > (freeUsesRemaining > 0 ? 200 : 2500) && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {freeUsesRemaining > 0 
+                        ? 'Free trial limited to 200 words. Upgrade for 2500 word limit.'
+                        : 'Text exceeds 2500 word limit.'
+                      }
+                    </p>
+                  )}
                 </div>
                 <Button
                   onClick={() => handleFreeTrial('humanizer', humanizerInput)}
-                  disabled={humanizerLoading || !humanizerInput.trim() || freeUsesRemaining <= 0}
+                  disabled={
+                    humanizerLoading || 
+                    !humanizerInput.trim() || 
+                    freeUsesRemaining <= 0 || 
+                    wordCount > (freeUsesRemaining > 0 ? 200 : 2500)
+                  }
                   className="w-full"
                 >
                   {humanizerLoading ? 'Processing...' : 
                    freeUsesRemaining <= 0 ? 'Upgrade to Continue' : 
+                   wordCount > (freeUsesRemaining > 0 ? 200 : 2500) ? 'Text Too Long' :
                    'Humanize Text'}
                 </Button>
                 {humanizerLoading && <LoadingSpinner />}

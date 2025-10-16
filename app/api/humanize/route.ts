@@ -14,6 +14,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 })
     }
 
+    // Count words
+    const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length
+
     // Estimate tokens
     const tokens = estimateTokens(text)
 
@@ -36,6 +39,14 @@ export async function POST(request: NextRequest) {
         }, { status: 403 })
       }
 
+      // Check word limit for logged-in users (2500 words max)
+      if (wordCount > 2500) {
+        return NextResponse.json({
+          error: 'Word limit exceeded',
+          message: 'Maximum 2500 words allowed per request. Your text has ' + wordCount + ' words.',
+        }, { status: 400 })
+      }
+
       // Process the request
       const result = await humanizeText(text)
 
@@ -56,6 +67,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ result, tokensUsed: tokens })
     } else {
       // User not logged in - check free tier limits
+      if (wordCount > 200) {
+        return NextResponse.json({
+          error: 'Word limit exceeded',
+          message: 'Free tier limited to 200 words per request. Your text has ' + wordCount + ' words. Please sign up for 2500 word limit.',
+        }, { status: 403 })
+      }
+
       if (tokens > 500) {
         return NextResponse.json({
           error: 'Token limit exceeded',
