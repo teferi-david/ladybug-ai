@@ -8,10 +8,12 @@ export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('Creating checkout session...')
+    console.log('=== CHECKOUT SESSION CREATION START ===')
+    console.log('Timestamp:', new Date().toISOString())
     
     const { planType } = await request.json()
-    console.log('Plan type:', planType)
+    console.log('Plan type received:', planType)
+    console.log('Request headers:', Object.fromEntries(request.headers.entries()))
 
     if (!planType || !['trial', 'monthly', 'annual', 'singleUse'].includes(planType)) {
       console.error('Invalid plan type:', planType)
