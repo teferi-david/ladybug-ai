@@ -77,10 +77,24 @@ export default function HomePage() {
       }
       
       console.log('Calling main API...')
+      const requestBody = tool === 'citation' ? input : { text: input }
+      console.log('Request details:', {
+        url: `/api/${tool}`,
+        method: 'POST',
+        body: requestBody
+      })
+      
       const response = await fetch(`/api/${tool}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tool === 'citation' ? input : { text: input }),
+        body: JSON.stringify(requestBody),
+      })
+      
+      console.log('Response details:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        headers: Object.fromEntries(response.headers.entries())
       })
 
       // Check if response is ok and has content
@@ -126,6 +140,9 @@ export default function HomePage() {
         } else {
           alert(`⚠️ Service Error: ${data.error || 'Server configuration issue'}\n\nPlease check:\n1. Environment variables in Vercel\n2. Site has been redeployed\n3. Browser console for details`)
         }
+        return
+      } else if (response.status === 405) {
+        alert('🚫 Method Not Allowed!\n\nThe API endpoint only accepts POST requests, but a GET request was made.\n\nThis might be a browser caching issue. Please:\n1. Hard refresh the page (Ctrl+F5 or Cmd+Shift+R)\n2. Clear browser cache\n3. Try again')
         return
       } else if (!response.ok) {
         console.error('API Error:', response.status, data)

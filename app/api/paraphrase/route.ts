@@ -6,6 +6,17 @@ import { supabaseAdmin } from '@/lib/supabase/server'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+// Handle GET requests for debugging
+export async function GET(request: NextRequest) {
+  return NextResponse.json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST requests',
+    method: 'GET',
+    expected: 'POST',
+    endpoint: '/api/paraphrase'
+  }, { status: 405 })
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { text } = await request.json()
