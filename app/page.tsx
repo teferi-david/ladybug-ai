@@ -20,6 +20,7 @@ export default function HomePage() {
   const [copied, setCopied] = useState(false)
   const [wordCount, setWordCount] = useState(0)
   const [testResult, setTestResult] = useState('')
+  const [deploymentStatus, setDeploymentStatus] = useState('')
 
   const countWords = (text: string): number => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length
@@ -28,6 +29,30 @@ export default function HomePage() {
   const handleInputChange = (value: string) => {
     setHumanizerInput(value)
     setWordCount(countWords(value))
+  }
+
+  const checkDeployment = async () => {
+    try {
+      console.log('Checking deployment status...')
+      setDeploymentStatus('Checking...')
+      
+      const response = await fetch('/api/deployment-check', {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        },
+        cache: 'no-store'
+      })
+      
+      const data = await response.json()
+      console.log('Deployment check result:', data)
+      
+      setDeploymentStatus(`✅ Deployment Status: ${data.status}\nVersion: ${data.deployment.version}\nTimestamp: ${data.deployment.timestamp}\nEnvironment: ${data.deployment.nodeEnv}\nRegion: ${data.deployment.region}`)
+    } catch (error: any) {
+      console.error('Deployment check failed:', error)
+      setDeploymentStatus(`❌ Deployment Check Failed!\nError: ${error.message}\n\nThis might indicate the latest code hasn't been deployed yet.`)
+    }
   }
 
   const testAPIConnection = async () => {
@@ -122,10 +147,26 @@ export default function HomePage() {
       console.log('Request method: POST')
       console.log('Request body:', tool === 'citation' ? input : { text: input })
       
-      const response = await fetch(`/api/${tool}`, {
+      // Add cache busting and detailed logging
+      const timestamp = Date.now()
+      const cacheBustUrl = `/api/${tool}?t=${timestamp}&v=${Math.random()}`
+      
+      console.log('Making request to:', cacheBustUrl)
+      console.log('Request method: POST')
+      console.log('Request body:', tool === 'citation' ? input : { text: input })
+      console.log('Timestamp:', timestamp)
+      
+      const response = await fetch(cacheBustUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'X-Request-ID': `req-${timestamp}`,
+          'X-Cache-Bust': 'true'
+        },
         body: JSON.stringify(tool === 'citation' ? input : { text: input }),
+        cache: 'no-store'
       })
 
       console.log('Response status:', response.status)
@@ -415,7 +456,7 @@ export default function HomePage() {
                           : 'Free trials used up - upgrade for unlimited access!'
                         }
                       </p>
-                      <div className="flex gap-2 justify-center">
+                      <div className="flex gap-2 justify-center flex-wrap">
                         <Button 
                           onClick={testAPIConnection}
                           variant="outline" 
@@ -423,6 +464,14 @@ export default function HomePage() {
                           className="mt-2"
                         >
                           🔧 Test API Connection
+                        </Button>
+                        <Button 
+                          onClick={checkDeployment}
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2"
+                        >
+                          🚀 Check Deployment
                         </Button>
                         <Button 
                           onClick={() => handleFreeTrial('humanizer', 'test text')}
@@ -436,6 +485,11 @@ export default function HomePage() {
                       {testResult && (
                         <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left">
                           <pre className="text-sm whitespace-pre-wrap">{testResult}</pre>
+                        </div>
+                      )}
+                      {deploymentStatus && (
+                        <div className="mt-4 p-4 bg-blue-50 rounded-lg text-left">
+                          <pre className="text-sm whitespace-pre-wrap">{deploymentStatus}</pre>
                         </div>
                       )}
                     </div>

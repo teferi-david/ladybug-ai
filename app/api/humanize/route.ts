@@ -54,6 +54,9 @@ export async function POST(request: NextRequest) {
     console.log('Request URL:', request.url)
     console.log('Request method:', request.method)
     console.log('Request headers:', Object.fromEntries(request.headers.entries()))
+    console.log('Cache busting params:', request.nextUrl.searchParams.toString())
+    console.log('Request ID:', request.headers.get('X-Request-ID'))
+    console.log('Cache bust header:', request.headers.get('X-Cache-Bust'))
     
     // Explicitly check method
     if (request.method !== 'POST') {
@@ -174,7 +177,10 @@ export async function POST(request: NextRequest) {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
-          'Expires': '0'
+          'Expires': '0',
+          'X-Cache-Status': 'BYPASS',
+          'X-Response-Time': new Date().toISOString(),
+          'X-API-Version': '1.0.0-fixed-405'
         }
       })
     } else {
@@ -227,7 +233,10 @@ export async function POST(request: NextRequest) {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
-          'Expires': '0'
+          'Expires': '0',
+          'X-Cache-Status': 'BYPASS',
+          'X-Response-Time': new Date().toISOString(),
+          'X-API-Version': '1.0.0-fixed-405'
         }
       })
     }
