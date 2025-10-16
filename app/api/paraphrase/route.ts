@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Processing text:', text.substring(0, 100) + '...')
     
-    // Call OpenAI to paraphrase the text
+    // Call custom NLP to paraphrase the text
     const result = await paraphraseText(text)
     
     console.log('Paraphrasing completed')

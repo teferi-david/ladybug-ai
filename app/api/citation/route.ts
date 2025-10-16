@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Processing citation data:', text.substring(0, 100) + '...')
     
-    // Call OpenAI to generate citation
+    // Call custom NLP to generate citation
     const result = await generateCitation(JSON.parse(text))
     
     console.log('Citation generation completed')

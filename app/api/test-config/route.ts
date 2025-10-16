@@ -12,14 +12,14 @@ export async function GET() {
       supabase_url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       supabase_anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       supabase_service: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      openai_key: !!process.env.OPENAI_API_KEY,
+      nlp_system: true, // Custom NLP system is always available
       stripe_secret: !!process.env.STRIPE_SECRET_KEY,
       stripe_publishable: !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
       app_url: !!process.env.NEXT_PUBLIC_APP_URL,
     },
     details: {
       supabase_url_prefix: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 20) || 'NOT SET',
-      openai_key_prefix: process.env.OPENAI_API_KEY?.substring(0, 15) || 'NOT SET',
+      nlp_system_status: 'Custom NLP system active',
       app_url: process.env.NEXT_PUBLIC_APP_URL || 'NOT SET',
       node_version: process.version,
     },
@@ -31,7 +31,7 @@ export async function GET() {
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     'SUPABASE_SERVICE_ROLE_KEY',
-    'OPENAI_API_KEY',
+    // 'OPENAI_API_KEY', // No longer needed - using custom NLP
     'STRIPE_SECRET_KEY',
     'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
   ]

@@ -33,18 +33,18 @@ export async function POST(request: NextRequest) {
 
     console.log('Processing text:', text.substring(0, 100) + '...')
     
-    // Call OpenAI to humanize the text with error handling
+    // Call custom NLP to humanize the text with error handling
     let result
     try {
       result = await humanizeText(text)
       console.log('Humanization completed')
-    } catch (openaiError: any) {
-      console.error('OpenAI error:', openaiError)
+    } catch (nlpError: any) {
+      console.error('Custom NLP error:', nlpError)
       return NextResponse.json({
         status: 'error',
-        error: 'OpenAI processing failed',
-        message: openaiError.message || 'Failed to process text with OpenAI',
-        details: process.env.NODE_ENV === 'development' ? openaiError.message : undefined
+        error: 'Custom NLP processing failed',
+        message: nlpError.message || 'Failed to process text with custom NLP',
+        details: process.env.NODE_ENV === 'development' ? nlpError.message : undefined
       }, { status: 500 })
     }
     

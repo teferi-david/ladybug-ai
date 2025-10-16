@@ -80,7 +80,7 @@ export default function HomePage() {
       }
     } catch (error) {
       console.error('Humanizer error:', error)
-      alert(`❌ Humanizer Error!\n\n${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease check:\n1. Environment variables in Vercel\n2. OpenAI API key is valid\n3. Site has been redeployed`)
+      alert(`❌ Humanizer Error!\n\n${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease check:\n1. Custom NLP system is working\n2. Site has been redeployed\n3. Try the "🤖 Test NLP" button first`)
     } finally {
       setHumanizerLoading(false)
     }
