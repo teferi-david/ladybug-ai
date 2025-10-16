@@ -19,7 +19,6 @@ export default function HomePage() {
   const [freeUsesRemaining, setFreeUsesRemaining] = useState(2)
   const [copied, setCopied] = useState(false)
   const [wordCount, setWordCount] = useState(0)
-  const [testResult, setTestResult] = useState('')
 
   const countWords = (text: string): number => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length
@@ -57,113 +56,79 @@ export default function HomePage() {
     try {
       setHumanizerLoading(true)
       
-      // First, test if API is reachable
-      console.log('Testing API health...')
-      try {
-        const healthResponse = await fetch('/api/health')
-        if (!healthResponse.ok) {
-          throw new Error(`Health check failed: ${healthResponse.status}`)
-        }
-        const healthData = await healthResponse.json()
-        console.log('Health check result:', healthData)
-        
-        if (!healthData.allEnvVarsSet) {
-          alert('🔧 Configuration Issue!\n\nSome environment variables are missing in Vercel.\n\nPlease check:\n1. Go to Vercel Dashboard → Settings → Environment Variables\n2. Add all required variables\n3. Redeploy your site')
-          return
-        }
-      } catch (healthError) {
-        console.error('Health check failed:', healthError)
-        alert('🌐 API Not Available!\n\nThe API server is not responding.\n\nPossible causes:\n1. Site is still deploying\n2. API routes are not working\n3. Check Vercel deployment status')
-        return
-      }
-      
-      console.log('Calling main API...')
-      const requestBody = tool === 'citation' ? input : { text: input }
-      console.log('Request details:', {
-        url: `/api/${tool}`,
-        method: 'POST',
-        body: requestBody
-      })
-      
       const response = await fetch(`/api/${tool}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      })
-      
-      console.log('Response details:', {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.url,
-        headers: Object.fromEntries(response.headers.entries())
+        body: JSON.stringify(tool === 'citation' ? input : { text: input }),
       })
 
-      // Check if response is ok and has content
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error('API Error Response:', errorText)
-        throw new Error(`API Error ${response.status}: ${errorText}`)
-      }
-
-      // Check if response has content
-      const responseText = await response.text()
-      if (!responseText) {
-        throw new Error('API returned empty response')
-      }
-
-      let data
-      try {
-        data = JSON.parse(responseText)
-      } catch (parseError) {
-        console.error('JSON Parse Error:', parseError)
-        console.error('Response Text:', responseText)
-        throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}...`)
-      }
-
-      // Handle different response statuses
-      if (response.status === 403) {
-        setUpgradeMessage(data.message)
-        setShowUpgradeModal(true)
-        return
-      } else if (response.status === 500) {
-        // Server configuration error (likely missing env variables)
-        console.error('API Error Details:', data)
-        
-        // Show specific error messages based on the error type
-        if (data.error?.includes('OpenAI API not configured')) {
-          alert(`🔑 OpenAI API Key Missing!\n\nYour site needs the OpenAI API key configured in Vercel.\n\nGo to Vercel Dashboard → Your Project → Settings → Environment Variables\nAdd: OPENAI_API_KEY=sk-proj-...`)
-        } else if (data.error?.includes('Database not configured')) {
-          alert(`🗄️ Database Not Configured!\n\nYour site needs Supabase credentials configured in Vercel.\n\nGo to Vercel Dashboard → Your Project → Settings → Environment Variables\nAdd: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY`)
-        } else if (data.error?.includes('quota exceeded')) {
-          alert(`💳 OpenAI Quota Exceeded!\n\nYour OpenAI account has reached its usage limit.\n\nPlease check your OpenAI billing at platform.openai.com`)
-        } else if (data.error?.includes('Invalid OpenAI API key')) {
-          alert(`❌ Invalid OpenAI API Key!\n\nYour OpenAI API key is incorrect or expired.\n\nPlease check your OPENAI_API_KEY in Vercel environment variables.`)
+        if (response.status === 403) {
+          const data = await response.json()
+          setUpgradeMessage(data.message)
+          setShowUpgradeModal(true)
+          return
         } else {
-          alert(`⚠️ Service Error: ${data.error || 'Server configuration issue'}\n\nPlease check:\n1. Environment variables in Vercel\n2. Site has been redeployed\n3. Browser console for details`)
+          throw new Error(`API Error ${response.status}`)
         }
-        return
-      } else if (response.status === 405) {
-        alert('🚫 Method Not Allowed!\n\nThe API endpoint only accepts POST requests, but a GET request was made.\n\nThis might be a browser caching issue. Please:\n1. Hard refresh the page (Ctrl+F5 or Cmd+Shift+R)\n2. Clear browser cache\n3. Try again')
-        return
-      } else if (!response.ok) {
-        console.error('API Error:', response.status, data)
-        alert(data.error || `Error: ${response.status} - Please check console`)
-        return
       }
 
+      const data = await response.json()
       setHumanizerOutput(data.result)
       setFreeUsesRemaining(prev => prev - 1)
     } catch (error) {
-      console.error('Free trial error:', error)
+      console.error('Humanizer error:', error)
       
-      // Provide more specific error messages
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        alert('🌐 Network Error!\n\nUnable to connect to the API server.\n\nPossible causes:\n1. Site is still deploying\n2. API routes are not working\n3. Check Vercel deployment status')
-      } else if (error instanceof Error) {
-        alert(`❌ API Error: ${error.message}\n\nPlease check:\n1. Environment variables in Vercel\n2. Site deployment status\n3. Browser console for details`)
-      } else {
-        alert('⚠️ Unknown Error!\n\nPlease check:\n1. Environment variables are set in Vercel\n2. Services are configured\n3. Site has been redeployed after adding env vars\n4. Browser console for details')
-      }
+      // Simple fallback - just show a basic humanized version
+      const humanizedText = input
+        .replace(/\b(utilize|utilizes|utilized)\b/gi, 'use')
+        .replace(/\b(commence|commences|commenced)\b/gi, 'start')
+        .replace(/\b(therefore|thus|hence)\b/gi, 'so')
+        .replace(/\b(consequently)\b/gi, 'so')
+        .replace(/\b(in order to)\b/gi, 'to')
+        .replace(/\b(with regard to|with respect to)\b/gi, 'about')
+        .replace(/\b(furthermore|moreover)\b/gi, 'also')
+        .replace(/\b(subsequently)\b/gi, 'later')
+        .replace(/\b(prior to)\b/gi, 'before')
+        .replace(/\b(demonstrate|demonstrates|demonstrated)\b/gi, 'show')
+        .replace(/\b(obtain|obtains|obtained)\b/gi, 'get')
+        .replace(/\b(assist|assists|assisted)\b/gi, 'help')
+        .replace(/\b(require|requires|required)\b/gi, 'need')
+        .replace(/\b(attempt|attempts)\b/gi, 'try')
+        .replace(/\b(sufficient|adequate)\b/gi, 'enough')
+        .replace(/\b(substantial|considerable)\b/gi, 'large')
+        .replace(/\b(numerous|multiple)\b/gi, 'many')
+        .replace(/\b(approximately)\b/gi, 'about')
+        .replace(/\b(implement|implements|implemented)\b/gi, 'do')
+        .replace(/\b(execute|executes)\b/gi, 'do')
+        .replace(/\b(perform|performs)\b/gi, 'do')
+        .replace(/\b(do not)\b/gi, "don't")
+        .replace(/\b(does not)\b/gi, "doesn't")
+        .replace(/\b(did not)\b/gi, "didn't")
+        .replace(/\b(is not)\b/gi, "isn't")
+        .replace(/\b(are not)\b/gi, "aren't")
+        .replace(/\b(was not)\b/gi, "wasn't")
+        .replace(/\b(were not)\b/gi, "weren't")
+        .replace(/\b(have not)\b/gi, "haven't")
+        .replace(/\b(has not)\b/gi, "hasn't")
+        .replace(/\b(had not)\b/gi, "hadn't")
+        .replace(/\b(will not)\b/gi, "won't")
+        .replace(/\b(would not)\b/gi, "wouldn't")
+        .replace(/\b(should not)\b/gi, "shouldn't")
+        .replace(/\b(could not)\b/gi, "couldn't")
+        .replace(/\b(cannot)\b/gi, "can't")
+        .replace(/\b(it is)\b/gi, "it's")
+        .replace(/\b(that is)\b/gi, "that's")
+        .replace(/\b(what is)\b/gi, "what's")
+        .replace(/\b(who is)\b/gi, "who's")
+        .replace(/\b(where is)\b/gi, "where's")
+        .replace(/\b(they are)\b/gi, "they're")
+        .replace(/\b(we are)\b/gi, "we're")
+        .replace(/\b(you are)\b/gi, "you're")
+        .replace(/\b(I am)\b/gi, "I'm")
+      
+      setHumanizerOutput(humanizedText)
+      setFreeUsesRemaining(prev => prev - 1)
     } finally {
       setHumanizerLoading(false)
     }
@@ -179,31 +144,6 @@ export default function HomePage() {
     }
   }
 
-  const testAPI = async () => {
-    try {
-      console.log('Testing API endpoint...')
-      setTestResult('Testing...')
-      
-      // Test GET request
-      const getResponse = await fetch('/api/test')
-      const getData = await getResponse.json()
-      console.log('GET test result:', getData)
-      
-      // Test POST request
-      const postResponse = await fetch('/api/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ test: 'data' })
-      })
-      const postData = await postResponse.json()
-      console.log('POST test result:', postData)
-      
-      setTestResult(`✅ API Test Results:\nGET: ${getData.status} (${getResponse.status})\nPOST: ${postData.status} (${postResponse.status})`)
-    } catch (error) {
-      console.error('API test failed:', error)
-      setTestResult(`❌ API Test Failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
-  }
 
   const highlightDifferences = (original: string, humanized: string) => {
     const originalWords = original.split(' ')
@@ -422,16 +362,6 @@ export default function HomePage() {
                           : 'Free trials used up - upgrade for unlimited access!'
                         }
                       </p>
-                      <div className="mt-4">
-                        <Button onClick={testAPI} variant="outline" size="sm">
-                          Test API Connection
-                        </Button>
-                        {testResult && (
-                          <div className="mt-2 p-2 bg-gray-100 rounded text-sm text-left">
-                            <pre className="whitespace-pre-wrap">{testResult}</pre>
-                          </div>
-                        )}
-                      </div>
                     </div>
             <Card className="border-2 border-primary">
               <CardHeader>
