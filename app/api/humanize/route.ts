@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { humanizeText } from '@/lib/custom-ai'
+import { humanizeText } from '@/lib/openai'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'

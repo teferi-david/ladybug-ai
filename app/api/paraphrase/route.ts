@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { paraphraseText } from '@/lib/custom-ai'
+import { paraphraseText } from '@/lib/openai'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'

@@ -36,63 +36,32 @@ export default function HomePage() {
     try {
       setHumanizerLoading(true)
       
-      console.log('Making request to:', `/api/${tool}`)
-      console.log('Request method: POST')
-      console.log('Request body:', { text: input })
-      console.log('Request headers:', {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache'
-      })
+      console.log('Processing text with OpenAI...')
       
       const response = await fetch(`/api/${tool}`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache'
+          'Accept': 'application/json'
         },
         body: JSON.stringify({ text: input }),
       })
 
-      console.log('Response status:', response.status)
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
-
-      // Check if response is ok
       if (!response.ok) {
-        if (response.status === 405) {
-          throw new Error(`HTTP 405: Method Not Allowed - Please ensure you're using POST requests`)
-        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
 
-      // Get response text first to handle empty responses
-      const responseText = await response.text()
-      console.log('Raw response text:', responseText)
-
-      if (!responseText) {
-        throw new Error('Server returned empty response')
-      }
-
-      // Parse JSON
-      let data
-      try {
-        data = JSON.parse(responseText)
-        console.log('Parsed response:', data)
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError)
-        throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}...`)
-      }
+      const data = await response.json()
 
       if (data.status === 'success') {
         setHumanizerOutput(data.result)
         setFreeUsesRemaining(prev => prev - 1)
       } else {
-        alert(`❌ Error: ${data.error || data.message || 'Unknown error'}`)
+        alert(`❌ Error: ${data.error || 'Unknown error'}`)
       }
     } catch (error) {
-      console.error('Humanizer error:', error)
-      alert(`❌ Humanizer Error!\n\n${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease check:\n1. Custom NLP system is working\n2. Site has been redeployed\n3. Try the "🤖 Test NLP" button first`)
+      console.error('Error:', error)
+      alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setHumanizerLoading(false)
     }
@@ -326,144 +295,6 @@ export default function HomePage() {
                           : 'Free trials used up - upgrade for unlimited access!'
                         }
                       </p>
-                      <div className="flex gap-2 justify-center flex-wrap">
-                        <Button 
-                          onClick={async () => {
-                            try {
-                            const response = await fetch('/api/simple-test', {
-                              method: 'POST',
-                              headers: { 
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'Cache-Control': 'no-cache'
-                              },
-                              body: JSON.stringify({ test: 'data' }),
-                            })
-                              const data = await response.json()
-                              alert(`✅ API Test: ${data.status}\nMessage: ${data.message}`)
-                            } catch (error) {
-                              alert(`❌ API Test Failed: ${error}`)
-                            }
-                          }}
-                          variant="outline" 
-                          size="sm" 
-                          className="mt-2"
-                        >
-                          🧪 Test API
-                        </Button>
-                        <Button 
-                          onClick={async () => {
-                            try {
-                              const response = await fetch('/api/test-nlp', {
-                                method: 'POST',
-                                headers: { 
-                                  'Content-Type': 'application/json',
-                                  'Accept': 'application/json',
-                                  'Cache-Control': 'no-cache'
-                                },
-                                body: JSON.stringify({ testType: 'all' }),
-                              })
-                              const data = await response.json()
-                              if (data.status === 'success') {
-                                alert(`✅ NLP System Test: ${data.status}\n\nHumanization: ${data.result.humanization.success ? '✅' : '❌'}\nParaphrasing: ${data.result.paraphrasing.success ? '✅' : '❌'}\nCitation: ${data.result.citation.success ? '✅' : '❌'}\n\nOverall: ${data.result.overall ? '✅ All Tests Passed' : '❌ Some Tests Failed'}`)
-                              } else {
-                                alert(`❌ NLP Test Failed: ${data.error}`)
-                              }
-                            } catch (error) {
-                              alert(`❌ NLP Test Error: ${error}`)
-                            }
-                          }}
-                          variant="outline" 
-                          size="sm" 
-                          className="mt-2"
-                        >
-                          🤖 Test NLP
-                        </Button>
-                        <Button 
-                          onClick={async () => {
-                            try {
-                              const response = await fetch('/api/humanize', {
-                                method: 'POST',
-                                headers: { 
-                                  'Content-Type': 'application/json',
-                                  'Accept': 'application/json',
-                                  'Cache-Control': 'no-cache'
-                                },
-                                body: JSON.stringify({ text: 'This is a test sentence for humanization.' }),
-                              })
-                              const data = await response.json()
-                              if (data.status === 'success') {
-                                alert(`✅ Humanize API Test: ${data.status}\n\nInput: "This is a test sentence for humanization."\nOutput: "${data.result}"\n\nHumanize API is working correctly!`)
-                              } else {
-                                alert(`❌ Humanize API Test Failed: ${data.error}`)
-                              }
-                            } catch (error) {
-                              alert(`❌ Humanize API Test Error: ${error}`)
-                            }
-                          }}
-                          variant="outline" 
-                          size="sm" 
-                          className="mt-2"
-                        >
-                          🧪 Test Humanize API
-                        </Button>
-                        <Button 
-                          onClick={async () => {
-                            try {
-                              const response = await fetch('/api/health', {
-                                method: 'GET',
-                                headers: { 'Content-Type': 'application/json' },
-                              })
-                              const data = await response.json()
-                              if (data.status === 'success') {
-                                alert(`✅ API Health Check: ${data.status}\n\nMessage: ${data.message}\nServices: ${JSON.stringify(data.services, null, 2)}`)
-                              } else {
-                                alert(`❌ Health Check Failed: ${data.error}`)
-                              }
-                            } catch (error) {
-                              alert(`❌ Health Check Error: ${error}`)
-                            }
-                          }}
-                          variant="outline" 
-                          size="sm" 
-                          className="mt-2"
-                        >
-                          🏥 Health Check
-                        </Button>
-                        <Button 
-                          onClick={async () => {
-                            try {
-                              // Test GET request
-                              const getResponse = await fetch('/api/diagnostic', {
-                                method: 'GET',
-                                headers: { 'Content-Type': 'application/json' },
-                              })
-                              const getData = await getResponse.json()
-                              
-                              // Test POST request
-                              const postResponse = await fetch('/api/diagnostic', {
-                                method: 'POST',
-                                headers: { 
-                                  'Content-Type': 'application/json',
-                                  'Accept': 'application/json',
-                                  'Cache-Control': 'no-cache'
-                                },
-                                body: JSON.stringify({ test: 'POST request' }),
-                              })
-                              const postData = await postResponse.json()
-                              
-                              alert(`✅ Diagnostic Test Results:\n\nGET: ${getData.status} - ${getData.message}\nPOST: ${postData.status} - ${postData.message}\n\nBoth methods working correctly!`)
-                            } catch (error) {
-                              alert(`❌ Diagnostic Test Error: ${error}`)
-                            }
-                          }}
-                          variant="outline" 
-                          size="sm" 
-                          className="mt-2"
-                        >
-                          🔍 Diagnostic Test
-                        </Button>
-                      </div>
                     </div>
             <Card className="border-2 border-primary">
               <CardHeader>
