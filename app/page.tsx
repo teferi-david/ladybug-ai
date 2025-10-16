@@ -35,16 +35,16 @@ export default function HomePage() {
       console.log('Testing API connection...')
       setTestResult('Testing...')
       
-      // Test GET request
+      // Test basic API
       const getResponse = await fetch('/api/test', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       })
       
       const getData = await getResponse.json()
-      console.log('GET test result:', getData)
+      console.log('Basic API GET result:', getData)
       
-      // Test POST request
+      // Test basic API POST
       const postResponse = await fetch('/api/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -52,9 +52,39 @@ export default function HomePage() {
       })
       
       const postData = await postResponse.json()
-      console.log('POST test result:', postData)
+      console.log('Basic API POST result:', postData)
       
-      setTestResult(`✅ API Working!\nGET: ${getResponse.status}\nPOST: ${postResponse.status}\n\nGET Response: ${JSON.stringify(getData, null, 2)}\n\nPOST Response: ${JSON.stringify(postData, null, 2)}`)
+      // Test humanize-specific endpoint
+      const humanizeGetResponse = await fetch('/api/humanize-test', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      
+      const humanizeGetData = await humanizeGetResponse.json()
+      console.log('Humanize API GET result:', humanizeGetData)
+      
+      // Test humanize-specific POST
+      const humanizePostResponse = await fetch('/api/humanize-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: 'test humanize request' })
+      })
+      
+      const humanizePostData = await humanizePostResponse.json()
+      console.log('Humanize API POST result:', humanizePostData)
+      
+      // Test actual humanize endpoint
+      const actualHumanizeResponse = await fetch('/api/humanize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: 'test' })
+      })
+      
+      console.log('Actual humanize response status:', actualHumanizeResponse.status)
+      const actualHumanizeData = await actualHumanizeResponse.json()
+      console.log('Actual humanize response:', actualHumanizeData)
+      
+      setTestResult(`✅ API Tests Complete!\n\nBasic API:\nGET: ${getResponse.status}\nPOST: ${postResponse.status}\n\nHumanize Test API:\nGET: ${humanizeGetResponse.status}\nPOST: ${humanizePostResponse.status}\n\nActual Humanize API:\nStatus: ${actualHumanizeResponse.status}\nResponse: ${JSON.stringify(actualHumanizeData, null, 2)}`)
     } catch (error: any) {
       console.error('API test failed:', error)
       setTestResult(`❌ API Test Failed!\nError: ${error.message}\n\nThis means the API routes are not working properly.`)
@@ -88,11 +118,18 @@ export default function HomePage() {
     try {
       setHumanizerLoading(true)
       
+      console.log('Making request to:', `/api/${tool}`)
+      console.log('Request method: POST')
+      console.log('Request body:', tool === 'citation' ? input : { text: input })
+      
       const response = await fetch(`/api/${tool}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(tool === 'citation' ? input : { text: input }),
       })
+
+      console.log('Response status:', response.status)
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
 
       if (!response.ok) {
         if (response.status === 403) {
@@ -100,12 +137,20 @@ export default function HomePage() {
           setUpgradeMessage(data.message)
           setShowUpgradeModal(true)
           return
+        } else if (response.status === 405) {
+          const data = await response.json()
+          console.error('405 Error details:', data)
+          alert(`🚫 Method Not Allowed (405)!\n\nDetails: ${JSON.stringify(data, null, 2)}\n\nThis suggests a routing or caching issue. Please:\n1. Hard refresh the page (Ctrl+F5 or Cmd+Shift+R)\n2. Clear browser cache\n3. Try again`)
+          return
         } else {
-          throw new Error(`API Error ${response.status}`)
+          const errorText = await response.text()
+          console.error('API Error Response:', errorText)
+          throw new Error(`API Error ${response.status}: ${errorText}`)
         }
       }
 
       const data = await response.json()
+      console.log('Success response:', data)
       setHumanizerOutput(data.result)
       setFreeUsesRemaining(prev => prev - 1)
     } catch (error) {
@@ -346,14 +391,24 @@ export default function HomePage() {
                           : 'Free trials used up - upgrade for unlimited access!'
                         }
                       </p>
-                      <Button 
-                        onClick={testAPIConnection}
-                        variant="outline" 
-                        size="sm" 
-                        className="mt-2"
-                      >
-                        🔧 Test API Connection
-                      </Button>
+                      <div className="flex gap-2 justify-center">
+                        <Button 
+                          onClick={testAPIConnection}
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2"
+                        >
+                          🔧 Test API Connection
+                        </Button>
+                        <Button 
+                          onClick={() => handleFreeTrial('humanizer', 'test text')}
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2"
+                        >
+                          🧪 Test Humanizer Directly
+                        </Button>
+                      </div>
                       {testResult && (
                         <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left">
                           <pre className="text-sm whitespace-pre-wrap">{testResult}</pre>

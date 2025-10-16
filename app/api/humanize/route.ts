@@ -55,6 +55,25 @@ export async function POST(request: NextRequest) {
     console.log('Request method:', request.method)
     console.log('Request headers:', Object.fromEntries(request.headers.entries()))
     
+    // Explicitly check method
+    if (request.method !== 'POST') {
+      console.log('Method mismatch detected:', request.method)
+      return NextResponse.json({
+        error: 'Method not allowed',
+        message: `Expected POST, received ${request.method}`,
+        receivedMethod: request.method,
+        expectedMethod: 'POST'
+      }, { 
+        status: 405,
+        headers: {
+          'Allow': 'POST',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+    }
+    
     const { text } = await request.json()
 
     if (!text || typeof text !== 'string') {
@@ -124,7 +143,13 @@ export async function POST(request: NextRequest) {
         tokens_used: tokens,
       })
 
-      return NextResponse.json({ result, tokensUsed: tokens })
+      return NextResponse.json({ result, tokensUsed: tokens }, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
     } else {
       // User not logged in - check free tier limits
       if (wordCount > 200) {
@@ -171,6 +196,12 @@ export async function POST(request: NextRequest) {
         result,
         tokensUsed: tokens,
         usesRemaining: usesRemaining - 1,
+      }, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       })
     }
   } catch (error: any) {
@@ -206,7 +237,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         error: 'Service temporarily unavailable. Please try again or contact support.',
         details: process.env.NODE_ENV === 'development' ? error?.message : undefined
-      }, { status: 500 })
+      }, { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
     } catch (jsonError) {
       // Fallback if JSON creation fails
       console.error('Failed to create JSON error response:', jsonError)
