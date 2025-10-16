@@ -36,31 +36,38 @@ export default function HomePage() {
     try {
       setHumanizerLoading(true)
       
-      console.log('Processing text with OpenAI...')
+      console.log('Processing text with OpenAI using Axios...')
       
-      const response = await fetch(`/api/${tool}`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ text: input }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      // Import axios client dynamically to avoid SSR issues
+      const { apiClient } = await import('@/lib/axios-client')
+      
+      let result: string
+      
+      switch (tool) {
+        case 'humanizer':
+          result = await apiClient.humanizeText(input)
+          break
+        case 'paraphraser':
+          result = await apiClient.paraphraseText(input)
+          break
+        case 'citation':
+          // For citation, we need to parse the input as JSON
+          try {
+            const citationData = JSON.parse(input)
+            result = await apiClient.generateCitation(citationData)
+          } catch {
+            throw new Error('Invalid citation data format')
+          }
+          break
+        default:
+          throw new Error('Invalid tool specified')
       }
-
-      const data = await response.json()
-
-      if (data.status === 'success') {
-        setHumanizerOutput(data.result)
-        setFreeUsesRemaining(prev => prev - 1)
-      } else {
-        alert(`❌ Error: ${data.error || 'Unknown error'}`)
-      }
+      
+      setHumanizerOutput(result)
+      setFreeUsesRemaining(prev => prev - 1)
+      
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Axios error:', error)
       alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setHumanizerLoading(false)
@@ -295,6 +302,22 @@ export default function HomePage() {
                           : 'Free trials used up - upgrade for unlimited access!'
                         }
                       </p>
+                      <Button 
+                        onClick={async () => {
+                          try {
+                            const { apiClient } = await import('@/lib/axios-client')
+                            const healthData = await apiClient.healthCheck()
+                            alert(`✅ API Health Check: ${healthData.status}\n\nMessage: ${healthData.message}\nServices: ${JSON.stringify(healthData.services, null, 2)}`)
+                          } catch (error) {
+                            alert(`❌ Health Check Failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+                          }
+                        }}
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2"
+                      >
+                        🏥 Test API with Axios
+                      </Button>
                     </div>
             <Card className="border-2 border-primary">
               <CardHeader>

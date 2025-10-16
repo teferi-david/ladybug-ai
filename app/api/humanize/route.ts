@@ -69,7 +69,24 @@ export async function PATCH() {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('Humanize API called')
+  console.log('Humanize API called with POST method')
+  
+  // Verify the request method
+  if (request.method !== 'POST') {
+    return new NextResponse(JSON.stringify({
+      status: 'error',
+      error: 'Method Not Allowed',
+      message: 'This endpoint only accepts POST requests',
+      receivedMethod: request.method,
+      allowedMethods: ['POST']
+    }), { 
+      status: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        'Allow': 'POST'
+      }
+    })
+  }
   
   try {
     // Parse request body with error handling

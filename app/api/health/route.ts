@@ -14,7 +14,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       version: '1.0.0',
       services: {
-        customNLP: 'active',
+        openai: 'active',
         humanizer: 'ready',
         paraphraser: 'ready',
         citation: 'ready'
