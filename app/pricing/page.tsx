@@ -30,7 +30,7 @@ export default function PricingPage() {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
 
-      const response = await fetch('/api/stripe/create-checkout-session', {
+      const response = await fetch('/api/square/create-checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -46,8 +46,8 @@ export default function PricingPage() {
         return
       }
 
-      if (data.url) {
-        window.location.href = data.url
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl
       }
     } catch (error) {
       alert('An error occurred. Please try again.')
@@ -185,7 +185,7 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold mb-2">What payment methods do you accept?</h3>
               <p className="text-gray-600 text-sm">
-                We accept all major credit cards via Stripe.
+                We accept all major credit cards via Square.
               </p>
             </div>
             <div>

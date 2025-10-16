@@ -303,22 +303,6 @@ export default function HomePage() {
                           : 'Free trials used up - start your 3-day trial for unlimited access!'
                         }
                       </p>
-                      <Button 
-                        onClick={async () => {
-                          try {
-                            const { apiClient } = await import('@/lib/axios-client')
-                            const healthData = await apiClient.healthCheck()
-                            alert(`✅ API Health Check: ${healthData.status}\n\nMessage: ${healthData.message}\nServices: ${JSON.stringify(healthData.services, null, 2)}`)
-                          } catch (error) {
-                            alert(`❌ Health Check Failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-                          }
-                        }}
-                        variant="outline" 
-                        size="sm" 
-                        className="mt-2"
-                      >
-                        🏥 Test API with Axios
-                      </Button>
                     </div>
             <Card className="border-2 border-primary">
               <CardHeader>
