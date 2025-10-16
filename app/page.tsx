@@ -314,26 +314,52 @@ export default function HomePage() {
                           : 'Free trials used up - upgrade for unlimited access!'
                         }
                       </p>
-                      <Button 
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/simple-test', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ test: 'data' }),
-                            })
-                            const data = await response.json()
-                            alert(`✅ API Test: ${data.status}\nMessage: ${data.message}`)
-                          } catch (error) {
-                            alert(`❌ API Test Failed: ${error}`)
-                          }
-                        }}
-                        variant="outline" 
-                        size="sm" 
-                        className="mt-2"
-                      >
-                        🧪 Test API
-                      </Button>
+                      <div className="flex gap-2 justify-center flex-wrap">
+                        <Button 
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/simple-test', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ test: 'data' }),
+                              })
+                              const data = await response.json()
+                              alert(`✅ API Test: ${data.status}\nMessage: ${data.message}`)
+                            } catch (error) {
+                              alert(`❌ API Test Failed: ${error}`)
+                            }
+                          }}
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2"
+                        >
+                          🧪 Test API
+                        </Button>
+                        <Button 
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/test-nlp', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ testType: 'all' }),
+                              })
+                              const data = await response.json()
+                              if (data.status === 'success') {
+                                alert(`✅ NLP System Test: ${data.status}\n\nHumanization: ${data.result.humanization.success ? '✅' : '❌'}\nParaphrasing: ${data.result.paraphrasing.success ? '✅' : '❌'}\nCitation: ${data.result.citation.success ? '✅' : '❌'}\n\nOverall: ${data.result.overall ? '✅ All Tests Passed' : '❌ Some Tests Failed'}`)
+                              } else {
+                                alert(`❌ NLP Test Failed: ${data.error}`)
+                              }
+                            } catch (error) {
+                              alert(`❌ NLP Test Error: ${error}`)
+                            }
+                          }}
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2"
+                        >
+                          🤖 Test NLP
+                        </Button>
+                      </div>
                     </div>
             <Card className="border-2 border-primary">
               <CardHeader>

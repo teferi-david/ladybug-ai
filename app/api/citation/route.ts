@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateCitation } from '@/lib/openai'
+import { generateCitation } from '@/lib/custom-ai'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
