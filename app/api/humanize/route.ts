@@ -6,42 +6,66 @@ export const runtime = 'nodejs'
 
 // Handle GET requests
 export async function GET() {
-  return NextResponse.json({
+  return new NextResponse(JSON.stringify({
     status: 'error',
     error: 'Method Not Allowed',
     message: 'This endpoint only accepts POST requests',
     allowedMethods: ['POST']
-  }, { status: 405 })
+  }), { 
+    status: 405,
+    headers: {
+      'Content-Type': 'application/json',
+      'Allow': 'POST'
+    }
+  })
 }
 
 // Handle PUT requests
 export async function PUT() {
-  return NextResponse.json({
+  return new NextResponse(JSON.stringify({
     status: 'error',
     error: 'Method Not Allowed',
     message: 'This endpoint only accepts POST requests',
     allowedMethods: ['POST']
-  }, { status: 405 })
+  }), { 
+    status: 405,
+    headers: {
+      'Content-Type': 'application/json',
+      'Allow': 'POST'
+    }
+  })
 }
 
 // Handle DELETE requests
 export async function DELETE() {
-  return NextResponse.json({
+  return new NextResponse(JSON.stringify({
     status: 'error',
     error: 'Method Not Allowed',
     message: 'This endpoint only accepts POST requests',
     allowedMethods: ['POST']
-  }, { status: 405 })
+  }), { 
+    status: 405,
+    headers: {
+      'Content-Type': 'application/json',
+      'Allow': 'POST'
+    }
+  })
 }
 
 // Handle PATCH requests
 export async function PATCH() {
-  return NextResponse.json({
+  return new NextResponse(JSON.stringify({
     status: 'error',
     error: 'Method Not Allowed',
     message: 'This endpoint only accepts POST requests',
     allowedMethods: ['POST']
-  }, { status: 405 })
+  }), { 
+    status: 405,
+    headers: {
+      'Content-Type': 'application/json',
+      'Allow': 'POST'
+    }
+  })
 }
 
 export async function POST(request: NextRequest) {
@@ -92,7 +116,13 @@ export async function POST(request: NextRequest) {
       status: 'success',
       result: result,
       timestamp: new Date().toISOString()
-    }, { status: 200 })
+    }, { 
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Allow': 'POST'
+      }
+    })
     
   } catch (error: any) {
     console.error('Unexpected error in humanize API:', error)

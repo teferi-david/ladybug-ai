@@ -42,7 +42,11 @@ export default function HomePage() {
       
       const response = await fetch(`/api/${tool}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
         body: JSON.stringify({ text: input }),
       })
 
@@ -321,11 +325,15 @@ export default function HomePage() {
                         <Button 
                           onClick={async () => {
                             try {
-                              const response = await fetch('/api/simple-test', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ test: 'data' }),
-                              })
+                            const response = await fetch('/api/simple-test', {
+                              method: 'POST',
+                              headers: { 
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'Cache-Control': 'no-cache'
+                              },
+                              body: JSON.stringify({ test: 'data' }),
+                            })
                               const data = await response.json()
                               alert(`✅ API Test: ${data.status}\nMessage: ${data.message}`)
                             } catch (error) {
@@ -343,7 +351,11 @@ export default function HomePage() {
                             try {
                               const response = await fetch('/api/test-nlp', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 
+                                  'Content-Type': 'application/json',
+                                  'Accept': 'application/json',
+                                  'Cache-Control': 'no-cache'
+                                },
                                 body: JSON.stringify({ testType: 'all' }),
                               })
                               const data = await response.json()
