@@ -19,8 +19,6 @@ export default function HomePage() {
   const [freeUsesRemaining, setFreeUsesRemaining] = useState(2)
   const [copied, setCopied] = useState(false)
   const [wordCount, setWordCount] = useState(0)
-  const [testResult, setTestResult] = useState('')
-  const [deploymentStatus, setDeploymentStatus] = useState('')
 
   const countWords = (text: string): number => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length
@@ -31,198 +29,35 @@ export default function HomePage() {
     setWordCount(countWords(value))
   }
 
-  const checkDeployment = async () => {
-    try {
-      console.log('Checking deployment status...')
-      setDeploymentStatus('Checking...')
-      
-      const response = await fetch('/api/deployment-check', {
-        method: 'GET',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate'
-        },
-        cache: 'no-store'
-      })
-      
-      const data = await response.json()
-      console.log('Deployment check result:', data)
-      
-      setDeploymentStatus(`✅ Deployment Status: ${data.status}\nVersion: ${data.deployment.version}\nTimestamp: ${data.deployment.timestamp}\nEnvironment: ${data.deployment.nodeEnv}\nRegion: ${data.deployment.region}`)
-    } catch (error: any) {
-      console.error('Deployment check failed:', error)
-      setDeploymentStatus(`❌ Deployment Check Failed!\nError: ${error.message}\n\nThis might indicate the latest code hasn't been deployed yet.`)
-    }
-  }
-
-  const testAPIConnection = async () => {
-    try {
-      console.log('Testing API connection...')
-      setTestResult('Testing...')
-      
-      // Test basic API
-      const getResponse = await fetch('/api/test', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      
-      const getData = await getResponse.json()
-      console.log('Basic API GET result:', getData)
-      
-      // Test basic API POST
-      const postResponse = await fetch('/api/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ test: 'data' })
-      })
-      
-      const postData = await postResponse.json()
-      console.log('Basic API POST result:', postData)
-      
-      // Test humanize-specific endpoint
-      const humanizeGetResponse = await fetch('/api/humanize-test', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      
-      const humanizeGetData = await humanizeGetResponse.json()
-      console.log('Humanize API GET result:', humanizeGetData)
-      
-      // Test humanize-specific POST
-      const humanizePostResponse = await fetch('/api/humanize-test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: 'test humanize request' })
-      })
-      
-      const humanizePostData = await humanizePostResponse.json()
-      console.log('Humanize API POST result:', humanizePostData)
-      
-      // Test actual humanize endpoint
-      const actualHumanizeResponse = await fetch('/api/humanize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: 'test' })
-      })
-      
-      console.log('Actual humanize response status:', actualHumanizeResponse.status)
-      const actualHumanizeData = await actualHumanizeResponse.json()
-      console.log('Actual humanize response:', actualHumanizeData)
-      
-      setTestResult(`✅ API Tests Complete!\n\nBasic API:\nGET: ${getResponse.status}\nPOST: ${postResponse.status}\n\nHumanize Test API:\nGET: ${humanizeGetResponse.status}\nPOST: ${humanizePostResponse.status}\n\nActual Humanize API:\nStatus: ${actualHumanizeResponse.status}\nResponse: ${JSON.stringify(actualHumanizeData, null, 2)}`)
-    } catch (error: any) {
-      console.error('API test failed:', error)
-      setTestResult(`❌ API Test Failed!\nError: ${error.message}\n\nThis means the API routes are not working properly.`)
-    }
-  }
 
   const handleFreeTrial = async (tool: 'humanizer' | 'paraphraser' | 'citation', input: string) => {
     if (!input.trim()) return
-
-    const words = countWords(input)
-    const maxWords = freeUsesRemaining > 0 ? 200 : 2500 // Free: 200 words, Paid: 2500 words
-
-    // Check word limit
-    if (words > maxWords) {
-      if (freeUsesRemaining > 0) {
-        setUpgradeMessage(`Free trial limited to 200 words. Your text has ${words} words. Upgrade for 2500 word limit.`)
-      } else {
-        setUpgradeMessage(`Text too long. Maximum 2500 words allowed. Your text has ${words} words.`)
-      }
-      setShowUpgradeModal(true)
-      return
-    }
-
-    // Check if user has free uses remaining
-    if (freeUsesRemaining <= 0) {
-      setUpgradeMessage("You've used your 2 free trials! Upgrade for unlimited access or purchase a one-time session.")
-      setShowUpgradeModal(true)
-      return
-    }
 
     try {
       setHumanizerLoading(true)
       
       console.log('Making request to:', `/api/${tool}`)
       console.log('Request method: POST')
-      console.log('Request body:', tool === 'citation' ? input : { text: input })
+      console.log('Request body:', { text: input })
       
-      // Add cache busting and detailed logging
-      const timestamp = Date.now()
-      const cacheBustUrl = `/api/${tool}?t=${timestamp}&v=${Math.random()}`
-      
-      console.log('Making request to:', cacheBustUrl)
-      console.log('Request method: POST')
-      console.log('Request body:', tool === 'citation' ? input : { text: input })
-      console.log('Timestamp:', timestamp)
-      
-      const response = await fetch(cacheBustUrl, {
+      const response = await fetch(`/api/${tool}`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'X-Request-ID': `req-${timestamp}`,
-          'X-Cache-Bust': 'true'
-        },
-        body: JSON.stringify(tool === 'citation' ? input : { text: input }),
-        cache: 'no-store'
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: input }),
       })
 
-      console.log('Response status:', response.status)
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+      const data = await response.json()
+      console.log('Response:', data)
 
-      // Get response text first to handle JSON parsing errors
-      const responseText = await response.text()
-      console.log('Raw response text:', responseText)
-
-      if (!response.ok) {
-        if (response.status === 403) {
-          try {
-            const data = JSON.parse(responseText)
-            setUpgradeMessage(data.message)
-            setShowUpgradeModal(true)
-            return
-          } catch (parseError) {
-            console.error('Failed to parse 403 response:', parseError)
-            alert(`🚫 Access Denied!\n\nServer returned: ${responseText}\n\nThis might be a server configuration issue.`)
-            return
-          }
-        } else if (response.status === 405) {
-          try {
-            const data = JSON.parse(responseText)
-            console.error('405 Error details:', data)
-            alert(`🚫 Method Not Allowed (405)!\n\nDetails: ${JSON.stringify(data, null, 2)}\n\nThis suggests a routing or caching issue. Please:\n1. Hard refresh the page (Ctrl+F5 or Cmd+Shift+R)\n2. Clear browser cache\n3. Try again`)
-            return
-          } catch (parseError) {
-            console.error('Failed to parse 405 response:', parseError)
-            alert(`🚫 Method Not Allowed (405)!\n\nServer returned: ${responseText}\n\nThis suggests a routing or caching issue. Please:\n1. Hard refresh the page (Ctrl+F5 or Cmd+Shift+R)\n2. Clear browser cache\n3. Try again`)
-            return
-          }
-        } else {
-          console.error('API Error Response:', responseText)
-          throw new Error(`API Error ${response.status}: ${responseText}`)
-        }
+      if (data.status === 'success') {
+        setHumanizerOutput(data.result)
+        setFreeUsesRemaining(prev => prev - 1)
+      } else {
+        alert(`❌ Error: ${data.error}`)
       }
-
-      // Parse successful response
-      let data
-      try {
-        data = JSON.parse(responseText)
-        console.log('Success response:', data)
-      } catch (parseError) {
-        console.error('Failed to parse successful response:', parseError)
-        console.error('Response text that failed parsing:', responseText)
-        throw new Error(`Invalid JSON response from API: ${responseText.substring(0, 200)}...`)
-      }
-
-      setHumanizerOutput(data.result)
-      setFreeUsesRemaining(prev => prev - 1)
     } catch (error) {
       console.error('Humanizer error:', error)
-      
-      // Show error message instead of fallback
-      alert(`❌ Humanizer Error!\n\n${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease check:\n1. Environment variables in Vercel\n2. OpenAI API key is valid\n3. Site has been redeployed\n4. Browser console for details`)
+      alert(`❌ Humanizer Error!\n\n${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setHumanizerLoading(false)
     }
@@ -456,42 +291,6 @@ export default function HomePage() {
                           : 'Free trials used up - upgrade for unlimited access!'
                         }
                       </p>
-                      <div className="flex gap-2 justify-center flex-wrap">
-                        <Button 
-                          onClick={testAPIConnection}
-                          variant="outline" 
-                          size="sm" 
-                          className="mt-2"
-                        >
-                          🔧 Test API Connection
-                        </Button>
-                        <Button 
-                          onClick={checkDeployment}
-                          variant="outline" 
-                          size="sm" 
-                          className="mt-2"
-                        >
-                          🚀 Check Deployment
-                        </Button>
-                        <Button 
-                          onClick={() => handleFreeTrial('humanizer', 'test text')}
-                          variant="outline" 
-                          size="sm" 
-                          className="mt-2"
-                        >
-                          🧪 Test Humanizer Directly
-                        </Button>
-                      </div>
-                      {testResult && (
-                        <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left">
-                          <pre className="text-sm whitespace-pre-wrap">{testResult}</pre>
-                        </div>
-                      )}
-                      {deploymentStatus && (
-                        <div className="mt-4 p-4 bg-blue-50 rounded-lg text-left">
-                          <pre className="text-sm whitespace-pre-wrap">{deploymentStatus}</pre>
-                        </div>
-                      )}
                     </div>
             <Card className="border-2 border-primary">
               <CardHeader>
