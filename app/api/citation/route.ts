@@ -89,9 +89,27 @@ export async function POST(request: NextRequest) {
     console.error('Error in citation API:', error)
     
     // Provide helpful error messages
+    if (error?.message?.includes('OPENAI_API_KEY')) {
+      return NextResponse.json({
+        error: 'OpenAI API not configured. Please add OPENAI_API_KEY to environment variables.'
+      }, { status: 500 })
+    }
+    
     if (error?.message?.includes('SUPABASE')) {
       return NextResponse.json({
         error: 'Database not configured. Please add Supabase credentials to environment variables.'
+      }, { status: 500 })
+    }
+    
+    if (error?.code === 'insufficient_quota' || error?.message?.includes('quota')) {
+      return NextResponse.json({
+        error: 'OpenAI API quota exceeded. Please check your OpenAI account billing.'
+      }, { status: 500 })
+    }
+    
+    if (error?.code === 'invalid_api_key' || error?.message?.includes('api key')) {
+      return NextResponse.json({
+        error: 'Invalid OpenAI API key. Please check your OPENAI_API_KEY environment variable.'
       }, { status: 500 })
     }
     
