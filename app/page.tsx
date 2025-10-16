@@ -51,6 +51,9 @@ export default function HomePage() {
 
       // Check if response is ok
       if (!response.ok) {
+        if (response.status === 405) {
+          throw new Error(`HTTP 405: Method Not Allowed - Please ensure you're using POST requests`)
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
 
@@ -358,6 +361,29 @@ export default function HomePage() {
                           className="mt-2"
                         >
                           🤖 Test NLP
+                        </Button>
+                        <Button 
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/health', {
+                                method: 'GET',
+                                headers: { 'Content-Type': 'application/json' },
+                              })
+                              const data = await response.json()
+                              if (data.status === 'success') {
+                                alert(`✅ API Health Check: ${data.status}\n\nMessage: ${data.message}\nServices: ${JSON.stringify(data.services, null, 2)}`)
+                              } else {
+                                alert(`❌ Health Check Failed: ${data.error}`)
+                              }
+                            } catch (error) {
+                              alert(`❌ Health Check Error: ${error}`)
+                            }
+                          }}
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2"
+                        >
+                          🏥 Health Check
                         </Button>
                       </div>
                     </div>

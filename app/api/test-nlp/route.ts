@@ -4,6 +4,46 @@ import { nlpTestSuite } from '@/lib/nlp-test'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+// Handle GET requests
+export async function GET() {
+  return NextResponse.json({
+    status: 'error',
+    error: 'Method Not Allowed',
+    message: 'This endpoint only accepts POST requests',
+    allowedMethods: ['POST']
+  }, { status: 405 })
+}
+
+// Handle PUT requests
+export async function PUT() {
+  return NextResponse.json({
+    status: 'error',
+    error: 'Method Not Allowed',
+    message: 'This endpoint only accepts POST requests',
+    allowedMethods: ['POST']
+  }, { status: 405 })
+}
+
+// Handle DELETE requests
+export async function DELETE() {
+  return NextResponse.json({
+    status: 'error',
+    error: 'Method Not Allowed',
+    message: 'This endpoint only accepts POST requests',
+    allowedMethods: ['POST']
+  }, { status: 405 })
+}
+
+// Handle PATCH requests
+export async function PATCH() {
+  return NextResponse.json({
+    status: 'error',
+    error: 'Method Not Allowed',
+    message: 'This endpoint only accepts POST requests',
+    allowedMethods: ['POST']
+  }, { status: 405 })
+}
+
 export async function POST(request: NextRequest) {
   console.log('NLP Test API called')
   

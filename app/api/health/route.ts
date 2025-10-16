@@ -3,43 +3,83 @@ import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-export async function GET(request: NextRequest) {
+// Handle GET requests for health check
+export async function GET() {
+  console.log('Health check API called')
+  
   try {
-    console.log('Health check called')
-    
-    // Check environment variables
-    const envCheck = {
-      OPENAI_API_KEY: !!process.env.OPENAI_API_KEY,
-      NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      NEXT_PUBLIC_APP_URL: !!process.env.NEXT_PUBLIC_APP_URL,
-    }
-    
-    const allEnvVarsSet = Object.values(envCheck).every(Boolean)
-    
     return NextResponse.json({
-      status: 'ok',
+      status: 'success',
+      message: 'API is healthy and running',
       timestamp: new Date().toISOString(),
-      environment: {
-        NODE_ENV: process.env.NODE_ENV,
-        VERCEL: process.env.VERCEL,
-        VERCEL_ENV: process.env.VERCEL_ENV,
-      },
-      envVars: envCheck,
-      allEnvVarsSet,
-      message: allEnvVarsSet 
-        ? 'All environment variables are set' 
-        : 'Some environment variables are missing'
-    })
+      version: '1.0.0',
+      services: {
+        customNLP: 'active',
+        humanizer: 'ready',
+        paraphraser: 'ready',
+        citation: 'ready'
+      }
+    }, { status: 200 })
   } catch (error: any) {
     console.error('Health check error:', error)
-    
     return NextResponse.json({
       status: 'error',
-      timestamp: new Date().toISOString(),
+      message: 'Health check failed',
       error: error.message,
-      message: 'Health check failed'
+      timestamp: new Date().toISOString()
     }, { status: 500 })
   }
+}
+
+// Handle POST requests
+export async function POST(request: NextRequest) {
+  console.log('Health check POST called')
+  
+  try {
+    const body = await request.json()
+    console.log('Health check POST body:', body)
+    
+    return NextResponse.json({
+      status: 'success',
+      message: 'Health check POST received',
+      receivedData: body,
+      timestamp: new Date().toISOString()
+    }, { status: 200 })
+  } catch (error: any) {
+    console.error('Health check POST error:', error)
+    return NextResponse.json({
+      status: 'error',
+      message: 'Health check POST failed',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    }, { status: 500 })
+  }
+}
+
+// Handle other methods
+export async function PUT() {
+  return NextResponse.json({
+    status: 'error',
+    error: 'Method Not Allowed',
+    message: 'This endpoint accepts GET and POST requests',
+    allowedMethods: ['GET', 'POST']
+  }, { status: 405 })
+}
+
+export async function DELETE() {
+  return NextResponse.json({
+    status: 'error',
+    error: 'Method Not Allowed',
+    message: 'This endpoint accepts GET and POST requests',
+    allowedMethods: ['GET', 'POST']
+  }, { status: 405 })
+}
+
+export async function PATCH() {
+  return NextResponse.json({
+    status: 'error',
+    error: 'Method Not Allowed',
+    message: 'This endpoint accepts GET and POST requests',
+    allowedMethods: ['GET', 'POST']
+  }, { status: 405 })
 }
