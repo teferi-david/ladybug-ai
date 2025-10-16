@@ -19,10 +19,58 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const citationData = await request.json()
+    console.log('Citation API called')
+    console.log('Request URL:', request.url)
+    console.log('Request method:', request.method)
+    
+    // Explicitly check method
+    if (request.method !== 'POST') {
+      console.log('Method mismatch detected:', request.method)
+      return NextResponse.json({
+        error: 'Method not allowed',
+        message: `Expected POST, received ${request.method}`,
+        receivedMethod: request.method,
+        expectedMethod: 'POST'
+      }, { 
+        status: 405,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+    }
+    
+    let citationData: any
+    try {
+      citationData = await request.json()
+    } catch (parseError) {
+      console.error('JSON parsing error:', parseError)
+      return NextResponse.json({
+        error: 'Invalid JSON in request body',
+        message: 'Please ensure your request body contains valid JSON'
+      }, { 
+        status: 400,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+    }
 
     if (!citationData.type || !['apa', 'mla'].includes(citationData.type)) {
-      return NextResponse.json({ error: 'Valid citation type (apa or mla) is required' }, { status: 400 })
+      return NextResponse.json({ 
+        error: 'Valid citation type (apa or mla) is required',
+        message: 'Please provide a valid citation type in your request'
+      }, { 
+        status: 400,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
     }
 
     // Estimate tokens (citations are typically small)
@@ -98,36 +146,43 @@ export async function POST(request: NextRequest) {
     }
   } catch (error: any) {
     console.error('Error in citation API:', error)
+    console.error('Error stack:', error?.stack)
     
-    // Provide helpful error messages
-    if (error?.message?.includes('OPENAI_API_KEY')) {
-      return NextResponse.json({
-        error: 'OpenAI API not configured. Please add OPENAI_API_KEY to environment variables.'
-      }, { status: 500 })
+    // Ensure we always return JSON, never throw
+    let errorMessage = 'An unexpected server error occurred.'
+    let statusCode = 500
+    
+    // Handle specific error types
+    if (error instanceof SyntaxError && error.message.includes('JSON')) {
+      errorMessage = 'Invalid JSON in request body. Please ensure your request body is valid JSON.'
+      statusCode = 400
+    } else if (error?.message?.includes('OPENAI_API_KEY')) {
+      errorMessage = 'OpenAI API not configured. Please add OPENAI_API_KEY to environment variables.'
+    } else if (error?.message?.includes('SUPABASE')) {
+      errorMessage = 'Database not configured. Please add Supabase credentials to environment variables.'
+    } else if (error?.code === 'insufficient_quota' || error?.message?.includes('quota')) {
+      errorMessage = 'OpenAI API quota exceeded. Please check your OpenAI account billing.'
+    } else if (error?.code === 'invalid_api_key' || error?.message?.includes('api key')) {
+      errorMessage = 'Invalid OpenAI API key. Please check your OPENAI_API_KEY environment variable.'
+    } else if (error?.message) {
+      errorMessage = error.message
     }
     
-    if (error?.message?.includes('SUPABASE')) {
-      return NextResponse.json({
-        error: 'Database not configured. Please add Supabase credentials to environment variables.'
-      }, { status: 500 })
-    }
-    
-    if (error?.code === 'insufficient_quota' || error?.message?.includes('quota')) {
-      return NextResponse.json({
-        error: 'OpenAI API quota exceeded. Please check your OpenAI account billing.'
-      }, { status: 500 })
-    }
-    
-    if (error?.code === 'invalid_api_key' || error?.message?.includes('api key')) {
-      return NextResponse.json({
-        error: 'Invalid OpenAI API key. Please check your OPENAI_API_KEY environment variable.'
-      }, { status: 500 })
-    }
-    
+    // Always return a valid JSON response
     return NextResponse.json({
-      error: 'Service temporarily unavailable. Please try again or contact support.',
-      details: process.env.NODE_ENV === 'development' ? error?.message : undefined
-    }, { status: 500 })
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error?.message : undefined,
+      stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined,
+      timestamp: new Date().toISOString()
+    }, {
+      status: statusCode,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Content-Type': 'application/json'
+      }
+    })
   }
 }
 

@@ -131,26 +131,50 @@ export default function HomePage() {
       console.log('Response status:', response.status)
       console.log('Response headers:', Object.fromEntries(response.headers.entries()))
 
+      // Get response text first to handle JSON parsing errors
+      const responseText = await response.text()
+      console.log('Raw response text:', responseText)
+
       if (!response.ok) {
         if (response.status === 403) {
-          const data = await response.json()
-          setUpgradeMessage(data.message)
-          setShowUpgradeModal(true)
-          return
+          try {
+            const data = JSON.parse(responseText)
+            setUpgradeMessage(data.message)
+            setShowUpgradeModal(true)
+            return
+          } catch (parseError) {
+            console.error('Failed to parse 403 response:', parseError)
+            alert(`🚫 Access Denied!\n\nServer returned: ${responseText}\n\nThis might be a server configuration issue.`)
+            return
+          }
         } else if (response.status === 405) {
-          const data = await response.json()
-          console.error('405 Error details:', data)
-          alert(`🚫 Method Not Allowed (405)!\n\nDetails: ${JSON.stringify(data, null, 2)}\n\nThis suggests a routing or caching issue. Please:\n1. Hard refresh the page (Ctrl+F5 or Cmd+Shift+R)\n2. Clear browser cache\n3. Try again`)
-          return
+          try {
+            const data = JSON.parse(responseText)
+            console.error('405 Error details:', data)
+            alert(`🚫 Method Not Allowed (405)!\n\nDetails: ${JSON.stringify(data, null, 2)}\n\nThis suggests a routing or caching issue. Please:\n1. Hard refresh the page (Ctrl+F5 or Cmd+Shift+R)\n2. Clear browser cache\n3. Try again`)
+            return
+          } catch (parseError) {
+            console.error('Failed to parse 405 response:', parseError)
+            alert(`🚫 Method Not Allowed (405)!\n\nServer returned: ${responseText}\n\nThis suggests a routing or caching issue. Please:\n1. Hard refresh the page (Ctrl+F5 or Cmd+Shift+R)\n2. Clear browser cache\n3. Try again`)
+            return
+          }
         } else {
-          const errorText = await response.text()
-          console.error('API Error Response:', errorText)
-          throw new Error(`API Error ${response.status}: ${errorText}`)
+          console.error('API Error Response:', responseText)
+          throw new Error(`API Error ${response.status}: ${responseText}`)
         }
       }
 
-      const data = await response.json()
-      console.log('Success response:', data)
+      // Parse successful response
+      let data
+      try {
+        data = JSON.parse(responseText)
+        console.log('Success response:', data)
+      } catch (parseError) {
+        console.error('Failed to parse successful response:', parseError)
+        console.error('Response text that failed parsing:', responseText)
+        throw new Error(`Invalid JSON response from API: ${responseText.substring(0, 200)}...`)
+      }
+
       setHumanizerOutput(data.result)
       setFreeUsesRemaining(prev => prev - 1)
     } catch (error) {
