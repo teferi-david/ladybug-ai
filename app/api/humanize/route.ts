@@ -113,35 +113,48 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error in humanize API:', error)
     
-    // Provide helpful error messages
-    if (error?.message?.includes('OPENAI_API_KEY')) {
+    // Ensure we always return JSON, never throw
+    try {
+      // Provide helpful error messages
+      if (error?.message?.includes('OPENAI_API_KEY')) {
+        return NextResponse.json({
+          error: 'OpenAI API not configured. Please add OPENAI_API_KEY to environment variables.'
+        }, { status: 500 })
+      }
+      
+      if (error?.message?.includes('SUPABASE')) {
+        return NextResponse.json({
+          error: 'Database not configured. Please add Supabase credentials to environment variables.'
+        }, { status: 500 })
+      }
+      
+      if (error?.code === 'insufficient_quota' || error?.message?.includes('quota')) {
+        return NextResponse.json({
+          error: 'OpenAI API quota exceeded. Please check your OpenAI account billing.'
+        }, { status: 500 })
+      }
+      
+      if (error?.code === 'invalid_api_key' || error?.message?.includes('api key')) {
+        return NextResponse.json({
+          error: 'Invalid OpenAI API key. Please check your OPENAI_API_KEY environment variable.'
+        }, { status: 500 })
+      }
+      
       return NextResponse.json({
-        error: 'OpenAI API not configured. Please add OPENAI_API_KEY to environment variables.'
+        error: 'Service temporarily unavailable. Please try again or contact support.',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
       }, { status: 500 })
+    } catch (jsonError) {
+      // Fallback if JSON creation fails
+      console.error('Failed to create JSON error response:', jsonError)
+      return new Response(JSON.stringify({
+        error: 'Internal server error',
+        message: 'An unexpected error occurred'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      })
     }
-    
-    if (error?.message?.includes('SUPABASE')) {
-      return NextResponse.json({
-        error: 'Database not configured. Please add Supabase credentials to environment variables.'
-      }, { status: 500 })
-    }
-    
-    if (error?.code === 'insufficient_quota' || error?.message?.includes('quota')) {
-      return NextResponse.json({
-        error: 'OpenAI API quota exceeded. Please check your OpenAI account billing.'
-      }, { status: 500 })
-    }
-    
-    if (error?.code === 'invalid_api_key' || error?.message?.includes('api key')) {
-      return NextResponse.json({
-        error: 'Invalid OpenAI API key. Please check your OPENAI_API_KEY environment variable.'
-      }, { status: 500 })
-    }
-    
-    return NextResponse.json({
-      error: 'Service temporarily unavailable. Please try again or contact support.',
-      details: process.env.NODE_ENV === 'development' ? error?.message : undefined
-    }, { status: 500 })
   }
 }
 

@@ -83,32 +83,53 @@ export default function HomePage() {
         body: JSON.stringify(tool === 'citation' ? input : { text: input }),
       })
 
-      const data = await response.json()
-
+      // Check if response is ok and has content
       if (!response.ok) {
-        if (response.status === 403) {
-          setUpgradeMessage(data.message)
-          setShowUpgradeModal(true)
-        } else if (response.status === 500) {
-          // Server configuration error (likely missing env variables)
-          console.error('API Error Details:', data)
-          
-          // Show specific error messages based on the error type
-          if (data.error?.includes('OpenAI API not configured')) {
-            alert(`🔑 OpenAI API Key Missing!\n\nYour site needs the OpenAI API key configured in Vercel.\n\nGo to Vercel Dashboard → Your Project → Settings → Environment Variables\nAdd: OPENAI_API_KEY=sk-proj-...`)
-          } else if (data.error?.includes('Database not configured')) {
-            alert(`🗄️ Database Not Configured!\n\nYour site needs Supabase credentials configured in Vercel.\n\nGo to Vercel Dashboard → Your Project → Settings → Environment Variables\nAdd: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY`)
-          } else if (data.error?.includes('quota exceeded')) {
-            alert(`💳 OpenAI Quota Exceeded!\n\nYour OpenAI account has reached its usage limit.\n\nPlease check your OpenAI billing at platform.openai.com`)
-          } else if (data.error?.includes('Invalid OpenAI API key')) {
-            alert(`❌ Invalid OpenAI API Key!\n\nYour OpenAI API key is incorrect or expired.\n\nPlease check your OPENAI_API_KEY in Vercel environment variables.`)
-          } else {
-            alert(`⚠️ Service Error: ${data.error || 'Server configuration issue'}\n\nPlease check:\n1. Environment variables in Vercel\n2. Site has been redeployed\n3. Browser console for details`)
-          }
+        const errorText = await response.text()
+        console.error('API Error Response:', errorText)
+        throw new Error(`API Error ${response.status}: ${errorText}`)
+      }
+
+      // Check if response has content
+      const responseText = await response.text()
+      if (!responseText) {
+        throw new Error('API returned empty response')
+      }
+
+      let data
+      try {
+        data = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error('JSON Parse Error:', parseError)
+        console.error('Response Text:', responseText)
+        throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}...`)
+      }
+
+      // Handle different response statuses
+      if (response.status === 403) {
+        setUpgradeMessage(data.message)
+        setShowUpgradeModal(true)
+        return
+      } else if (response.status === 500) {
+        // Server configuration error (likely missing env variables)
+        console.error('API Error Details:', data)
+        
+        // Show specific error messages based on the error type
+        if (data.error?.includes('OpenAI API not configured')) {
+          alert(`🔑 OpenAI API Key Missing!\n\nYour site needs the OpenAI API key configured in Vercel.\n\nGo to Vercel Dashboard → Your Project → Settings → Environment Variables\nAdd: OPENAI_API_KEY=sk-proj-...`)
+        } else if (data.error?.includes('Database not configured')) {
+          alert(`🗄️ Database Not Configured!\n\nYour site needs Supabase credentials configured in Vercel.\n\nGo to Vercel Dashboard → Your Project → Settings → Environment Variables\nAdd: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY`)
+        } else if (data.error?.includes('quota exceeded')) {
+          alert(`💳 OpenAI Quota Exceeded!\n\nYour OpenAI account has reached its usage limit.\n\nPlease check your OpenAI billing at platform.openai.com`)
+        } else if (data.error?.includes('Invalid OpenAI API key')) {
+          alert(`❌ Invalid OpenAI API Key!\n\nYour OpenAI API key is incorrect or expired.\n\nPlease check your OPENAI_API_KEY in Vercel environment variables.`)
         } else {
-          console.error('API Error:', response.status, data)
-          alert(data.error || `Error: ${response.status} - Please check console`)
+          alert(`⚠️ Service Error: ${data.error || 'Server configuration issue'}\n\nPlease check:\n1. Environment variables in Vercel\n2. Site has been redeployed\n3. Browser console for details`)
         }
+        return
+      } else if (!response.ok) {
+        console.error('API Error:', response.status, data)
+        alert(data.error || `Error: ${response.status} - Please check console`)
         return
       }
 
