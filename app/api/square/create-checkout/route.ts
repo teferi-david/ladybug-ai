@@ -7,9 +7,14 @@ export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== SQUARE CHECKOUT START ===')
+    console.log('Timestamp:', new Date().toISOString())
+    
     const { planType } = await request.json()
+    console.log('Plan type:', planType)
 
     if (!planType || !['trial', 'monthly', 'annual', 'singleUse'].includes(planType)) {
+      console.error('Invalid plan type:', planType)
       return NextResponse.json({ error: 'Invalid plan type' }, { status: 400 })
     }
 
@@ -18,23 +23,26 @@ export async function POST(request: NextRequest) {
     const user = await getUserFromToken(authHeader)
 
     if (!user) {
+      console.error('No user found in auth header')
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
+    console.log('User found:', user.email)
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const plan = PLAN_PRICES[planType as PlanType]
+    
+    console.log('App URL:', appUrl)
+    console.log('Plan details:', plan)
+    console.log('Square config:', {
+      hasAccessToken: !!SQUARE_CONFIG.accessToken,
+      hasLocationId: !!SQUARE_CONFIG.locationId,
+      environment: SQUARE_CONFIG.environment
+    })
 
-    // Create Square checkout session using direct API call
-    const checkoutRequest = {
+    // Create Square order first
+    const orderRequest = {
       idempotency_key: `${user.id}-${planType}-${Date.now()}`,
-      checkout_page_data: {
-        ask_for_shipping_address: false,
-        merchant_support_email: 'support@ladybugai.us',
-        pre_populate_buyer_email: user.email,
-        pre_populate_buyer_phone_number: '',
-        redirect_url: `${appUrl}/dashboard?success=true`,
-        note: `Ladybug AI - ${plan.name}`,
-      },
       order: {
         location_id: SQUARE_CONFIG.locationId,
         line_items: [
@@ -47,14 +55,59 @@ export async function POST(request: NextRequest) {
             },
           },
         ],
-        pricing_options: {
-          auto_apply_discounts: false,
-          auto_apply_taxes: false,
-        },
       },
     }
 
+    // Create the order
+    console.log('Creating Square order with request:', JSON.stringify(orderRequest, null, 2))
+    
+    const orderResponse = await fetch(`https://connect.squareup.com/v2/orders`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SQUARE_CONFIG.accessToken}`,
+        'Content-Type': 'application/json',
+        'Square-Version': '2023-10-18',
+      },
+      body: JSON.stringify(orderRequest),
+    })
+    
+    console.log('Order response status:', orderResponse.status)
+
+    if (!orderResponse.ok) {
+      const errorData = await orderResponse.json()
+      console.error('Square Order API error:', errorData)
+      return NextResponse.json({
+        error: 'Failed to create order',
+        details: errorData,
+      }, { status: 500 })
+    }
+
+    const orderData = await orderResponse.json()
+    const orderId = orderData.order?.id
+
+    if (!orderId) {
+      return NextResponse.json({
+        error: 'Failed to create order - no order ID returned',
+        details: orderData,
+      }, { status: 500 })
+    }
+
+    // Create Square checkout session
+    const checkoutRequest = {
+      idempotency_key: `${user.id}-checkout-${Date.now()}`,
+      checkout_page_data: {
+        ask_for_shipping_address: false,
+        merchant_support_email: 'support@ladybugai.us',
+        pre_populate_buyer_email: user.email,
+        redirect_url: `${appUrl}/dashboard?success=true`,
+        note: `Ladybug AI - ${plan.name}`,
+      },
+      order_id: orderId,
+    }
+
     // Make direct API call to Square
+    console.log('Creating Square checkout with request:', JSON.stringify(checkoutRequest, null, 2))
+    
     const response = await fetch(`https://connect.squareup.com/v2/checkouts`, {
       method: 'POST',
       headers: {
@@ -64,6 +117,8 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify(checkoutRequest),
     })
+    
+    console.log('Checkout response status:', response.status)
 
     if (!response.ok) {
       const errorData = await response.json()
@@ -75,6 +130,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json()
+    console.log('Square checkout created successfully:', data)
     
     return NextResponse.json({
       checkoutUrl: data.checkout?.checkout_page_url,
@@ -87,5 +143,7 @@ export async function POST(request: NextRequest) {
       error: 'Failed to create checkout session',
       details: error.message,
     }, { status: 500 })
+  } finally {
+    console.log('=== SQUARE CHECKOUT END ===')
   }
 }
