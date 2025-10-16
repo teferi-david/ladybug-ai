@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
 
     const priceId = PLAN_PRICES[planType as keyof typeof PLAN_PRICES].priceId
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Create checkout session with special handling for trial-to-annual conversion
+    let sessionConfig: any = {
       customer: customerId,
       payment_method_types: ['card'],
       line_items: [
@@ -56,14 +56,36 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
-      mode: planType === 'singleUse' || planType === 'trial' ? 'payment' : 'subscription',
       success_url: `${appUrl}/dashboard?success=true`,
       cancel_url: `${appUrl}/pricing?canceled=true`,
       metadata: {
         user_id: user.id,
         plan_type: planType,
       },
-    })
+    }
+
+    // Handle trial plan - convert to annual subscription with 3-day trial
+    if (planType === 'trial') {
+      sessionConfig.mode = 'subscription'
+      sessionConfig.subscription_data = {
+        trial_period_days: 3,
+        metadata: {
+          user_id: user.id,
+          plan_type: 'annual', // Convert trial to annual after trial ends
+        },
+      }
+      // Use annual price for the subscription
+      sessionConfig.line_items = [
+        {
+          price: PLAN_PRICES.annual.priceId,
+          quantity: 1,
+        },
+      ]
+    } else {
+      sessionConfig.mode = planType === 'singleUse' ? 'payment' : 'subscription'
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig)
 
     return NextResponse.json({ sessionId: session.id, url: session.url })
   } catch (error) {

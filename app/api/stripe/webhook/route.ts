@@ -36,20 +36,21 @@ export async function POST(request: NextRequest) {
 
         if (!userId || !planType) break
 
-        // Handle one-time payments (trial and single-use)
-        if (planType === 'trial' || planType === 'singleUse') {
+        // Handle one-time payments (single-use only, trial is now a subscription)
+        if (planType === 'singleUse') {
           const plan = PLAN_PRICES[planType as keyof typeof PLAN_PRICES]
           const expiryDate = new Date(Date.now() + plan.duration)
 
           await supabaseAdmin
             .from('users')
             .update({
-              current_plan: planType === 'trial' ? 'trial' : 'single-use',
+              current_plan: 'single-use',
               plan_expiry: expiryDate.toISOString(),
-              uses_left: planType === 'singleUse' ? plan.tokenLimit : 999999,
+              uses_left: plan.tokenLimit,
             })
             .eq('id', userId)
         }
+        // Trial is now handled as a subscription with trial period
         break
       }
 
@@ -68,9 +69,14 @@ export async function POST(request: NextRequest) {
         if (!user) break
 
         // Determine plan type from price ID
-        let planType: 'monthly' | 'annual' = 'monthly'
+        let planType: 'monthly' | 'annual' | 'trial' = 'monthly'
         if (subscription.items.data[0].price.id === PLAN_PRICES.annual.priceId) {
           planType = 'annual'
+        }
+
+        // Check if this is a trial subscription
+        if (subscription.status === 'trialing') {
+          planType = 'trial'
         }
 
         // Update user subscription
@@ -79,6 +85,7 @@ export async function POST(request: NextRequest) {
           .update({
             current_plan: planType,
             plan_expiry: new Date(subscription.current_period_end * 1000).toISOString(),
+            uses_left: 999999, // Unlimited for all subscription plans
           })
           .eq('id', user.id)
 
