@@ -19,6 +19,7 @@ export default function HomePage() {
   const [freeUsesRemaining, setFreeUsesRemaining] = useState(2)
   const [copied, setCopied] = useState(false)
   const [wordCount, setWordCount] = useState(0)
+  const [testResult, setTestResult] = useState('')
 
   const countWords = (text: string): number => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length
@@ -175,6 +176,32 @@ export default function HomePage() {
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       console.error('Failed to copy text: ', err)
+    }
+  }
+
+  const testAPI = async () => {
+    try {
+      console.log('Testing API endpoint...')
+      setTestResult('Testing...')
+      
+      // Test GET request
+      const getResponse = await fetch('/api/test')
+      const getData = await getResponse.json()
+      console.log('GET test result:', getData)
+      
+      // Test POST request
+      const postResponse = await fetch('/api/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ test: 'data' })
+      })
+      const postData = await postResponse.json()
+      console.log('POST test result:', postData)
+      
+      setTestResult(`✅ API Test Results:\nGET: ${getData.status} (${getResponse.status})\nPOST: ${postData.status} (${postResponse.status})`)
+    } catch (error) {
+      console.error('API test failed:', error)
+      setTestResult(`❌ API Test Failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -388,14 +415,24 @@ export default function HomePage() {
             <p className="text-center text-gray-600 mb-8">
               No sign up required! Test it right here - 2 free uses per day for students
             </p>
-            <div className="text-center mb-6">
-              <p className="text-lg text-gray-600">
-                {freeUsesRemaining > 0 
-                  ? `You have ${freeUsesRemaining} free trial${freeUsesRemaining === 1 ? '' : 's'} remaining • 200 word limit`
-                  : 'Free trials used up - upgrade for unlimited access!'
-                }
-              </p>
-            </div>
+                    <div className="text-center mb-6">
+                      <p className="text-lg text-gray-600">
+                        {freeUsesRemaining > 0 
+                          ? `You have ${freeUsesRemaining} free trial${freeUsesRemaining === 1 ? '' : 's'} remaining • 200 word limit`
+                          : 'Free trials used up - upgrade for unlimited access!'
+                        }
+                      </p>
+                      <div className="mt-4">
+                        <Button onClick={testAPI} variant="outline" size="sm">
+                          Test API Connection
+                        </Button>
+                        {testResult && (
+                          <div className="mt-2 p-2 bg-gray-100 rounded text-sm text-left">
+                            <pre className="whitespace-pre-wrap">{testResult}</pre>
+                          </div>
+                        )}
+                      </div>
+                    </div>
             <Card className="border-2 border-primary">
               <CardHeader>
                 <CardTitle>Free AI Humanizer - Test It Below</CardTitle>

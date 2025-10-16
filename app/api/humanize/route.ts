@@ -8,10 +8,38 @@ export const runtime = 'nodejs'
 
 // Handle GET requests for debugging
 export async function GET(request: NextRequest) {
+  console.log('GET request received at /api/humanize')
   return NextResponse.json({
     error: 'Method not allowed',
     message: 'This endpoint only accepts POST requests',
     method: 'GET',
+    expected: 'POST',
+    endpoint: '/api/humanize',
+    timestamp: new Date().toISOString(),
+    url: request.url,
+    headers: Object.fromEntries(request.headers.entries())
+  }, { status: 405 })
+}
+
+// Handle PUT requests
+export async function PUT(request: NextRequest) {
+  console.log('PUT request received at /api/humanize')
+  return NextResponse.json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST requests',
+    method: 'PUT',
+    expected: 'POST',
+    endpoint: '/api/humanize'
+  }, { status: 405 })
+}
+
+// Handle DELETE requests
+export async function DELETE(request: NextRequest) {
+  console.log('DELETE request received at /api/humanize')
+  return NextResponse.json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST requests',
+    method: 'DELETE',
     expected: 'POST',
     endpoint: '/api/humanize'
   }, { status: 405 })
