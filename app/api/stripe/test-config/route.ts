@@ -83,6 +83,19 @@ export async function GET() {
       environment: envVars,
       stripeConnection: stripeTest,
       priceValidation: priceTests,
+      instructions: {
+        issue: 'You are using product IDs instead of price IDs',
+        solution: 'Create prices for your products in Stripe dashboard',
+        steps: [
+          '1. Go to your Stripe dashboard',
+          '2. Navigate to Products section',
+          '3. For each product, create a price',
+          '4. Copy the price IDs (not product IDs)',
+          '5. Update your environment variables',
+          '6. Redeploy your application'
+        ],
+        quickFix: 'Run the fix-stripe-prices.js script to create prices automatically'
+      }
     })
   } catch (error: any) {
     console.error('Stripe config test error:', error)
