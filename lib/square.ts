@@ -1,12 +1,9 @@
-import { Client, Environment } from 'squareup'
-
-// Initialize Square client
-const square = new Client({
+// Square configuration
+export const SQUARE_CONFIG = {
   accessToken: process.env.SQUARE_ACCESS_TOKEN!,
-  environment: process.env.NODE_ENV === 'production' ? Environment.Production : Environment.Sandbox,
-})
-
-export { square }
+  environment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
+  locationId: process.env.SQUARE_LOCATION_ID!,
+}
 
 // Plan configurations
 export const PLAN_PRICES = {

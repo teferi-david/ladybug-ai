@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { square, PLAN_PRICES, PlanType } from '@/lib/square'
+import { SQUARE_CONFIG, PLAN_PRICES, PlanType } from '@/lib/square'
 import { getUserFromToken } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
@@ -24,44 +24,61 @@ export async function POST(request: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const plan = PLAN_PRICES[planType as PlanType]
 
-    // Create Square checkout session
+    // Create Square checkout session using direct API call
     const checkoutRequest = {
-      idempotencyKey: `${user.id}-${planType}-${Date.now()}`,
-      checkoutPageData: {
-        askForShippingAddress: false,
-        merchantSupportEmail: 'support@ladybugai.us',
-        prePopulateBuyerEmail: user.email,
-        prePopulateBuyerPhoneNumber: '',
-        redirectUrl: `${appUrl}/dashboard?success=true`,
+      idempotency_key: `${user.id}-${planType}-${Date.now()}`,
+      checkout_page_data: {
+        ask_for_shipping_address: false,
+        merchant_support_email: 'support@ladybugai.us',
+        pre_populate_buyer_email: user.email,
+        pre_populate_buyer_phone_number: '',
+        redirect_url: `${appUrl}/dashboard?success=true`,
         note: `Ladybug AI - ${plan.name}`,
       },
       order: {
-        locationId: process.env.SQUARE_LOCATION_ID!,
-        lineItems: [
+        location_id: SQUARE_CONFIG.locationId,
+        line_items: [
           {
             name: plan.name,
             quantity: '1',
-            basePriceMoney: {
+            base_price_money: {
               amount: plan.amount,
               currency: 'USD',
             },
           },
         ],
-        pricingOptions: {
-          autoApplyDiscounts: false,
-          autoApplyTaxes: false,
+        pricing_options: {
+          auto_apply_discounts: false,
+          auto_apply_taxes: false,
         },
       },
     }
 
-    const { result } = await square.checkoutApi.createCheckout(
-      process.env.SQUARE_LOCATION_ID!,
-      checkoutRequest
-    )
+    // Make direct API call to Square
+    const response = await fetch(`https://connect.squareup.com/v2/checkouts`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SQUARE_CONFIG.accessToken}`,
+        'Content-Type': 'application/json',
+        'Square-Version': '2023-10-18',
+      },
+      body: JSON.stringify(checkoutRequest),
+    })
 
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('Square API error:', errorData)
+      return NextResponse.json({
+        error: 'Failed to create checkout session',
+        details: errorData,
+      }, { status: 500 })
+    }
+
+    const data = await response.json()
+    
     return NextResponse.json({
-      checkoutUrl: result.checkout?.checkoutPageUrl,
-      checkoutId: result.checkout?.id,
+      checkoutUrl: data.checkout?.checkout_page_url,
+      checkoutId: data.checkout?.id,
     })
 
   } catch (error: any) {
