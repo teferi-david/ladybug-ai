@@ -62,14 +62,13 @@ export default function PricingPage() {
       name: '3-Day Trial',
       price: '$1.49',
       period: 'one-time',
-      description: 'Perfect for trying out all features - converts to Annual Plan ($12.49/month)',
+      description: 'Perfect for trying out all features',
       features: [
         'Access to all AI tools',
         'AI Humanizer',
         'Paraphraser',
         'Citation Generator (APA & MLA)',
         '3 days full access',
-        'Auto-converts to Annual Plan ($12.49/month)',
       ],
     },
     {
@@ -89,13 +88,13 @@ export default function PricingPage() {
     {
       id: 'annual',
       name: 'Annual Plan',
-      price: '$12.49',
-      period: 'per month',
-      description: 'Best value - billed annually ($149.49/year)',
+      price: '$149.49',
+      period: 'per year',
+      description: 'Best value - save $36/year',
       popular: true,
       features: [
         'Everything in Monthly',
-        'Billed annually ($149.49/year)',
+        '$12.49/mo equivalent',
         'Save $36 per year',
         'Priority support',
         'Early access to new features',
@@ -192,7 +191,7 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold mb-2">How does the trial work?</h3>
               <p className="text-gray-600 text-sm">
-                The 3-day trial gives you full access to all features for 3 days for just $1.49. After the trial, you'll automatically be charged $149.49/year ($12.49/month) for the Annual Plan. You can cancel anytime before the trial ends.
+                The 3-day trial gives you full access to all features for 3 days for just $1.49.
               </p>
             </div>
             <div>

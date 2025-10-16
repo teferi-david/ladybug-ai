@@ -4,9 +4,26 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('STRIPE_SECRET_KEY is not defined')
 }
 
+// Validate all required environment variables
+const requiredEnvVars = [
+  'STRIPE_SECRET_KEY',
+  'STRIPE_TRIAL_PRICE_ID',
+  'STRIPE_MONTHLY_PRICE_ID',
+  'STRIPE_ANNUAL_PRICE_ID',
+  'STRIPE_SINGLE_USE_PRICE_ID'
+]
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    throw new Error(`${envVar} is not defined`)
+  }
+}
+
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
   typescript: true,
+  maxNetworkRetries: 3,
+  timeout: 30000,
 })
 
 export const PLAN_PRICES = {

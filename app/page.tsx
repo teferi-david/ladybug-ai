@@ -165,9 +165,9 @@ export default function HomePage() {
                 </Button>
               </Link>
             </div>
-                    <p className="text-sm text-gray-500">
-                      ✅ Free Forever Plan Available • ✅ No Credit Card Required • ✅ 2 Free Uses Daily • ✅ 3-Day Trial $1.49
-                    </p>
+            <p className="text-sm text-gray-500">
+              ✅ Free Forever Plan Available • ✅ No Credit Card Required • ✅ 2 Free Uses Daily
+            </p>
           </motion.div>
         </div>
       </section>
