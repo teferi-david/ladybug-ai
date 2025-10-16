@@ -19,6 +19,7 @@ export default function HomePage() {
   const [freeUsesRemaining, setFreeUsesRemaining] = useState(2)
   const [copied, setCopied] = useState(false)
   const [wordCount, setWordCount] = useState(0)
+  const [humanizeLevel, setHumanizeLevel] = useState<'highschool' | 'college' | 'graduate'>('highschool')
 
   const countWords = (text: string): number => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length
@@ -45,7 +46,7 @@ export default function HomePage() {
       
       switch (tool) {
         case 'humanizer':
-          result = await apiClient.humanizeText(input)
+          result = await apiClient.humanizeText(input, humanizeLevel)
           break
         case 'paraphraser':
           result = await apiClient.paraphraseText(input)
@@ -326,17 +327,51 @@ export default function HomePage() {
                   Paste your AI-generated text and watch it transform into natural, human-like writing. Perfect for students!
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium">Input Text</label>
-                    <span className="text-sm text-gray-500">
-                      {wordCount} / {freeUsesRemaining > 0 ? '200' : '2500'} words
-                      {wordCount > (freeUsesRemaining > 0 ? 200 : 2500) && (
-                        <span className="text-red-500 ml-1">(over limit)</span>
-                      )}
-                    </span>
-                  </div>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Humanize Level</label>
+                          <div className="flex gap-2 mb-4">
+                            <Button
+                              variant={humanizeLevel === 'highschool' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setHumanizeLevel('highschool')}
+                              className="flex-1"
+                            >
+                              🎓 High School
+                            </Button>
+                            <Button
+                              variant={humanizeLevel === 'college' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setHumanizeLevel('college')}
+                              className="flex-1"
+                            >
+                              🎓 College
+                            </Button>
+                            <Button
+                              variant={humanizeLevel === 'graduate' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setHumanizeLevel('graduate')}
+                              className="flex-1"
+                            >
+                              🎓 Graduate
+                            </Button>
+                          </div>
+                          <p className="text-xs text-gray-500 mb-4">
+                            {humanizeLevel === 'highschool' && 'Basic humanization - simple, clear language suitable for high school level'}
+                            {humanizeLevel === 'college' && 'Advanced humanization - sophisticated language and complex sentence structures for college level'}
+                            {humanizeLevel === 'graduate' && 'Expert humanization - highly nuanced, academic language with deep contextual understanding for graduate level'}
+                          </p>
+                        </div>
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium">Input Text</label>
+                            <span className="text-sm text-gray-500">
+                              {wordCount} / {freeUsesRemaining > 0 ? '200' : '2500'} words
+                              {wordCount > (freeUsesRemaining > 0 ? 200 : 2500) && (
+                                <span className="text-red-500 ml-1">(over limit)</span>
+                              )}
+                            </span>
+                          </div>
                   <Textarea
                     placeholder="Paste your AI-generated text here..."
                     className="min-h-[120px]"
@@ -369,32 +404,26 @@ export default function HomePage() {
                    'Humanize Text'}
                 </Button>
                 {humanizerLoading && <LoadingSpinner />}
-                {humanizerOutput && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Humanized Text (Changes Highlighted)</label>
-                      <div className="p-4 bg-gray-50 rounded-lg border">
-                        {highlightDifferences(humanizerInput, humanizerOutput)}
-                      </div>
-                      <div className="mt-2 flex gap-2">
-                        <Button
-                          onClick={copyToClipboard}
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center gap-2"
-                        >
-                          {copied ? 'Copied!' : 'Copy Text'}
-                        </Button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Full Humanized Text</label>
-                      <div className="p-4 bg-white rounded-lg border">
-                        {humanizerOutput}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                        {humanizerOutput && (
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium mb-2">Humanized Text (Changes Highlighted)</label>
+                              <div className="p-4 bg-gray-50 rounded-lg border">
+                                {highlightDifferences(humanizerInput, humanizerOutput)}
+                              </div>
+                              <div className="mt-2 flex gap-2">
+                                <Button
+                                  onClick={copyToClipboard}
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex items-center gap-2"
+                                >
+                                  {copied ? 'Copied!' : 'Copy Text'}
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
               </CardContent>
             </Card>
           </div>

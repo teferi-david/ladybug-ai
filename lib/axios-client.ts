@@ -63,9 +63,9 @@ axiosClient.interceptors.response.use(
 // API methods with proper HTTP method handling
 export const apiClient = {
   // POST request for humanize
-  async humanizeText(text: string): Promise<string> {
+  async humanizeText(text: string, level: 'highschool' | 'college' | 'graduate' = 'highschool'): Promise<string> {
     try {
-      const response = await axiosClient.post('/api/humanize', { text })
+      const response = await axiosClient.post('/api/humanize', { text, level })
       return response.data.result
     } catch (error: any) {
       console.error('Humanize API error:', error)

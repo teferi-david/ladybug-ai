@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const { text } = body
+    const { text, level = 'highschool' } = body
 
     if (!text || typeof text !== 'string') {
       return NextResponse.json({
@@ -112,20 +112,29 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    console.log('Processing text:', text.substring(0, 100) + '...')
-    
-    // Call custom NLP to humanize the text with error handling
-    let result
-    try {
-      result = await humanizeText(text)
-      console.log('Humanization completed')
-    } catch (nlpError: any) {
-      console.error('Custom NLP error:', nlpError)
+    // Validate level parameter
+    if (level && !['highschool', 'college', 'graduate'].includes(level)) {
       return NextResponse.json({
         status: 'error',
-        error: 'Custom NLP processing failed',
-        message: nlpError.message || 'Failed to process text with custom NLP',
-        details: process.env.NODE_ENV === 'development' ? nlpError.message : undefined
+        error: 'Invalid level',
+        message: 'Level must be one of: highschool, college, graduate'
+      }, { status: 400 })
+    }
+
+    console.log('Processing text:', text.substring(0, 100) + '...', 'Level:', level)
+    
+    // Call OpenAI to humanize the text with error handling
+    let result
+    try {
+      result = await humanizeText(text, level)
+      console.log('Humanization completed')
+    } catch (openaiError: any) {
+      console.error('OpenAI error:', openaiError)
+      return NextResponse.json({
+        status: 'error',
+        error: 'OpenAI processing failed',
+        message: openaiError.message || 'Failed to process text with OpenAI',
+        details: process.env.NODE_ENV === 'development' ? openaiError.message : undefined
       }, { status: 500 })
     }
     
