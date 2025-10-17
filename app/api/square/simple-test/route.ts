@@ -11,8 +11,8 @@ export async function GET() {
     console.log('Location ID:', SQUARE_CONFIG.locationId)
     console.log('Environment:', SQUARE_CONFIG.environment)
     
-    // Test with a simple locations API call
-    const response = await fetch(`https://connect.squareup.com/v2/locations`, {
+    // Test with a simple locations API call (sandbox)
+    const response = await fetch(`https://connect.squareupsandbox.com/v2/locations`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${SQUARE_CONFIG.accessToken}`,

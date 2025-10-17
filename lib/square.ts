@@ -1,7 +1,7 @@
 // Square configuration
 export const SQUARE_CONFIG = {
   accessToken: process.env.SQUARE_ACCESS_TOKEN!,
-  environment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
+  environment: 'sandbox', // Force sandbox for testing
   locationId: process.env.SQUARE_LOCATION_ID!,
 }
 
