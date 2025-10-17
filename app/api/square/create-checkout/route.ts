@@ -40,9 +40,9 @@ export async function POST(request: NextRequest) {
       environment: SQUARE_CONFIG.environment
     })
 
-    // Create Square order using the correct API structure
-    const orderRequest = {
-      idempotency_key: `${user.id}-${planType}-${Date.now()}`,
+    // Create Square checkout session directly using the correct API structure
+    const checkoutRequest = {
+      idempotency_key: `${user.id}-checkout-${Date.now()}`,
       order: {
         location_id: SQUARE_CONFIG.locationId,
         line_items: [
@@ -55,54 +55,7 @@ export async function POST(request: NextRequest) {
             },
           },
         ],
-        pricing_options: {
-          auto_apply_discounts: false,
-          auto_apply_taxes: false,
-        },
       },
-    }
-
-    console.log('Creating Square order with request:', JSON.stringify(orderRequest, null, 2))
-    
-    // Create the order first
-    const orderResponse = await fetch(`https://connect.squareup.com/v2/orders`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SQUARE_CONFIG.accessToken}`,
-        'Content-Type': 'application/json',
-        'Square-Version': '2023-10-18',
-      },
-      body: JSON.stringify(orderRequest),
-    })
-    
-    console.log('Order response status:', orderResponse.status)
-
-    if (!orderResponse.ok) {
-      const errorData = await orderResponse.json()
-      console.error('Square Order API error:', errorData)
-      return NextResponse.json({
-        error: 'Failed to create order',
-        details: errorData,
-      }, { status: 500 })
-    }
-
-    const orderData = await orderResponse.json()
-    const orderId = orderData.order?.id
-
-    if (!orderId) {
-      console.error('No order ID returned:', orderData)
-      return NextResponse.json({
-        error: 'Failed to create order - no order ID returned',
-        details: orderData,
-      }, { status: 500 })
-    }
-
-    console.log('Order created successfully:', orderId)
-
-    // Create Square checkout session using the correct API structure
-    const checkoutRequest = {
-      idempotency_key: `${user.id}-checkout-${Date.now()}`,
-      order_id: orderId,
       ask_for_shipping_address: false,
       merchant_support_email: 'support@ladybugai.us',
       pre_populate_buyer_email: user.email,
@@ -112,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Creating Square checkout with request:', JSON.stringify(checkoutRequest, null, 2))
     
-    // Create checkout session
+    // Create checkout session using Square Checkout API
     const response = await fetch(`https://connect.squareup.com/v2/checkouts`, {
       method: 'POST',
       headers: {
