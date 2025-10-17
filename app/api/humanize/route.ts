@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { humanizeText } from '@/lib/openai'
+import { getUserFromToken } from '@/lib/auth-helpers'
+import { getRemainingWords, isPlanActive, updateUserUsage } from '@/lib/user-plans'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -89,6 +91,29 @@ export async function POST(request: NextRequest) {
   }
   
   try {
+    // Get user from auth header
+    const authHeader = request.headers.get('authorization')
+    const user = await getUserFromToken(authHeader)
+
+    if (!user) {
+      return NextResponse.json({
+        status: 'error',
+        error: 'Authentication required',
+        message: 'Please log in to use AI features'
+      }, { status: 401 })
+    }
+
+    // Check if user has active plan
+    const isActive = isPlanActive(user)
+    if (!isActive) {
+      return NextResponse.json({
+        status: 'error',
+        error: 'No active plan',
+        message: 'Please upgrade to use AI features',
+        upgradeRequired: true
+      }, { status: 403 })
+    }
+
     // Parse request body with error handling
     let body
     try {
@@ -110,6 +135,20 @@ export async function POST(request: NextRequest) {
         error: 'Text is required',
         message: 'Please provide a text field in your request'
       }, { status: 400 })
+    }
+
+    // Count words in the text
+    const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length
+    
+    // Check word limit
+    const remainingWords = getRemainingWords(user)
+    if (wordCount > remainingWords) {
+      return NextResponse.json({
+        status: 'error',
+        error: 'Word limit exceeded',
+        message: `You have ${remainingWords} words remaining. This text has ${wordCount} words.`,
+        upgradeRequired: true
+      }, { status: 403 })
     }
 
     // Validate level parameter
@@ -138,9 +177,14 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
     
+    // Update user usage (in a real app, you'd update the database here)
+    console.log(`User ${user.id} used ${wordCount} words for humanization`)
+    
     return NextResponse.json({
       status: 'success',
       result: result,
+      wordsUsed: wordCount,
+      remainingWords: remainingWords - wordCount,
       timestamp: new Date().toISOString()
     }, { 
       status: 200,
