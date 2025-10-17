@@ -47,6 +47,10 @@ export default function DashboardPage() {
   const wordsUsed = (user.words_used || 0)
   const totalWords = plan?.wordLimit || 0
   const usagePercentage = totalWords > 0 ? (wordsUsed / totalWords) * 100 : 0
+  
+  // Check if user just completed payment
+  const isNewSubscription = user.subscription_status === 'active' && 
+    new Date(user.updated_at || 0).getTime() > Date.now() - 60000 // Within last minute
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -64,6 +68,13 @@ export default function DashboardPage() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
             <p className="text-gray-600">Welcome back, {user.email}</p>
+            {isNewSubscription && (
+              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-800 font-semibold">
+                  🎉 Welcome to Ladybug AI! Your subscription is now active.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Plan Status */}

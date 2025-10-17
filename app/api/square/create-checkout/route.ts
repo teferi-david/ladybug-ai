@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       environment: SQUARE_CONFIG.environment
     })
 
-    // Create Square checkout session using the correct API structure
+    // Create Square checkout session for direct payment (no subscription)
     const checkoutRequest = {
       idempotency_key: `${user.id}-checkout-${Date.now()}`,
       order: {
@@ -55,11 +55,18 @@ export async function POST(request: NextRequest) {
             },
           },
         ],
+        // Add customer information for webhook processing
+        customer_id: user.id,
+        metadata: {
+          user_id: user.id,
+          plan_type: planType,
+          user_email: user.email
+        }
       },
       ask_for_shipping_address: false,
       merchant_support_email: 'support@ladybugai.us',
       pre_populate_buyer_email: user.email,
-      redirect_url: `${appUrl}/dashboard?success=true`,
+      redirect_url: `${appUrl}/dashboard?success=true&plan=${planType}`,
       note: `Ladybug AI - ${plan.name}`,
     }
 
