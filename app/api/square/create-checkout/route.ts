@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       environment: SQUARE_CONFIG.environment
     })
 
-    // Create Square order first
+    // Create Square order using the correct API structure
     const orderRequest = {
       idempotency_key: `${user.id}-${planType}-${Date.now()}`,
       order: {
@@ -55,12 +55,16 @@ export async function POST(request: NextRequest) {
             },
           },
         ],
+        pricing_options: {
+          auto_apply_discounts: false,
+          auto_apply_taxes: false,
+        },
       },
     }
 
-    // Create the order
     console.log('Creating Square order with request:', JSON.stringify(orderRequest, null, 2))
     
+    // Create the order first
     const orderResponse = await fetch(`https://connect.squareup.com/v2/orders`, {
       method: 'POST',
       headers: {
@@ -86,13 +90,16 @@ export async function POST(request: NextRequest) {
     const orderId = orderData.order?.id
 
     if (!orderId) {
+      console.error('No order ID returned:', orderData)
       return NextResponse.json({
         error: 'Failed to create order - no order ID returned',
         details: orderData,
       }, { status: 500 })
     }
 
-    // Create Square checkout session
+    console.log('Order created successfully:', orderId)
+
+    // Create Square checkout session using the correct API
     const checkoutRequest = {
       idempotency_key: `${user.id}-checkout-${Date.now()}`,
       checkout_page_data: {
@@ -105,9 +112,9 @@ export async function POST(request: NextRequest) {
       order_id: orderId,
     }
 
-    // Make direct API call to Square
     console.log('Creating Square checkout with request:', JSON.stringify(checkoutRequest, null, 2))
     
+    // Create checkout session
     const response = await fetch(`https://connect.squareup.com/v2/checkouts`, {
       method: 'POST',
       headers: {
@@ -122,7 +129,7 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json()
-      console.error('Square API error:', errorData)
+      console.error('Square Checkout API error:', errorData)
       return NextResponse.json({
         error: 'Failed to create checkout session',
         details: errorData,
@@ -132,8 +139,19 @@ export async function POST(request: NextRequest) {
     const data = await response.json()
     console.log('Square checkout created successfully:', data)
     
+    // Return the checkout URL
+    const checkoutUrl = data.checkout?.checkout_page_url
+    
+    if (!checkoutUrl) {
+      console.error('No checkout URL returned:', data)
+      return NextResponse.json({
+        error: 'Failed to create checkout session - no URL returned',
+        details: data,
+      }, { status: 500 })
+    }
+    
     return NextResponse.json({
-      checkoutUrl: data.checkout?.checkout_page_url,
+      checkoutUrl: checkoutUrl,
       checkoutId: data.checkout?.id,
     })
 
