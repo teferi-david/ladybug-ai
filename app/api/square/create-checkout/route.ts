@@ -40,22 +40,20 @@ export async function POST(request: NextRequest) {
       environment: SQUARE_CONFIG.environment
     })
 
-    // Create Square checkout session directly using the correct API structure
+    // Create Square checkout session using the correct API structure
     const checkoutRequest = {
       idempotency_key: `${user.id}-checkout-${Date.now()}`,
-      order: {
-        location_id: SQUARE_CONFIG.locationId,
-        line_items: [
-          {
-            name: plan.name,
-            quantity: '1',
-            base_price_money: {
-              amount: plan.amount,
-              currency: 'USD',
-            },
+      location_id: SQUARE_CONFIG.locationId,
+      line_items: [
+        {
+          name: plan.name,
+          quantity: '1',
+          base_price_money: {
+            amount: plan.amount,
+            currency: 'USD',
           },
-        ],
-      },
+        },
+      ],
       ask_for_shipping_address: false,
       merchant_support_email: 'support@ladybugai.us',
       pre_populate_buyer_email: user.email,
