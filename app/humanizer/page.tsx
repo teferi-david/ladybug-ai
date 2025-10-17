@@ -21,6 +21,7 @@ export default function HumanizerPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState('')
   const [tokenUsage, setTokenUsage] = useState({ used: 0, total: 2000 })
+  const [level, setLevel] = useState<'highschool' | 'college' | 'graduate'>('highschool')
 
   useEffect(() => {
     checkUser()
@@ -46,36 +47,26 @@ export default function HumanizerPage() {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
 
-      const response = await fetch('/api/humanize', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ text: input }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        if (response.status === 403) {
-          setUpgradeMessage(data.message)
-          setShowUpgradeModal(true)
-        } else {
-          alert(data.error || 'An error occurred')
-        }
+      if (!token) {
+        alert('Please log in to use AI features')
         return
       }
 
-      setOutput(data.result)
-      if (data.tokensUsed) {
-        setTokenUsage(prev => ({
-          ...prev,
-          used: prev.used + data.tokensUsed,
-        }))
+      // Import axios client dynamically to avoid SSR issues
+      const { apiClient } = await import('@/lib/axios-client')
+      
+      const result = await apiClient.humanizeText(input, level, token)
+      setOutput(result)
+      
+    } catch (error: any) {
+      console.error('Humanize error:', error)
+      
+      if (error.message.includes('upgrade') || error.message.includes('plan')) {
+        setUpgradeMessage(error.message)
+        setShowUpgradeModal(true)
+      } else {
+        alert(`Error: ${error.message}`)
       }
-    } catch (error) {
-      alert('An error occurred. Please try again.')
     } finally {
       setProcessing(false)
     }

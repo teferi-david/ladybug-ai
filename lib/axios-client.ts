@@ -63,9 +63,14 @@ axiosClient.interceptors.response.use(
 // API methods with proper HTTP method handling
 export const apiClient = {
   // POST request for humanize
-  async humanizeText(text: string, level: 'highschool' | 'college' | 'graduate' = 'highschool'): Promise<string> {
+  async humanizeText(text: string, level: 'highschool' | 'college' | 'graduate' = 'highschool', authToken?: string): Promise<string> {
     try {
-      const response = await axiosClient.post('/api/humanize', { text, level })
+      const headers: any = {}
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`
+      }
+      
+      const response = await axiosClient.post('/api/humanize', { text, level }, { headers })
       return response.data.result
     } catch (error: any) {
       console.error('Humanize API error:', error)
@@ -74,9 +79,14 @@ export const apiClient = {
   },
 
   // POST request for paraphrase
-  async paraphraseText(text: string): Promise<string> {
+  async paraphraseText(text: string, authToken?: string): Promise<string> {
     try {
-      const response = await axiosClient.post('/api/paraphrase', { text })
+      const headers: any = {}
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`
+      }
+      
+      const response = await axiosClient.post('/api/paraphrase', { text }, { headers })
       return response.data.result
     } catch (error: any) {
       console.error('Paraphrase API error:', error)
@@ -93,9 +103,14 @@ export const apiClient = {
     publisher?: string
     url?: string
     accessDate?: string
-  }): Promise<string> {
+  }, authToken?: string): Promise<string> {
     try {
-      const response = await axiosClient.post('/api/citation', { text: JSON.stringify(citationData) })
+      const headers: any = {}
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`
+      }
+      
+      const response = await axiosClient.post('/api/citation', { text: JSON.stringify(citationData) }, { headers })
       return response.data.result
     } catch (error: any) {
       console.error('Citation API error:', error)
