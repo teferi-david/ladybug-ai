@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { humanizeText } from '@/lib/openai'
-import { getUserFromToken } from '@/lib/auth-helpers'
+import { getUserFromToken, checkDailyUsage, incrementDailyUsage } from '@/lib/auth-helpers'
 import { getRemainingWords, isPlanActive, updateUserUsage } from '@/lib/user-plans'
 
 export const dynamic = 'force-dynamic'
@@ -91,27 +91,39 @@ export async function POST(request: NextRequest) {
   }
   
   try {
-    // Get user from auth header
+    // Get user from auth header (optional for free tier)
     const authHeader = request.headers.get('authorization')
     const user = await getUserFromToken(authHeader)
+    
+    // Get IP address for free tier tracking
+    const ipAddress = request.headers.get('x-forwarded-for') || 
+                     request.headers.get('x-real-ip') || 
+                     '127.0.0.1'
 
-    if (!user) {
-      return NextResponse.json({
-        status: 'error',
-        error: 'Authentication required',
-        message: 'Please log in to use AI features'
-      }, { status: 401 })
-    }
-
-    // Check if user has active plan
-    const isActive = isPlanActive(user)
-    if (!isActive) {
-      return NextResponse.json({
-        status: 'error',
-        error: 'No active plan',
-        message: 'Please upgrade to use AI features',
-        upgradeRequired: true
-      }, { status: 403 })
+    // If user is authenticated, check their plan
+    if (user) {
+      const isActive = isPlanActive(user)
+      if (!isActive) {
+        return NextResponse.json({
+          status: 'error',
+          error: 'No active plan',
+          message: 'Please upgrade to use AI features',
+          upgradeRequired: true
+        }, { status: 403 })
+      }
+    } else {
+      // For free tier users, check daily usage
+      const { allowed, usesRemaining } = await checkDailyUsage(null, ipAddress, 'humanizer')
+      
+      if (!allowed) {
+        return NextResponse.json({
+          status: 'error',
+          error: 'Daily limit reached',
+          message: `You've used your 2 free uses today. Please upgrade to continue.`,
+          upgradeRequired: true,
+          usesRemaining: 0
+        }, { status: 403 })
+      }
     }
 
     // Parse request body with error handling
@@ -140,15 +152,27 @@ export async function POST(request: NextRequest) {
     // Count words in the text
     const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length
     
-    // Check word limit
-    const remainingWords = getRemainingWords(user)
-    if (wordCount > remainingWords) {
-      return NextResponse.json({
-        status: 'error',
-        error: 'Word limit exceeded',
-        message: `You have ${remainingWords} words remaining. This text has ${wordCount} words.`,
-        upgradeRequired: true
-      }, { status: 403 })
+    // Check word limit based on user type
+    if (user) {
+      const remainingWords = getRemainingWords(user)
+      if (wordCount > remainingWords) {
+        return NextResponse.json({
+          status: 'error',
+          error: 'Word limit exceeded',
+          message: `You have ${remainingWords} words remaining. This text has ${wordCount} words.`,
+          upgradeRequired: true
+        }, { status: 403 })
+      }
+    } else {
+      // Free tier: 200 word limit
+      if (wordCount > 200) {
+        return NextResponse.json({
+          status: 'error',
+          error: 'Word limit exceeded',
+          message: `Free tier is limited to 200 words. This text has ${wordCount} words. Please upgrade for longer texts.`,
+          upgradeRequired: true
+        }, { status: 403 })
+      }
     }
 
     // Validate level parameter
@@ -177,14 +201,21 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
     
-    // Update user usage (in a real app, you'd update the database here)
-    console.log(`User ${user.id} used ${wordCount} words for humanization`)
+    // Update usage tracking
+    if (user) {
+      // Update authenticated user usage
+      console.log(`User ${user.id} used ${wordCount} words for humanization`)
+      // TODO: Update user's word usage in database
+    } else {
+      // Update free tier usage
+      await incrementDailyUsage(null, ipAddress, 'humanizer')
+      console.log(`Free tier user used ${wordCount} words for humanization`)
+    }
     
     return NextResponse.json({
       status: 'success',
       result: result,
       wordsUsed: wordCount,
-      remainingWords: remainingWords - wordCount,
       timestamp: new Date().toISOString()
     }, { 
       status: 200,
