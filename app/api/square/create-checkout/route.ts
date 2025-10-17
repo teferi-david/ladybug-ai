@@ -99,17 +99,15 @@ export async function POST(request: NextRequest) {
 
     console.log('Order created successfully:', orderId)
 
-    // Create Square checkout session using the correct API
+    // Create Square checkout session using the correct API structure
     const checkoutRequest = {
       idempotency_key: `${user.id}-checkout-${Date.now()}`,
-      checkout_page_data: {
-        ask_for_shipping_address: false,
-        merchant_support_email: 'support@ladybugai.us',
-        pre_populate_buyer_email: user.email,
-        redirect_url: `${appUrl}/dashboard?success=true`,
-        note: `Ladybug AI - ${plan.name}`,
-      },
       order_id: orderId,
+      ask_for_shipping_address: false,
+      merchant_support_email: 'support@ladybugai.us',
+      pre_populate_buyer_email: user.email,
+      redirect_url: `${appUrl}/dashboard?success=true`,
+      note: `Ladybug AI - ${plan.name}`,
     }
 
     console.log('Creating Square checkout with request:', JSON.stringify(checkoutRequest, null, 2))
