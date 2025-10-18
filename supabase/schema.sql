@@ -1,127 +1,155 @@
--- Ladybug AI Database Schema for Supabase
+-- Supabase schema for Square payments integration
+-- Run this in your Supabase SQL editor to create the payments table
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Users table (extends Supabase auth.users)
-CREATE TABLE IF NOT EXISTS public.users (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT UNIQUE NOT NULL,
-  name TEXT,
-  stripe_customer_id TEXT UNIQUE,
-  current_plan TEXT DEFAULT 'none' CHECK (current_plan IN ('trial', 'monthly', 'annual', 'single-use', 'none')),
-  plan_expiry TIMESTAMP WITH TIME ZONE,
-  uses_left INTEGER DEFAULT 0,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- Create payments table for idempotency and payment tracking
+CREATE TABLE IF NOT EXISTS payments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  plan text NOT NULL CHECK (plan IN ('trial', 'monthly', 'annual', 'single-use')),
+  square_payment_id text UNIQUE NOT NULL,
+  amount int NOT NULL,
+  currency text NOT NULL DEFAULT 'USD',
+  metadata jsonb,
+  created_at timestamptz DEFAULT now()
 );
 
--- Daily usage tracking for free tier
-CREATE TABLE IF NOT EXISTS public.daily_usage (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
-  ip_address TEXT,
-  tool_name TEXT NOT NULL CHECK (tool_name IN ('humanizer', 'paraphraser', 'citation')),
-  uses_today INTEGER DEFAULT 0,
-  last_reset DATE DEFAULT CURRENT_DATE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(user_id, tool_name, last_reset),
-  UNIQUE(ip_address, tool_name, last_reset)
-);
+-- Create index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
+CREATE INDEX IF NOT EXISTS idx_payments_square_payment_id ON payments(square_payment_id);
+CREATE INDEX IF NOT EXISTS idx_payments_created_at ON payments(created_at);
 
--- Stripe subscriptions tracking
-CREATE TABLE IF NOT EXISTS public.subscriptions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
-  stripe_subscription_id TEXT UNIQUE,
-  stripe_customer_id TEXT,
-  status TEXT,
-  price_id TEXT,
-  current_period_end TIMESTAMP WITH TIME ZONE,
-  cancel_at_period_end BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Create index for plan lookups
+CREATE INDEX IF NOT EXISTS idx_payments_plan ON payments(plan);
 
--- Usage logs (optional, for analytics)
-CREATE TABLE IF NOT EXISTS public.usage_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
-  tool_name TEXT NOT NULL,
-  tokens_used INTEGER,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Add RLS (Row Level Security) policies
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_users_stripe_customer ON public.users(stripe_customer_id);
-CREATE INDEX IF NOT EXISTS idx_daily_usage_user ON public.daily_usage(user_id, tool_name);
-CREATE INDEX IF NOT EXISTS idx_daily_usage_ip ON public.daily_usage(ip_address, tool_name);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON public.subscriptions(user_id);
-CREATE INDEX IF NOT EXISTS idx_usage_logs_user ON public.usage_logs(user_id);
-
--- Row Level Security (RLS) Policies
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.daily_usage ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.usage_logs ENABLE ROW LEVEL SECURITY;
-
--- Users can read their own data
-CREATE POLICY "Users can view own data" ON public.users
-  FOR SELECT USING (auth.uid() = id);
-
--- Users can update their own data
-CREATE POLICY "Users can update own data" ON public.users
-  FOR UPDATE USING (auth.uid() = id);
-
--- Daily usage policies
-CREATE POLICY "Users can view own usage" ON public.daily_usage
+-- Policy: Users can only see their own payments
+CREATE POLICY "Users can view own payments" ON payments
   FOR SELECT USING (auth.uid() = user_id);
 
--- Subscriptions policies
-CREATE POLICY "Users can view own subscriptions" ON public.subscriptions
-  FOR SELECT USING (auth.uid() = user_id);
+-- Policy: Service role can insert payments (for webhook processing)
+CREATE POLICY "Service role can insert payments" ON payments
+  FOR INSERT WITH CHECK (true);
 
--- Usage logs policies
-CREATE POLICY "Users can view own logs" ON public.usage_logs
-  FOR SELECT USING (auth.uid() = user_id);
+-- Policy: Service role can update payments
+CREATE POLICY "Service role can update payments" ON payments
+  FOR UPDATE USING (true);
 
--- Function to create user profile on signup
-CREATE OR REPLACE FUNCTION public.handle_new_user()
+-- Update users table to ensure it has the required columns
+-- (These should already exist from your existing schema, but adding for completeness)
+
+-- Ensure users table has the required columns for plan management
+DO $$ 
+BEGIN
+  -- Add current_plan column if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'users' AND column_name = 'current_plan') THEN
+    ALTER TABLE users ADD COLUMN current_plan text DEFAULT 'free';
+  END IF;
+
+  -- Add plan_expiry column if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'users' AND column_name = 'plan_expiry') THEN
+    ALTER TABLE users ADD COLUMN plan_expiry timestamptz;
+  END IF;
+
+  -- Add subscription_status column if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'users' AND column_name = 'subscription_status') THEN
+    ALTER TABLE users ADD COLUMN subscription_status text DEFAULT 'inactive';
+  END IF;
+
+  -- Add uses_left column if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'users' AND column_name = 'uses_left') THEN
+    ALTER TABLE users ADD COLUMN uses_left int DEFAULT 0;
+  END IF;
+
+  -- Add words_used column if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'users' AND column_name = 'words_used') THEN
+    ALTER TABLE users ADD COLUMN words_used int DEFAULT 0;
+  END IF;
+
+  -- Add updated_at column if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'users' AND column_name = 'updated_at') THEN
+    ALTER TABLE users ADD COLUMN updated_at timestamptz DEFAULT now();
+  END IF;
+END $$;
+
+-- Add constraints to users table
+ALTER TABLE users 
+ADD CONSTRAINT check_current_plan 
+CHECK (current_plan IN ('free', 'trial', 'monthly', 'annual', 'single-use'));
+
+ALTER TABLE users 
+ADD CONSTRAINT check_subscription_status 
+CHECK (subscription_status IN ('active', 'inactive', 'trialing', 'cancelled'));
+
+-- Create function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.users (id, email, name)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'name', NEW.email)
-  );
+  NEW.updated_at = now();
   RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create trigger to automatically update updated_at
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+CREATE TRIGGER update_users_updated_at
+  BEFORE UPDATE ON users
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- Create function to get user plan details
+CREATE OR REPLACE FUNCTION get_user_plan_details(user_uuid uuid)
+RETURNS TABLE (
+  current_plan text,
+  plan_expiry timestamptz,
+  subscription_status text,
+  uses_left int,
+  words_used int,
+  is_active boolean
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    u.current_plan,
+    u.plan_expiry,
+    u.subscription_status,
+    u.uses_left,
+    u.words_used,
+    CASE 
+      WHEN u.subscription_status = 'active' AND (u.plan_expiry IS NULL OR u.plan_expiry > now()) 
+      THEN true 
+      ELSE false 
+    END as is_active
+  FROM users u
+  WHERE u.id = user_uuid;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger to create user profile on signup
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+-- Grant necessary permissions
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE ON payments TO anon, authenticated;
+GRANT SELECT, UPDATE ON users TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_user_plan_details(uuid) TO anon, authenticated;
 
--- Function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+-- Create view for payment analytics (optional)
+CREATE OR REPLACE VIEW payment_analytics AS
+SELECT 
+  plan,
+  COUNT(*) as total_payments,
+  SUM(amount) as total_revenue,
+  AVG(amount) as average_amount,
+  MIN(created_at) as first_payment,
+  MAX(created_at) as latest_payment
+FROM payments
+GROUP BY plan
+ORDER BY total_revenue DESC;
 
--- Triggers for updated_at
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER update_daily_usage_updated_at BEFORE UPDATE ON public.daily_usage
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON public.subscriptions
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
+-- Grant access to payment analytics view
+GRANT SELECT ON payment_analytics TO anon, authenticated;

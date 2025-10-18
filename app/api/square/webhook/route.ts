@@ -1,136 +1,178 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { getPlanDetails } from '@/lib/user-plans'
-import crypto from 'crypto'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { verifyWebhookSignature, getPaymentDetails } from '@/lib/squareClient'
+import { 
+  recordPaymentIfNew, 
+  updateUserPlan, 
+  calculatePlanExpiry, 
+  calculateUsesLeft,
+  getUserById 
+} from '@/lib/supabaseServer'
+import { PLAN_CONFIG, PlanKey } from '@/lib/squareClient'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+/**
+ * POST /api/square/webhook
+ * Handles Square webhook events for payment processing
+ * 
+ * Verifies webhook signature and processes payment events
+ * Updates user plans and records payments for idempotency
+ */
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== SQUARE WEBHOOK RECEIVED ===')
+    console.log('=== SQUARE WEBHOOK START ===')
     
+    // Get raw body for signature verification
     const body = await request.text()
-    const signature = request.headers.get('x-square-signature')
     
-    // Verify webhook signature (in production, you should verify this)
-    if (process.env.NODE_ENV === 'production' && signature) {
-      // Add signature verification logic here
-      console.log('Webhook signature verification would happen here')
+    // Verify webhook signature for security
+    if (!verifyWebhookSignature(request, body)) {
+      console.error('Invalid webhook signature')
+      return NextResponse.json({
+        error: 'Invalid signature'
+      }, { status: 400 })
     }
-    
+
+    // Parse webhook payload
     const event = JSON.parse(body)
-    console.log('Webhook event:', event)
-    
-    // Handle different Square webhook events
-    switch (event.type) {
-      case 'payment.updated':
-        await handlePaymentSuccess(event.data)
-        break
-      case 'subscription.created':
-        await handleSubscriptionCreated(event.data)
-        break
-      case 'subscription.updated':
-        await handleSubscriptionUpdated(event.data)
-        break
-      default:
-        console.log('Unhandled webhook event type:', event.type)
+    console.log('Webhook event received:', event.type)
+
+    // Handle payment events
+    if (event.type === 'payment.updated' || event.type === 'payment.created') {
+      const payment = event.data.object
+      
+      // Only process completed payments
+      if (payment.status !== 'COMPLETED') {
+        console.log(`Payment ${payment.id} status: ${payment.status} - skipping`)
+        return NextResponse.json({ status: 'ignored' })
+      }
+
+      console.log(`Processing completed payment: ${payment.id}`)
+
+      // Extract reference ID from payment metadata
+      const referenceId = payment.metadata?.reference_id
+      if (!referenceId) {
+        console.error('No reference_id found in payment metadata')
+        return NextResponse.json({
+          error: 'Missing reference_id'
+        }, { status: 400 })
+      }
+
+      // Parse reference ID: <user_id>::<plan>::<nonce>
+      const [userId, plan, nonce] = referenceId.split('::')
+      if (!userId || !plan || !nonce) {
+        console.error('Invalid reference_id format:', referenceId)
+        return NextResponse.json({
+          error: 'Invalid reference_id format'
+        }, { status: 400 })
+      }
+
+      // Validate plan
+      if (!PLAN_CONFIG[plan as PlanKey]) {
+        console.error('Invalid plan in reference_id:', plan)
+        return NextResponse.json({
+          error: 'Invalid plan'
+        }, { status: 400 })
+      }
+
+      console.log(`Processing payment for user ${userId}, plan: ${plan}`)
+
+      // Check idempotency - record payment if new
+      const isNewPayment = await recordPaymentIfNew(payment.id, {
+        userId,
+        plan: plan as PlanKey,
+        amount: payment.totalMoney?.amount || 0,
+        currency: payment.totalMoney?.currency || 'USD',
+        metadata: {
+          reference_id: referenceId,
+          nonce,
+          square_payment_id: payment.id,
+        }
+      })
+
+      // If payment already processed, return success
+      if (!isNewPayment) {
+        console.log(`Payment ${payment.id} already processed - skipping`)
+        return NextResponse.json({ status: 'already_processed' })
+      }
+
+      // Get user data to verify they exist
+      const userData = await getUserById(userId)
+      if (!userData) {
+        console.error(`User ${userId} not found in database`)
+        return NextResponse.json({
+          error: 'User not found'
+        }, { status: 404 })
+      }
+
+      // Calculate plan expiry and uses
+      const planExpiry = calculatePlanExpiry(plan as PlanKey)
+      const usesLeft = calculateUsesLeft(plan as PlanKey)
+
+      // Update user plan
+      await updateUserPlan(userId, plan as PlanKey, planExpiry, usesLeft)
+
+      console.log(`User ${userId} plan updated to ${plan} with expiry ${planExpiry}`)
+      console.log('=== SQUARE WEBHOOK END ===')
+
+      return NextResponse.json({ 
+        status: 'success',
+        userId,
+        plan,
+        planExpiry,
+        usesLeft
+      })
+
+    } else if (event.type === 'refund.created' || event.type === 'refund.updated') {
+      // Handle refund events if needed
+      console.log(`Refund event received: ${event.type}`)
+      return NextResponse.json({ status: 'refund_processed' })
+
+    } else {
+      // Ignore other event types
+      console.log(`Ignoring event type: ${event.type}`)
+      return NextResponse.json({ status: 'ignored' })
     }
-    
-    return NextResponse.json({ received: true })
-    
+
   } catch (error: any) {
     console.error('Webhook processing error:', error)
-    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
+    
+    return NextResponse.json({
+      error: 'Webhook processing failed',
+      message: error.message || 'An unexpected error occurred',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    }, { status: 500 })
   }
 }
 
-async function handlePaymentSuccess(paymentData: any) {
-  try {
-    console.log('Processing payment success:', paymentData)
-    
-    const { payment } = paymentData
-    if (!payment) return
-    
-    // Extract customer email from payment
-    const customerEmail = payment.buyer_email_address
-    if (!customerEmail) {
-      console.error('No customer email found in payment')
-      return
-    }
-    
-    // Find user by email
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', customerEmail)
-      .single()
-    
-    if (userError || !user) {
-      console.error('User not found:', userError)
-      return
-    }
-    
-    // Determine plan type from payment amount
-    const amount = payment.total_money?.amount || 0
-    let planType = 'trial' // default
-    
-    if (amount === 149) planType = 'trial'
-    else if (amount === 1549) planType = 'monthly'
-    else if (amount === 14949) planType = 'annual'
-    else if (amount === 399) planType = 'singleUse'
-    
-    const plan = getPlanDetails(planType)
-    if (!plan) {
-      console.error('Invalid plan type:', planType)
-      return
-    }
-    
-    // Calculate expiry date
-    const now = new Date()
-    const expiryDate = new Date(now.getTime() + (plan.periodDays * 24 * 60 * 60 * 1000))
-    
-    // Update user subscription
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        current_plan: planType,
-        plan_expiry: expiryDate.toISOString(),
-        words_used: 0,
-        payment_id: payment.id,
-        subscription_status: 'active',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', user.id)
-    
-    if (updateError) {
-      console.error('Failed to update user subscription:', updateError)
-      return
-    }
-    
-    console.log('User subscription updated successfully:', {
-      userId: user.id,
-      planType,
-      expiryDate: expiryDate.toISOString(),
-      wordLimit: plan.wordLimit
-    })
-    
-  } catch (error: any) {
-    console.error('Error handling payment success:', error)
-  }
+/**
+ * Handle unsupported HTTP methods
+ */
+export async function GET() {
+  return NextResponse.json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST requests'
+  }, { status: 405 })
 }
 
-async function handleSubscriptionCreated(subscriptionData: any) {
-  console.log('Subscription created:', subscriptionData)
-  // Handle subscription creation if needed
+export async function PUT() {
+  return NextResponse.json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST requests'
+  }, { status: 405 })
 }
 
-async function handleSubscriptionUpdated(subscriptionData: any) {
-  console.log('Subscription updated:', subscriptionData)
-  // Handle subscription updates if needed
+export async function DELETE() {
+  return NextResponse.json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST requests'
+  }, { status: 405 })
+}
+
+export async function PATCH() {
+  return NextResponse.json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST requests'
+  }, { status: 405 })
 }

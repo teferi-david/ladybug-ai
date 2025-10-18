@@ -1,125 +1,127 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { SQUARE_CONFIG, PLAN_PRICES, PlanType } from '@/lib/square'
-import { getUserFromToken } from '@/lib/auth-helpers'
+import { createCheckoutLink, PLAN_CONFIG, PlanKey } from '@/lib/squareClient'
+import { validateUserSession, getUserById } from '@/lib/supabaseServer'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+/**
+ * POST /api/square/create-checkout
+ * Creates a Square checkout link for authenticated users
+ * 
+ * Body: {
+ *   plan: 'trial' | 'monthly' | 'annual' | 'single-use',
+ *   successUrl?: string,
+ *   cancelUrl?: string,
+ *   supabaseAccessToken: string
+ * }
+ * 
+ * Returns: {
+ *   checkoutUrl: string,
+ *   checkoutId: string
+ * }
+ */
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== SQUARE CHECKOUT START ===')
-    console.log('Timestamp:', new Date().toISOString())
+    console.log('=== SQUARE CHECKOUT CREATION START ===')
     
-    const { planType } = await request.json()
-    console.log('Plan type:', planType)
+    // Parse request body
+    const body = await request.json()
+    const { plan, successUrl, cancelUrl, supabaseAccessToken } = body
 
-    if (!planType || !['trial', 'monthly', 'annual', 'singleUse'].includes(planType)) {
-      console.error('Invalid plan type:', planType)
-      return NextResponse.json({ error: 'Invalid plan type' }, { status: 400 })
+    // Validate required fields
+    if (!plan || !supabaseAccessToken) {
+      return NextResponse.json({
+        error: 'Missing required fields',
+        message: 'Plan and supabaseAccessToken are required'
+      }, { status: 400 })
     }
 
-    // Get user from auth header
-    const authHeader = request.headers.get('authorization')
-    const user = await getUserFromToken(authHeader)
+    // Validate plan type
+    if (!PLAN_CONFIG[plan as PlanKey]) {
+      return NextResponse.json({
+        error: 'Invalid plan',
+        message: `Plan must be one of: ${Object.keys(PLAN_CONFIG).join(', ')}`
+      }, { status: 400 })
+    }
 
+    // Validate user session
+    const user = await validateUserSession(supabaseAccessToken)
     if (!user) {
-      console.error('No user found in auth header')
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+      return NextResponse.json({
+        error: 'Authentication required',
+        message: 'Invalid or expired authentication token'
+      }, { status: 401 })
     }
 
-    console.log('User found:', user.email)
+    // Get user data from database
+    const userData = await getUserById(user.id)
+    if (!userData) {
+      return NextResponse.json({
+        error: 'User not found',
+        message: 'User data not found in database'
+      }, { status: 404 })
+    }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const plan = PLAN_PRICES[planType as PlanType]
-    
-    console.log('App URL:', appUrl)
-    console.log('Plan details:', plan)
-    console.log('Square config:', {
-      hasAccessToken: !!SQUARE_CONFIG.accessToken,
-      hasLocationId: !!SQUARE_CONFIG.locationId,
-      environment: SQUARE_CONFIG.environment
+    console.log(`Creating checkout for user ${user.email} (${user.id}) for plan: ${plan}`)
+
+    // Create Square checkout link
+    const { checkoutUrl, checkoutId } = await createCheckoutLink({
+      plan: plan as PlanKey,
+      userId: user.id,
+      userEmail: user.email!,
+      successUrl: successUrl || `${process.env.NEXT_PUBLIC_APP_URL}/api/square/return`,
+      cancelUrl: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
     })
 
-    // Create Square checkout session for direct payment (no subscription)
-    const checkoutRequest = {
-      idempotency_key: `${user.id}-checkout-${Date.now()}`,
-      order: {
-        location_id: SQUARE_CONFIG.locationId,
-        line_items: [
-          {
-            name: plan.name,
-            quantity: '1',
-            base_price_money: {
-              amount: plan.amount,
-              currency: 'USD',
-            },
-          },
-        ],
-        // Add customer information for webhook processing
-        customer_id: user.id,
-        metadata: {
-          user_id: user.id,
-          plan_type: planType,
-          user_email: user.email
-        }
-      },
-      ask_for_shipping_address: false,
-      merchant_support_email: 'support@ladybugai.us',
-      pre_populate_buyer_email: user.email,
-      redirect_url: `${appUrl}/dashboard?success=true&plan=${planType}`,
-      note: `Ladybug AI - ${plan.name}`,
-    }
+    console.log(`Checkout created successfully: ${checkoutId}`)
+    console.log('=== SQUARE CHECKOUT CREATION END ===')
 
-    console.log('Creating Square checkout with request:', JSON.stringify(checkoutRequest, null, 2))
-    
-    // Create payment link using Square Payment Links API (sandbox)
-    const response = await fetch(`https://connect.squareupsandbox.com/v2/online-checkout/payment-links`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SQUARE_CONFIG.accessToken}`,
-        'Content-Type': 'application/json',
-        'Square-Version': '2023-10-18',
-      },
-      body: JSON.stringify(checkoutRequest),
-    })
-    
-    console.log('Checkout response status:', response.status)
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      console.error('Square Checkout API error:', errorData)
-      return NextResponse.json({
-        error: 'Failed to create checkout session',
-        details: errorData,
-      }, { status: 500 })
-    }
-
-    const data = await response.json()
-    console.log('Square payment link created successfully:', data)
-    
-    // Return the payment link URL
-    const checkoutUrl = data.payment_link?.url || data.payment_link?.long_url
-    
-    if (!checkoutUrl) {
-      console.error('No payment URL returned:', data)
-      return NextResponse.json({
-        error: 'Failed to create payment link - no URL returned',
-        details: data,
-      }, { status: 500 })
-    }
-    
     return NextResponse.json({
-      checkoutUrl: checkoutUrl,
-      checkoutId: data.payment_link?.id,
+      checkoutUrl,
+      checkoutId,
+      plan,
+      userId: user.id,
     })
 
   } catch (error: any) {
-    console.error('Square checkout error:', error)
+    console.error('Square checkout creation error:', error)
+    
     return NextResponse.json({
-      error: 'Failed to create checkout session',
-      details: error.message,
+      error: 'Checkout creation failed',
+      message: error.message || 'An unexpected error occurred',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, { status: 500 })
-  } finally {
-    console.log('=== SQUARE CHECKOUT END ===')
   }
+}
+
+/**
+ * Handle unsupported HTTP methods
+ */
+export async function GET() {
+  return NextResponse.json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST requests'
+  }, { status: 405 })
+}
+
+export async function PUT() {
+  return NextResponse.json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST requests'
+  }, { status: 405 })
+}
+
+export async function DELETE() {
+  return NextResponse.json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST requests'
+  }, { status: 405 })
+}
+
+export async function PATCH() {
+  return NextResponse.json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST requests'
+  }, { status: 405 })
 }
