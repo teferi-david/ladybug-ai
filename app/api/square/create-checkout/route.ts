@@ -64,6 +64,26 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`Creating checkout for user ${user.email} (${user.id}) for plan: ${plan}`)
+    console.log('Plan config:', PLAN_CONFIG[plan as PlanKey])
+    console.log('User email:', user.email)
+    console.log('Success URL:', successUrl || `${process.env.NEXT_PUBLIC_APP_URL}/api/square/return`)
+
+    // Validate required environment variables
+    if (!process.env.SQUARE_ACCESS_TOKEN) {
+      console.error('Missing SQUARE_ACCESS_TOKEN')
+      return NextResponse.json({
+        error: 'Server configuration error',
+        message: 'Square access token not configured'
+      }, { status: 500 })
+    }
+
+    if (!process.env.SQUARE_LOCATION_ID) {
+      console.error('Missing SQUARE_LOCATION_ID')
+      return NextResponse.json({
+        error: 'Server configuration error',
+        message: 'Square location ID not configured'
+      }, { status: 500 })
+    }
 
     // Create Square checkout link
     const { checkoutUrl, checkoutId } = await createCheckoutLink({
@@ -75,6 +95,7 @@ export async function POST(request: NextRequest) {
     })
 
     console.log(`Checkout created successfully: ${checkoutId}`)
+    console.log('Checkout URL:', checkoutUrl)
     console.log('=== SQUARE CHECKOUT CREATION END ===')
 
     return NextResponse.json({

@@ -68,41 +68,29 @@ export async function createCheckoutLink(params: {
   const idempotencyKey = `checkout-${userId}-${plan}-${Date.now()}`
 
   try {
-    // Create Square order first
-    const orderResponse = await squareClient.ordersApi.createOrder({
-      idempotencyKey: `order-${idempotencyKey}`,
-      order: {
-        locationId: process.env.SQUARE_LOCATION_ID!,
-        lineItems: [
-          {
-            name: planConfig.name,
-            quantity: '1',
-            basePriceMoney: {
-              amount: planConfig.amount,
-              currency: 'USD',
-            },
-          },
-        ],
-        // Include reference ID for webhook processing
-        metadata: {
-          reference_id: referenceId,
-          user_id: userId,
-          plan: plan,
-        },
-      },
-    })
-
-    if (!orderResponse.result.order?.id) {
-      throw new Error('Failed to create order')
-    }
-
-    const orderId = orderResponse.result.order.id
-
-    // Create Square checkout using the order
+    // Create Square checkout directly with order data
     const checkoutResponse = await squareClient.checkoutApi.createCheckout({
       idempotencyKey,
       checkout: {
-        orderId,
+        order: {
+          locationId: process.env.SQUARE_LOCATION_ID!,
+          lineItems: [
+            {
+              name: planConfig.name,
+              quantity: '1',
+              basePriceMoney: {
+                amount: planConfig.amount,
+                currency: 'USD',
+              },
+            },
+          ],
+          // Include reference ID for webhook processing
+          metadata: {
+            reference_id: referenceId,
+            user_id: userId,
+            plan: plan,
+          },
+        },
         askForShippingAddress: false,
         merchantSupportEmail: 'support@ladybugai.us',
         prePopulateBuyerEmail: userEmail,
