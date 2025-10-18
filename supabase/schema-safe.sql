@@ -1,5 +1,5 @@
--- Supabase schema for Square payments integration
--- Run this in your Supabase SQL editor to create the payments table
+-- Safe Supabase schema for Square payments integration
+-- This version handles existing data gracefully
 
 -- Create payments table for idempotency and payment tracking
 CREATE TABLE IF NOT EXISTS payments (
@@ -17,8 +17,6 @@ CREATE TABLE IF NOT EXISTS payments (
 CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
 CREATE INDEX IF NOT EXISTS idx_payments_square_payment_id ON payments(square_payment_id);
 CREATE INDEX IF NOT EXISTS idx_payments_created_at ON payments(created_at);
-
--- Create index for plan lookups
 CREATE INDEX IF NOT EXISTS idx_payments_plan ON payments(plan);
 
 -- Add RLS (Row Level Security) policies
@@ -36,10 +34,7 @@ CREATE POLICY "Service role can insert payments" ON payments
 CREATE POLICY "Service role can update payments" ON payments
   FOR UPDATE USING (true);
 
--- Update users table to ensure it has the required columns
--- (These should already exist from your existing schema, but adding for completeness)
-
--- Ensure users table has the required columns for plan management
+-- Safely update users table to ensure it has the required columns
 DO $$ 
 BEGIN
   -- Add current_plan column if it doesn't exist
@@ -79,18 +74,32 @@ BEGIN
   END IF;
 END $$;
 
--- Update existing data to match constraints before adding them
--- First, update any NULL or invalid current_plan values
+-- Clean up existing data before adding constraints
+-- Update any NULL or invalid current_plan values
 UPDATE users 
 SET current_plan = 'free' 
-WHERE current_plan IS NULL OR current_plan NOT IN ('free', 'trial', 'monthly', 'annual', 'single-use');
+WHERE current_plan IS NULL 
+   OR current_plan NOT IN ('free', 'trial', 'monthly', 'annual', 'single-use');
 
 -- Update any NULL or invalid subscription_status values
 UPDATE users 
 SET subscription_status = 'inactive' 
-WHERE subscription_status IS NULL OR subscription_status NOT IN ('active', 'inactive', 'trialing', 'cancelled');
+WHERE subscription_status IS NULL 
+   OR subscription_status NOT IN ('active', 'inactive', 'trialing', 'cancelled');
 
--- Now add constraints to users table
+-- Drop existing constraints if they exist (to avoid conflicts)
+DO $$ 
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_current_plan') THEN
+    ALTER TABLE users DROP CONSTRAINT check_current_plan;
+  END IF;
+  
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_subscription_status') THEN
+    ALTER TABLE users DROP CONSTRAINT check_subscription_status;
+  END IF;
+END $$;
+
+-- Add constraints to users table (now that data is clean)
 ALTER TABLE users 
 ADD CONSTRAINT check_current_plan 
 CHECK (current_plan IN ('free', 'trial', 'monthly', 'annual', 'single-use'));
