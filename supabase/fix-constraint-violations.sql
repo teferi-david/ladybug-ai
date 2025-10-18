@@ -1,7 +1,23 @@
 -- Fix constraint violations in users table
 -- Run this script in your Supabase SQL editor to fix existing data
 
--- First, let's see what data is causing the constraint violation
+-- First, ensure all required columns exist
+DO $$ 
+BEGIN
+  -- Add current_plan column if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'users' AND column_name = 'current_plan') THEN
+    ALTER TABLE users ADD COLUMN current_plan text DEFAULT 'free';
+  END IF;
+
+  -- Add subscription_status column if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'users' AND column_name = 'subscription_status') THEN
+    ALTER TABLE users ADD COLUMN subscription_status text DEFAULT 'inactive';
+  END IF;
+END $$;
+
+-- Now let's see what data is causing the constraint violation
 SELECT 
   id, 
   email, 
