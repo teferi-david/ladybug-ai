@@ -103,6 +103,40 @@ export async function getUserRowById(userId: string): Promise<User | null> {
   return data
 }
 
+/**
+ * OAuth / Google users may exist in auth.users before a public.users row exists.
+ * If daily_usage.user_id references public.users(id), inserts fail silently until this row exists.
+ */
+export async function ensurePublicUserRowForAuth(userId: string): Promise<void> {
+  const { data: existing } = await supabaseAdmin.from('users').select('id').eq('id', userId).maybeSingle()
+  if (existing) return
+
+  const { data: authRes, error: authErr } = await supabaseAdmin.auth.admin.getUserById(userId)
+  if (authErr || !authRes.user) {
+    console.error('ensurePublicUserRowForAuth: auth.admin.getUserById failed', authErr)
+    return
+  }
+  const u = authRes.user
+  const email = u.email ?? `${u.id}@users.placeholder`
+  const name =
+    (typeof u.user_metadata?.name === 'string' && u.user_metadata.name) ||
+    (typeof u.user_metadata?.full_name === 'string' && u.user_metadata.full_name) ||
+    null
+
+  const { error: insertErr } = await supabaseAdmin.from('users').insert({
+    id: u.id,
+    email,
+    name,
+    current_plan: 'free',
+    uses_left: 0,
+    subscription_status: 'inactive',
+  })
+
+  if (insertErr && insertErr.code !== '23505') {
+    console.error('ensurePublicUserRowForAuth: insert public.users failed', insertErr)
+  }
+}
+
 export async function getUserFromToken(authHeader: string | null): Promise<User | null> {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null
@@ -204,6 +238,10 @@ export async function incrementDailyUsage(
   ipAddress: string,
   toolName: 'humanizer' | 'paraphraser' | 'citation'
 ): Promise<void> {
+  if (userId) {
+    await ensurePublicUserRowForAuth(userId)
+  }
+
   const today = new Date().toISOString().split('T')[0]
 
   // First, try to get existing record
