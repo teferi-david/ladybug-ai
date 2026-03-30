@@ -4,6 +4,33 @@ import { isExpired } from './utils'
 
 type User = Database['public']['Tables']['users']['Row']
 
+/**
+ * Supabase Auth user id from the JWT — does not require a `public.users` row.
+ * Use for free-tier daily limits so signed-in users are always capped per account, not only by IP.
+ */
+export async function getAuthUserIdFromToken(authHeader: string | null): Promise<string | null> {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null
+  }
+
+  const token = authHeader.substring(7)
+
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabaseAdmin.auth.getUser(token)
+
+    if (error || !user) {
+      return null
+    }
+
+    return user.id
+  } catch {
+    return null
+  }
+}
+
 export async function getUserFromToken(authHeader: string | null): Promise<User | null> {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null

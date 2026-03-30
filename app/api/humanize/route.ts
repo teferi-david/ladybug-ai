@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { humanizeText } from '@/lib/openai'
-import { getUserFromToken, checkDailyUsage, incrementDailyUsage } from '@/lib/auth-helpers'
+import {
+  getAuthUserIdFromToken,
+  getUserFromToken,
+  checkDailyUsage,
+  incrementDailyUsage,
+} from '@/lib/auth-helpers'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
 import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 
@@ -95,7 +100,10 @@ export async function POST(request: NextRequest) {
   
   try {
     const authHeader = request.headers.get('authorization')
+    const authUserId = await getAuthUserIdFromToken(authHeader)
     const user = await getUserFromToken(authHeader)
+    /** Prefer JWT id so free limits apply per signed-in account even without a `users` profile row. */
+    const freeTierUserId = authUserId ?? user?.id ?? null
 
     const ipAddress =
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
@@ -161,7 +169,7 @@ export async function POST(request: NextRequest) {
         }, { status: 403 })
       }
     } else {
-      const { allowed } = await checkDailyUsage(user?.id ?? null, ipAddress, 'humanizer')
+      const { allowed } = await checkDailyUsage(freeTierUserId, ipAddress, 'humanizer')
       if (!allowed) {
         return NextResponse.json({
           status: 'error',
@@ -199,8 +207,8 @@ export async function POST(request: NextRequest) {
     }
     
     if (!paid) {
-      await incrementDailyUsage(user?.id ?? null, ipAddress, 'humanizer')
-      console.log(`Free tier humanize use (user: ${user?.id ?? 'anon'})`)
+      await incrementDailyUsage(freeTierUserId, ipAddress, 'humanizer')
+      console.log(`Free tier humanize use (id: ${freeTierUserId ?? 'anon-ip'})`)
     } else {
       console.log(`Paid user ${user!.id} used ${wordCount} words for humanization`)
     }
