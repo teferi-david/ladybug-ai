@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Check } from 'lucide-react'
 
 const FEATURES = [
+  '1-day free trial, then billed annually',
   'Unlimited AI humanizer (no daily cap while subscribed)',
-  'All humanize levels (high school, college, graduate)',
+  'All humanize levels (High school, College, Graduate)',
   'Higher word limits vs free tier',
   'Cancel anytime in the Stripe customer portal',
 ]
@@ -90,7 +91,7 @@ export default function PricingPage() {
               <span className="text-gray-600 ml-1">/month</span>
             </div>
             <CardDescription className="text-base pt-2">
-              Billed annually. Secure checkout powered by Stripe.
+              Start with a 1-day free trial, then continue annually. Secure checkout powered by Stripe.
             </CardDescription>
           </CardHeader>
           <CardContent>

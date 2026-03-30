@@ -44,6 +44,13 @@ export async function POST(request: NextRequest) {
 
     const stripe = getStripe()
 
+    // 1-day trial: set STRIPE_TRIAL_PERIOD_DAYS=0 to rely only on trial configured on the Price in Stripe
+    const trialRaw = process.env.STRIPE_TRIAL_PERIOD_DAYS
+    const trialDays =
+      trialRaw === '0' || trialRaw === ''
+        ? null
+        : Math.min(365, Math.max(1, parseInt(trialRaw ?? '1', 10) || 1))
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
@@ -53,6 +60,7 @@ export async function POST(request: NextRequest) {
       metadata: { supabase_user_id: user.id },
       subscription_data: {
         metadata: { supabase_user_id: user.id },
+        ...(trialDays != null ? { trial_period_days: trialDays } : {}),
       },
       customer_email: user.email,
       allow_promotion_codes: true,

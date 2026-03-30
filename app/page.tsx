@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
-import { Sparkles, Copy, Check } from 'lucide-react'
+import { Sparkles, Copy, Check, Lock } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
+import { hasProHumanizeAccess } from '@/lib/plan-access'
 
 export default function HomePage() {
   const [input, setInput] = useState('')
@@ -15,9 +18,45 @@ export default function HomePage() {
   const [progress, setProgress] = useState(0)
   const [copied, setCopied] = useState(false)
   const [humanizeLevel, setHumanizeLevel] = useState<'highschool' | 'college' | 'graduate'>('highschool')
+  const [hasProAccess, setHasProAccess] = useState(false)
+  const [planLoaded, setPlanLoaded] = useState(false)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const wordCount = input.trim().split(/\s+/).filter((w) => w.length > 0).length
+
+  const refreshPlanAccess = useCallback(async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (!session?.user) {
+      setHasProAccess(false)
+      setPlanLoaded(true)
+      return
+    }
+    const { data: row } = await supabase
+      .from('users')
+      .select('current_plan, plan_expiry')
+      .eq('id', session.user.id)
+      .single()
+    setHasProAccess(hasProHumanizeAccess(row))
+    setPlanLoaded(true)
+  }, [])
+
+  useEffect(() => {
+    refreshPlanAccess()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      refreshPlanAccess()
+    })
+    return () => subscription.unsubscribe()
+  }, [refreshPlanAccess])
+
+  useEffect(() => {
+    if (!hasProAccess && (humanizeLevel === 'college' || humanizeLevel === 'graduate')) {
+      setHumanizeLevel('highschool')
+    }
+  }, [hasProAccess, humanizeLevel])
 
   useEffect(() => {
     return () => {
@@ -30,6 +69,11 @@ export default function HomePage() {
       clearInterval(progressIntervalRef.current)
       progressIntervalRef.current = null
     }
+  }
+
+  const setLevel = (level: 'highschool' | 'college' | 'graduate') => {
+    if ((level === 'college' || level === 'graduate') && !hasProAccess) return
+    setHumanizeLevel(level)
   }
 
   const handleHumanize = async () => {
@@ -50,7 +94,10 @@ export default function HomePage() {
 
     try {
       const { apiClient } = await import('@/lib/axios-client')
-      const result = await apiClient.humanizeText(input, humanizeLevel)
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const result = await apiClient.humanizeText(input, humanizeLevel, session?.access_token)
 
       const elapsed = Date.now() - start
       if (elapsed < minDurationMs) {
@@ -114,7 +161,7 @@ export default function HomePage() {
                       type="button"
                       variant={humanizeLevel === 'highschool' ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => setHumanizeLevel('highschool')}
+                      onClick={() => setLevel('highschool')}
                       className="flex-1 min-w-[100px]"
                     >
                       High school
@@ -123,21 +170,47 @@ export default function HomePage() {
                       type="button"
                       variant={humanizeLevel === 'college' ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => setHumanizeLevel('college')}
-                      className="flex-1 min-w-[100px]"
+                      onClick={() => setLevel('college')}
+                      disabled={!hasProAccess}
+                      className="flex-1 min-w-[100px] relative disabled:opacity-60"
                     >
-                      College
+                      <span className="flex items-center justify-center gap-1">
+                        College
+                        {!hasProAccess && <Lock className="h-3.5 w-3.5 shrink-0" />}
+                      </span>
                     </Button>
                     <Button
                       type="button"
                       variant={humanizeLevel === 'graduate' ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => setHumanizeLevel('graduate')}
-                      className="flex-1 min-w-[100px]"
+                      onClick={() => setLevel('graduate')}
+                      disabled={!hasProAccess}
+                      className="flex-1 min-w-[100px] relative disabled:opacity-60"
                     >
-                      Graduate
+                      <span className="flex items-center justify-center gap-1">
+                        Graduate
+                        {!hasProAccess && <Lock className="h-3.5 w-3.5 shrink-0" />}
+                      </span>
                     </Button>
                   </div>
+
+                  {!hasProAccess && planLoaded && (
+                    <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2">
+                      <p className="text-xs text-gray-500 flex-1">
+                        College &amp; Graduate modes are included with Pro (includes a 1-day free trial on
+                        checkout).
+                      </p>
+                      <Link href="/pricing" className="shrink-0">
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="w-full sm:w-auto font-semibold text-amber-950 bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 hover:from-amber-200 hover:via-yellow-300 hover:to-amber-400 border border-amber-400/60 shadow-[0_0_18px_rgba(234,179,8,0.55),0_0_36px_rgba(250,204,21,0.25)] hover:shadow-[0_0_24px_rgba(234,179,8,0.7)] transition-shadow animate-pulse"
+                        >
+                          Upgrade to unlock
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 flex flex-col min-h-0">
                   <div className="flex justify-between items-center mb-2">
