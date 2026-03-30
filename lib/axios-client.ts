@@ -3,10 +3,14 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 /** Long-running LLM routes (humanize, paraphrase) need more than default browser/axios limits. */
 const LONG_REQUEST_TIMEOUT_MS = 180_000 // 3 minutes
 
+// In the browser, use same-origin (empty baseURL) so /api/* requests send cookies and match the page host.
+const axiosBaseUrl = typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_APP_URL || ''
+
 // Create Axios instance with proper configuration
 const axiosClient: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || '',
+  baseURL: axiosBaseUrl,
   timeout: 60000, // default; humanize/paraphrase override below
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

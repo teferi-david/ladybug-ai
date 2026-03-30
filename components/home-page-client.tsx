@@ -100,7 +100,12 @@ export function HomePageClient() {
       const {
         data: { session },
       } = await supabase.auth.getSession()
-      const result = await apiClient.humanizeText(input, humanizeLevel, session?.access_token)
+      let token = session?.access_token
+      if (!token) {
+        const { data: refreshed } = await supabase.auth.refreshSession()
+        token = refreshed.session?.access_token
+      }
+      const result = await apiClient.humanizeText(input, humanizeLevel, token)
 
       const elapsed = Date.now() - start
       if (elapsed < minDurationMs) {

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { humanizeText } from '@/lib/openai'
 import {
-  getAuthUserIdFromToken,
-  getUserFromToken,
+  getAuthUserIdFromRequest,
+  getUserRowById,
   checkDailyUsage,
   incrementDailyUsage,
 } from '@/lib/auth-helpers'
@@ -100,10 +100,10 @@ export async function POST(request: NextRequest) {
   
   try {
     const authHeader = request.headers.get('authorization')
-    const authUserId = await getAuthUserIdFromToken(authHeader)
-    const user = await getUserFromToken(authHeader)
-    /** Prefer JWT id so free limits apply per signed-in account even without a `users` profile row. */
-    const freeTierUserId = authUserId ?? user?.id ?? null
+    /** Bearer first, then Supabase session cookies — fixes missing Authorization on client. */
+    const authUserId = await getAuthUserIdFromRequest(authHeader)
+    const user = authUserId ? await getUserRowById(authUserId) : null
+    const freeTierUserId = authUserId
 
     const ipAddress =
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||

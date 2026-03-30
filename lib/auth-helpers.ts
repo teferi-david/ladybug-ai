@@ -31,6 +31,38 @@ export async function getAuthUserIdFromToken(authHeader: string | null): Promise
   }
 }
 
+/** Auth user id from Supabase cookies (browser session) — use when Authorization header is missing. */
+export async function getAuthUserIdFromCookies(): Promise<string | null> {
+  try {
+    const { createClient } = await import('@/lib/supabase/server-route')
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
+    if (error || !user) return null
+    return user.id
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Prefer Bearer JWT, then cookie session — so signed-in users are always identified on the server.
+ */
+export async function getAuthUserIdFromRequest(authHeader: string | null): Promise<string | null> {
+  const fromBearer = await getAuthUserIdFromToken(authHeader)
+  if (fromBearer) return fromBearer
+  return getAuthUserIdFromCookies()
+}
+
+/** Profile row by auth id (for plan checks). */
+export async function getUserRowById(userId: string): Promise<User | null> {
+  const { data, error } = await supabaseAdmin.from('users').select('*').eq('id', userId).maybeSingle()
+  if (error || !data) return null
+  return data
+}
+
 export async function getUserFromToken(authHeader: string | null): Promise<User | null> {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null
