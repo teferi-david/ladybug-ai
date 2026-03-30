@@ -10,14 +10,12 @@ export const proUpgradeButtonClassName = cn(
   'bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500',
   'hover:from-amber-200 hover:via-yellow-300 hover:to-amber-400',
   'border border-amber-400/60',
-  'shadow-[0_0_18px_rgba(234,179,8,0.55),0_0_36px_rgba(250,204,21,0.25)]',
-  'hover:shadow-[0_0_24px_rgba(234,179,8,0.7)]',
-  'transition-shadow duration-200 ease-out',
-  'animate-pulse',
+  /* Glow comes from animate-upgrade-soft-glow in globals.css (smooth, slow) */
+  'animate-upgrade-soft-glow',
   'rounded-xl',
   'min-h-11 px-5',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 focus-visible:ring-offset-2',
-  'disabled:animate-none'
+  'disabled:animate-none disabled:shadow-[0_0_12px_rgba(234,179,8,0.35)]'
 )
 
 export type ProUpgradeButtonProps = ButtonProps

@@ -36,3 +36,24 @@
   }
 }
 
+/* Pro upgrade CTAs — slow, smooth glow (replaces jarring animate-pulse) */
+@layer utilities {
+  @keyframes upgrade-soft-glow {
+    0%,
+    100% {
+      box-shadow:
+        0 0 14px rgba(234, 179, 8, 0.38),
+        0 0 28px rgba(250, 204, 21, 0.16);
+    }
+    50% {
+      box-shadow:
+        0 0 24px rgba(234, 179, 8, 0.5),
+        0 0 44px rgba(250, 204, 21, 0.26);
+    }
+  }
+
+  .animate-upgrade-soft-glow {
+    animation: upgrade-soft-glow 4.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  }
+}
+
