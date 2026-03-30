@@ -1,54 +1,62 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
+import { hasProHumanizeAccess } from '@/lib/plan-access'
+import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { LoadingSpinner } from '@/components/loading-spinner'
-import { UpgradeModal } from '@/components/upgrade-modal'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, Copy } from 'lucide-react'
 
 export default function ParaphraserPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [premium, setPremium] = useState(false)
   const [input, setInput] = useState('')
   const [output, setOutput] = useState('')
   const [processing, setProcessing] = useState(false)
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
-  const [upgradeMessage, setUpgradeMessage] = useState('')
 
-  useEffect(() => {
-    checkUser()
-  }, [])
+  const wordCount = input.trim().split(/\s+/).filter((w) => w.length > 0).length
 
-  const checkUser = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
+  const load = useCallback(async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
     if (!session) {
       router.push('/login')
       return
     }
-    setUser(session.user)
+    const { data: row } = await supabase.from('users').select('current_plan, plan_expiry').eq('id', session.user.id).single()
+    setPremium(hasProHumanizeAccess(row))
     setLoading(false)
-  }
+  }, [router])
+
+  useEffect(() => {
+    load()
+  }, [load])
 
   const handleParaphrase = async () => {
-    if (!input.trim()) return
+    if (!input.trim() || wordCount > PREMIUM_MAX_WORDS_PER_REQUEST) return
 
     setProcessing(true)
     setOutput('')
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
       const token = session?.access_token
+      if (!token) return
 
       const response = await fetch('/api/paraphrase', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ text: input }),
       })
@@ -56,18 +64,13 @@ export default function ParaphraserPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        if (response.status === 403) {
-          setUpgradeMessage(data.message)
-          setShowUpgradeModal(true)
-        } else {
-          alert(data.error || 'An error occurred')
-        }
+        alert(data.message || data.error || 'Something went wrong')
         return
       }
 
       setOutput(data.result)
-    } catch (error) {
-      alert('An error occurred. Please try again.')
+    } catch {
+      alert('Request failed. Try again.')
     } finally {
       setProcessing(false)
     }
@@ -77,77 +80,78 @@ export default function ParaphraserPage() {
     return <LoadingSpinner />
   }
 
+  if (!premium) {
+    return (
+      <div className="container mx-auto px-4 py-16 max-w-lg text-center">
+        <h1 className="text-2xl font-bold mb-2">Paraphraser</h1>
+        <p className="text-gray-600 mb-6">Pro feature — rewrite text with one click.</p>
+        <Link href="/pricing">
+          <Button size="lg">Upgrade to Pro</Button>
+        </Link>
+      </div>
+    )
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-              <RefreshCw className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold">Paraphraser</h1>
-              <p className="text-gray-600">Rephrase your content for clarity and variation</p>
-            </div>
-          </div>
+    <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-11 h-11 bg-primary/10 rounded-lg flex items-center justify-center">
+          <RefreshCw className="h-5 w-5 text-primary" />
         </div>
-
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Input Text</CardTitle>
-            <CardDescription>Paste the text you want to paraphrase</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Textarea
-              placeholder="Paste your text here..."
-              className="min-h-[200px]"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-            />
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">
-                {input.length} characters
-              </span>
-              <Button onClick={handleParaphrase} disabled={processing || !input.trim()}>
-                {processing ? 'Paraphrasing...' : 'Paraphrase Text'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {processing && <LoadingSpinner />}
-
-        {output && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Paraphrased Output</CardTitle>
-              <CardDescription>Your rephrased text</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="p-4 bg-gray-50 rounded-lg border whitespace-pre-wrap">
-                {output}
-              </div>
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => {
-                  navigator.clipboard.writeText(output)
-                  alert('Copied to clipboard!')
-                }}
-              >
-                Copy to Clipboard
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        <div>
+          <h1 className="text-2xl font-bold">Paraphraser</h1>
+          <p className="text-sm text-gray-600">Paste text · up to {PREMIUM_MAX_WORDS_PER_REQUEST} words</p>
+        </div>
       </div>
 
-      <UpgradeModal
-        open={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
-        message={upgradeMessage}
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Your text</CardTitle>
+          <CardDescription>We will rephrase it while keeping your meaning.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            placeholder="Paste here…"
+            className="min-h-[200px]"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={processing}
+          />
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>{wordCount} / {PREMIUM_MAX_WORDS_PER_REQUEST} words</span>
+            <Button onClick={handleParaphrase} disabled={processing || !input.trim() || wordCount > PREMIUM_MAX_WORDS_PER_REQUEST}>
+              {processing ? 'Working…' : 'Paraphrase'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {processing && (
+        <div className="flex justify-center py-8">
+          <LoadingSpinner />
+        </div>
+      )}
+
+      {output && !processing && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Result</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="p-4 bg-gray-50 rounded-lg border text-sm whitespace-pre-wrap">{output}</div>
+            <Button
+              variant="outline"
+              className="mt-4 gap-2"
+              onClick={() => {
+                void navigator.clipboard.writeText(output)
+              }}
+            >
+              <Copy className="h-4 w-4" />
+              Copy
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
-

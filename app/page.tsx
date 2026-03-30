@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress'
 import { Sparkles, Copy, Check, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
+import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 
 export default function HomePage() {
   const [input, setInput] = useState('')
@@ -23,6 +24,7 @@ export default function HomePage() {
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const wordCount = input.trim().split(/\s+/).filter((w) => w.length > 0).length
+  const maxWords = hasProAccess ? PREMIUM_MAX_WORDS_PER_REQUEST : 200
 
   const refreshPlanAccess = useCallback(async () => {
     const {
@@ -197,8 +199,8 @@ export default function HomePage() {
                   {!hasProAccess && planLoaded && (
                     <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2">
                       <p className="text-xs text-gray-500 flex-1">
-                        College &amp; Graduate modes are included with Pro (includes a 1-day free trial on
-                        checkout).
+                        College &amp; Graduate modes are included with Pro. Free tier: up to 200 words per
+                        run; Pro: up to {PREMIUM_MAX_WORDS_PER_REQUEST} words, no daily cap.
                       </p>
                       <Link href="/pricing" className="shrink-0">
                         <Button
@@ -224,15 +226,17 @@ export default function HomePage() {
                     onChange={(e) => setInput(e.target.value)}
                     disabled={processing}
                   />
-                  {wordCount > 200 && (
+                  {wordCount > maxWords && (
                     <p className="text-sm text-red-500 mt-2">
-                      Free tier is limited to 200 words. Shorten your text or sign in with an active plan.
+                      {hasProAccess
+                        ? `Pro allows up to ${PREMIUM_MAX_WORDS_PER_REQUEST} words per run. Shorten your text.`
+                        : 'Free tier is limited to 200 words. Shorten your text or upgrade to Pro.'}
                     </p>
                   )}
                 </div>
                 <Button
                   onClick={handleHumanize}
-                  disabled={processing || !input.trim() || wordCount > 200}
+                  disabled={processing || !input.trim() || wordCount > maxWords}
                   className="w-full"
                   size="lg"
                 >

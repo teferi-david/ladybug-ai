@@ -7,20 +7,37 @@ import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
+import { hasProHumanizeAccess } from '@/lib/plan-access'
 
 export function Navbar() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
+  const [isPremium, setIsPremium] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const load = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
       setUser(session?.user ?? null)
-    })
+      if (!session?.user) {
+        setIsPremium(false)
+        return
+      }
+      const { data: row } = await supabase
+        .from('users')
+        .select('current_plan, plan_expiry')
+        .eq('id', session.user.id)
+        .single()
+      setIsPremium(hasProHumanizeAccess(row))
+    }
+
+    load()
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+    } = supabase.auth.onAuthStateChange(() => {
+      load()
     })
 
     return () => subscription.unsubscribe()
@@ -30,6 +47,8 @@ export function Navbar() {
     await supabase.auth.signOut()
     router.push('/')
   }
+
+  const showPricingCta = !user || !isPremium
 
   return (
     <nav className="border-b bg-white">
@@ -51,11 +70,13 @@ export function Navbar() {
         <div className="flex items-center space-x-4">
           {user ? (
             <>
-              <Link href="/pricing">
-                <Button variant="ghost" size="sm">
-                  Pricing
-                </Button>
-              </Link>
+              {showPricingCta && (
+                <Link href="/pricing">
+                  <Button variant="ghost" size="sm">
+                    Pricing
+                  </Button>
+                </Link>
+              )}
               <Link href="/dashboard">
                 <Button variant="ghost" size="sm">
                   Dashboard

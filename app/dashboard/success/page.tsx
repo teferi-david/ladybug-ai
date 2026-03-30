@@ -71,10 +71,14 @@ function PaymentSuccessContent() {
             return
           }
 
+          const planExpiry = new Date()
+          planExpiry.setFullYear(planExpiry.getFullYear() + 1)
+
           const { error: updateError } = await supabase
             .from('users')
             .update({
               current_plan: plan,
+              plan_expiry: planExpiry.toISOString(),
               subscription_status: 'active',
               updated_at: new Date().toISOString(),
             })
@@ -142,8 +146,8 @@ function PaymentSuccessContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => router.push('/dashboard')} 
+            <Button
+              onClick={() => router.push('/dashboard?from=checkout')}
               className="w-full"
               size="lg"
             >

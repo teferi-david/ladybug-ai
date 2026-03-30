@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { humanizeText } from '@/lib/openai'
 import { getUserFromToken, checkDailyUsage, incrementDailyUsage } from '@/lib/auth-helpers'
-import { getRemainingWords } from '@/lib/user-plans'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
+import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -150,13 +150,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (paid) {
-      const remainingWords = getRemainingWords(user!)
-      if (wordCount > remainingWords) {
+      if (wordCount > PREMIUM_MAX_WORDS_PER_REQUEST) {
         return NextResponse.json({
           status: 'error',
           error: 'Word limit exceeded',
-          message: `You have ${remainingWords} words remaining. This text has ${wordCount} words.`,
-          upgradeRequired: true,
+          message: `Pro humanizer allows up to ${PREMIUM_MAX_WORDS_PER_REQUEST} words per run. This text has ${wordCount} words.`,
+          upgradeRequired: false,
         }, { status: 403 })
       }
     } else {

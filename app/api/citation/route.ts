@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateCitation } from '@/lib/openai'
+import { requirePremiumUser } from '@/lib/api-auth'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -89,20 +90,30 @@ export async function POST(request: NextRequest) {
   }
   
   try {
-    const body = await request.json()
-    const { text } = body
+    const auth = await requirePremiumUser(request.headers.get('authorization'))
+    if ('response' in auth) return auth.response
 
-    if (!text || typeof text !== 'string') {
-      return NextResponse.json({
-        error: 'Text is required',
-        message: 'Please provide a text field in your request'
-      }, { status: 400 })
+    const body = await request.json()
+    const { type, author, title, year, publisher, url, accessDate } = body
+
+    if (!type || (type !== 'apa' && type !== 'mla')) {
+      return NextResponse.json(
+        { error: 'Invalid type', message: 'type must be "apa" or "mla"' },
+        { status: 400 }
+      )
     }
 
-    console.log('Processing citation data:', text.substring(0, 100) + '...')
-    
-    // Call custom NLP to generate citation
-    const result = await generateCitation(JSON.parse(text))
+    console.log('Processing citation:', type, title?.substring?.(0, 40))
+
+    const result = await generateCitation({
+      type,
+      author,
+      title,
+      year,
+      publisher,
+      url,
+      accessDate,
+    })
     
     console.log('Citation generation completed')
     

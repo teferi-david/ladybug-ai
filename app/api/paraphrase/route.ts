@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { paraphraseText } from '@/lib/openai'
+import { requirePremiumUser } from '@/lib/api-auth'
+import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -89,6 +91,9 @@ export async function POST(request: NextRequest) {
   }
   
   try {
+    const auth = await requirePremiumUser(request.headers.get('authorization'))
+    if ('response' in auth) return auth.response
+
     const body = await request.json()
     const { text } = body
 
@@ -99,9 +104,19 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    const wordCount = text.trim().split(/\s+/).filter((w: string) => w.length > 0).length
+    if (wordCount > PREMIUM_MAX_WORDS_PER_REQUEST) {
+      return NextResponse.json(
+        {
+          error: 'Word limit exceeded',
+          message: `Paraphraser allows up to ${PREMIUM_MAX_WORDS_PER_REQUEST} words per run.`,
+        },
+        { status: 403 }
+      )
+    }
+
     console.log('Processing text:', text.substring(0, 100) + '...')
     
-    // Call custom NLP to paraphrase the text
     const result = await paraphraseText(text)
     
     console.log('Paraphrasing completed')
