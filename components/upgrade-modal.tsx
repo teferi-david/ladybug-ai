@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import Link from 'next/link'
 
 interface UpgradeModalProps {
@@ -28,11 +29,11 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
               "You've used your free Ladybug AI trials for today. Start your 3-day trial for just $1.49 to get unlimited access to all our AI tools!"}
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex-col sm:flex-row gap-2">
-          <Link href="/pricing" className="w-full sm:w-auto">
-            <Button className="w-full">Start 3 Day Trial</Button>
-          </Link>
-          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+        <DialogFooter className="flex-col gap-4 sm:flex-row sm:gap-3">
+          <ProUpgradeButton asChild className="w-full sm:min-w-[200px]">
+            <Link href="/pricing">Upgrade to unlock</Link>
+          </ProUpgradeButton>
+          <Button variant="outline" onClick={onClose} className="w-full min-h-11 rounded-xl sm:w-auto">
             Close
           </Button>
         </DialogFooter>

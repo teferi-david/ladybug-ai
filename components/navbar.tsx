@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { supabase } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
@@ -71,11 +72,9 @@ export function Navbar() {
           {user ? (
             <>
               {showPricingCta && (
-                <Link href="/pricing">
-                  <Button variant="ghost" size="sm">
-                    Pricing
-                  </Button>
-                </Link>
+                <ProUpgradeButton asChild size="sm" className="min-h-10 px-4">
+                  <Link href="/pricing">Pricing</Link>
+                </ProUpgradeButton>
               )}
               <Link href="/dashboard">
                 <Button variant="ghost" size="sm">
@@ -88,11 +87,9 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/pricing">
-                <Button variant="ghost" size="sm">
-                  Pricing
-                </Button>
-              </Link>
+              <ProUpgradeButton asChild size="sm" className="min-h-10 px-4">
+                <Link href="/pricing">Pricing</Link>
+              </ProUpgradeButton>
               <Link href="/login">
                 <Button variant="ghost" size="sm">
                   Login

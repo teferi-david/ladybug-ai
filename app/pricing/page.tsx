@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
+import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Check } from 'lucide-react'
 
@@ -104,15 +104,16 @@ export default function PricingPage() {
               ))}
             </ul>
           </CardContent>
-          <CardFooter>
-            <Button
+          <CardFooter className="pt-2">
+            <ProUpgradeButton
+              type="button"
               onClick={handleCheckout}
               disabled={loading}
               className="w-full"
               size="lg"
             >
               {loading ? 'Redirecting to Stripe…' : user ? 'Subscribe' : 'Sign up to subscribe'}
-            </Button>
+            </ProUpgradeButton>
           </CardFooter>
         </Card>
 

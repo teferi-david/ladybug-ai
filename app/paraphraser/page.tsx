@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
 import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 import { Button } from '@/components/ui/button'
+import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { LoadingSpinner } from '@/components/loading-spinner'
@@ -83,11 +84,13 @@ export default function ParaphraserPage() {
   if (!premium) {
     return (
       <div className="container mx-auto px-4 py-16 max-w-lg text-center">
-        <h1 className="text-2xl font-bold mb-2">Paraphraser</h1>
-        <p className="text-gray-600 mb-6">Pro feature — rewrite text with one click.</p>
-        <Link href="/pricing">
-          <Button size="lg">Upgrade to Pro</Button>
-        </Link>
+        <h1 className="text-2xl font-bold mb-2 tracking-tight">Paraphraser</h1>
+        <p className="text-gray-600 mb-8 leading-relaxed">Pro feature — rewrite text with one click.</p>
+        <div className="flex justify-center pt-2">
+          <ProUpgradeButton asChild size="lg" className="min-w-[min(100%,280px)] px-8">
+            <Link href="/pricing">Upgrade to unlock</Link>
+          </ProUpgradeButton>
+        </div>
       </div>
     )
   }

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Badge } from '@/components/ui/badge'
 import { Sparkles, RefreshCw, Quote, Zap, ExternalLink } from 'lucide-react'
 import { getPlanDetails, isPlanActive } from '@/lib/user-plans'
@@ -163,12 +164,6 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   )}
-                  {!isPremium && (
-                    <p className="text-sm text-gray-600 mt-1">
-                      Upgrade for all tools, no daily limits, and up to 1,000 words per run on the
-                      humanizer.
-                    </p>
-                  )}
                 </div>
                 <Badge variant={planActive && isPremium ? 'default' : 'secondary'}>
                   {isPremium ? 'Premium' : 'Free'}
@@ -200,9 +195,17 @@ export default function DashboardPage() {
               )}
 
               {!isPremium && (
-                <Link href="/pricing">
-                  <Button className="w-full sm:w-auto">Upgrade to Pro</Button>
-                </Link>
+                <div className="mt-2 space-y-6 border-t border-gray-100 pt-8">
+                  <p className="text-sm text-gray-600 leading-relaxed tracking-tight max-w-prose">
+                    Upgrade for all tools, no daily limits, and up to 1,000 words per run on the
+                    humanizer.
+                  </p>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <ProUpgradeButton asChild className="w-full sm:w-auto sm:min-w-[220px]">
+                      <Link href="/pricing">Upgrade to Pro</Link>
+                    </ProUpgradeButton>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -221,11 +224,9 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Link href="/">
-                  <Button className="w-full" variant={isPremium ? 'default' : 'outline'}>
-                    Open Humanizer
-                  </Button>
-                </Link>
+                <Button asChild className="w-full" variant={isPremium ? 'default' : 'outline'}>
+                  <Link href="/">Open Humanizer</Link>
+                </Button>
               </CardContent>
             </Card>
 
@@ -237,12 +238,16 @@ export default function DashboardPage() {
                 <CardTitle>Paraphraser</CardTitle>
                 <CardDescription>Simple rewrite — Pro only</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Link href="/paraphraser">
-                  <Button className="w-full" disabled={!isPremium}>
-                    {isPremium ? 'Open Paraphraser' : 'Pro only'}
+              <CardContent className="space-y-3">
+                {isPremium ? (
+                  <Button asChild className="w-full">
+                    <Link href="/paraphraser">Open Paraphraser</Link>
                   </Button>
-                </Link>
+                ) : (
+                  <ProUpgradeButton asChild className="w-full">
+                    <Link href="/pricing">Upgrade to unlock</Link>
+                  </ProUpgradeButton>
+                )}
               </CardContent>
             </Card>
 
@@ -254,12 +259,16 @@ export default function DashboardPage() {
                 <CardTitle>Citations</CardTitle>
                 <CardDescription>APA & MLA — Pro only</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Link href="/citation">
-                  <Button className="w-full" disabled={!isPremium}>
-                    {isPremium ? 'Open Citations' : 'Pro only'}
+              <CardContent className="space-y-3">
+                {isPremium ? (
+                  <Button asChild className="w-full">
+                    <Link href="/citation">Open Citations</Link>
                   </Button>
-                </Link>
+                ) : (
+                  <ProUpgradeButton asChild className="w-full">
+                    <Link href="/pricing">Upgrade to unlock</Link>
+                  </ProUpgradeButton>
+                )}
               </CardContent>
             </Card>
           </div>

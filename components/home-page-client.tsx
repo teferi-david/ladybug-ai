@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
@@ -198,20 +199,14 @@ export function HomePageClient() {
                   </div>
 
                   {!hasProAccess && planLoaded && (
-                    <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2">
-                      <p className="text-xs text-gray-500 flex-1">
+                    <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                      <p className="text-xs text-gray-500 flex-1 leading-relaxed">
                         College &amp; Graduate modes are included with Pro. Free tier: up to 200 words per
                         run; Pro: up to {PREMIUM_MAX_WORDS_PER_REQUEST} words, no daily cap.
                       </p>
-                      <Link href="/pricing" className="shrink-0">
-                        <Button
-                          type="button"
-                          size="sm"
-                          className="w-full sm:w-auto font-semibold text-amber-950 bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 hover:from-amber-200 hover:via-yellow-300 hover:to-amber-400 border border-amber-400/60 shadow-[0_0_18px_rgba(234,179,8,0.55),0_0_36px_rgba(250,204,21,0.25)] hover:shadow-[0_0_24px_rgba(234,179,8,0.7)] transition-shadow animate-pulse"
-                        >
-                          Upgrade to unlock
-                        </Button>
-                      </Link>
+                      <ProUpgradeButton asChild size="sm" className="w-full shrink-0 sm:w-auto">
+                        <Link href="/pricing">Upgrade to unlock</Link>
+                      </ProUpgradeButton>
                     </div>
                   )}
                 </div>
