@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -45,6 +46,27 @@ export default function RegisterPage() {
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true)
+    setError(null)
+
+    try {
+      const redirectTo = `${window.location.origin}/dashboard`
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo },
+      })
+      if (error) {
+        setError(error.message)
+        setGoogleLoading(false)
+      }
+      // On success, browser redirects to Google then back to app.
+    } catch {
+      setError('Google sign-up failed. Please try again.')
+      setGoogleLoading(false)
     }
   }
 
@@ -96,6 +118,15 @@ export default function RegisterPage() {
                 minLength={6}
               />
             </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleSignIn}
+              disabled={loading || googleLoading}
+            >
+              {googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}
+            </Button>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
