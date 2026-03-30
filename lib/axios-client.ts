@@ -69,8 +69,31 @@ axiosClient.interceptors.response.use(
 
 // API methods with proper HTTP method handling
 export const apiClient = {
+  /** Free-tier daily humanizer usage (from GET /api/humanize/usage or POST response). */
+  async getHumanizeUsage(authToken?: string): Promise<{
+    premium: boolean
+    limit: number | null
+    usedToday: number | null
+    usesRemaining: number | null
+    atLimit?: boolean
+  }> {
+    const headers: Record<string, string> = {}
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`
+    }
+    const response = await axiosClient.get('/api/humanize/usage', { headers })
+    return response.data
+  },
+
   // POST request for humanize
-  async humanizeText(text: string, level: 'highschool' | 'college' | 'graduate' = 'highschool', authToken?: string): Promise<string> {
+  async humanizeText(
+    text: string,
+    level: 'highschool' | 'college' | 'graduate' = 'highschool',
+    authToken?: string
+  ): Promise<{
+    result: string
+    freeUsage?: { usedToday: number; usesRemaining: number; limit: number }
+  }> {
     try {
       const headers: any = {}
       if (authToken) {
@@ -82,7 +105,10 @@ export const apiClient = {
         { text, level },
         { headers, timeout: LONG_REQUEST_TIMEOUT_MS }
       )
-      return response.data.result
+      return {
+        result: response.data.result,
+        freeUsage: response.data.freeUsage,
+      }
     } catch (error: any) {
       console.error('Humanize API error:', error)
       const isTimeout =
@@ -98,7 +124,15 @@ export const apiClient = {
         (typeof data?.message === 'string' && data.message) ||
         (typeof data?.error === 'string' && data.error) ||
         error.message
-      throw new Error(msg)
+      const err = new Error(msg) as Error & {
+        upgradeRequired?: boolean
+        freeUsage?: { usedToday: number; usesRemaining: number; limit: number }
+        status?: number
+      }
+      err.upgradeRequired = data?.upgradeRequired === true
+      err.freeUsage = data?.freeUsage
+      err.status = error.response?.status
+      throw err
     }
   },
 

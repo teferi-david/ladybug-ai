@@ -26,7 +26,7 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
           <DialogTitle>Upgrade Required</DialogTitle>
           <DialogDescription>
             {message ||
-              "You've used your free Ladybug AI trials for today. Start your 3-day trial for just $1.49 to get unlimited access to all our AI tools!"}
+              "You've used your 2 free humanizer runs for today. Upgrade to Pro for unlimited humanizing and all tools."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col gap-4 sm:flex-row sm:gap-3">

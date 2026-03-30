@@ -11,7 +11,14 @@ import { Progress } from '@/components/ui/progress'
 import { Sparkles, Copy, Check, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
-import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
+import { FREE_TIER_DAILY_HUMANIZER_LIMIT, PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
+import { UpgradeModal } from '@/components/upgrade-modal'
+
+type FreeUsage = {
+  usedToday: number
+  usesRemaining: number
+  limit: number
+}
 
 export function HomePageClient() {
   const [input, setInput] = useState('')
@@ -22,10 +29,16 @@ export function HomePageClient() {
   const [humanizeLevel, setHumanizeLevel] = useState<'highschool' | 'college' | 'graduate'>('highschool')
   const [hasProAccess, setHasProAccess] = useState(false)
   const [planLoaded, setPlanLoaded] = useState(false)
+  const [freeUsage, setFreeUsage] = useState<FreeUsage | null>(null)
+  const [usageLoading, setUsageLoading] = useState(false)
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
+  const [upgradeMessage, setUpgradeMessage] = useState<string | undefined>(undefined)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const wordCount = input.trim().split(/\s+/).filter((w) => w.length > 0).length
   const maxWords = hasProAccess ? PREMIUM_MAX_WORDS_PER_REQUEST : 200
+  const atDailyLimit =
+    !hasProAccess && planLoaded && freeUsage !== null && freeUsage.usesRemaining === 0
 
   const refreshPlanAccess = useCallback(async () => {
     const {
@@ -54,6 +67,53 @@ export function HomePageClient() {
     })
     return () => subscription.unsubscribe()
   }, [refreshPlanAccess])
+
+  const refreshFreeUsage = useCallback(async () => {
+    if (hasProAccess) {
+      setFreeUsage(null)
+      return
+    }
+    setUsageLoading(true)
+    try {
+      const { apiClient } = await import('@/lib/axios-client')
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      let token = session?.access_token
+      if (!token) {
+        const { data: refreshed } = await supabase.auth.refreshSession()
+        token = refreshed.session?.access_token
+      }
+      const data = await apiClient.getHumanizeUsage(token)
+      if (data.premium) {
+        setFreeUsage(null)
+        return
+      }
+      if (
+        typeof data.limit === 'number' &&
+        typeof data.usedToday === 'number' &&
+        typeof data.usesRemaining === 'number'
+      ) {
+        setFreeUsage({
+          limit: data.limit,
+          usedToday: data.usedToday,
+          usesRemaining: data.usesRemaining,
+        })
+      }
+    } catch {
+      setFreeUsage(null)
+    } finally {
+      setUsageLoading(false)
+    }
+  }, [hasProAccess, supabase])
+
+  useEffect(() => {
+    if (planLoaded && !hasProAccess) {
+      void refreshFreeUsage()
+    } else {
+      setFreeUsage(null)
+    }
+  }, [planLoaded, hasProAccess, refreshFreeUsage])
 
   useEffect(() => {
     if (!hasProAccess && (humanizeLevel === 'college' || humanizeLevel === 'graduate')) {
@@ -105,7 +165,7 @@ export function HomePageClient() {
         const { data: refreshed } = await supabase.auth.refreshSession()
         token = refreshed.session?.access_token
       }
-      const result = await apiClient.humanizeText(input, humanizeLevel, token)
+      const { result, freeUsage: usageAfter } = await apiClient.humanizeText(input, humanizeLevel, token)
 
       const elapsed = Date.now() - start
       if (elapsed < minDurationMs) {
@@ -114,9 +174,28 @@ export function HomePageClient() {
 
       setProgress(100)
       setOutput(result)
+      if (usageAfter) {
+        setFreeUsage(usageAfter)
+      } else {
+        void refreshFreeUsage()
+      }
     } catch (error) {
       console.error(error)
-      alert(`❌ ${error instanceof Error ? error.message : 'Something went wrong'}`)
+      const e = error as Error & {
+        upgradeRequired?: boolean
+        freeUsage?: FreeUsage
+        status?: number
+      }
+      if (e.freeUsage) {
+        setFreeUsage(e.freeUsage)
+      }
+      if (e.upgradeRequired || e.status === 403) {
+        setUpgradeMessage(e.message)
+        setUpgradeModalOpen(true)
+        void refreshFreeUsage()
+      } else {
+        alert(`❌ ${e.message || 'Something went wrong'}`)
+      }
     } finally {
       clearProgressAnimation()
       setProcessing(false)
@@ -135,8 +214,66 @@ export function HomePageClient() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+        message={upgradeMessage}
+      />
       <section className="py-10 md:py-14">
         <div className="container mx-auto px-4">
+          {!hasProAccess && planLoaded && (
+            <div className="max-w-6xl mx-auto mb-6">
+              {usageLoading && !freeUsage ? (
+                <p className="text-center text-sm text-gray-500">Loading daily usage…</p>
+              ) : freeUsage ? (
+                <div
+                  className={`rounded-xl border px-4 py-3 text-sm ${
+                    freeUsage.usesRemaining === 0
+                      ? 'border-amber-300 bg-amber-50 text-amber-950'
+                      : 'border-gray-200 bg-white text-gray-800'
+                  }`}
+                  role="status"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-semibold">Free tier — daily humanizer</p>
+                      <p className="mt-0.5 text-gray-600">
+                        <span className="tabular-nums">
+                          {freeUsage.usedToday} / {freeUsage.limit}
+                        </span>{' '}
+                        uses today
+                        {freeUsage.usesRemaining > 0 ? (
+                          <span className="text-gray-600">
+                            {' '}
+                            ·{' '}
+                            <span className="font-medium text-gray-800">
+                              {freeUsage.usesRemaining}
+                            </span>{' '}
+                            left — then upgrade for unlimited.
+                          </span>
+                        ) : (
+                          <span className="text-amber-900 font-medium">
+                            {' '}
+                            · You’ve hit today’s limit.
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    {freeUsage.usesRemaining === 0 && (
+                      <ProUpgradeButton asChild size="sm" className="w-full shrink-0 sm:w-auto">
+                        <Link href="/pricing">Upgrade to Pro</Link>
+                      </ProUpgradeButton>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-center text-xs text-gray-500">
+                  Free tier: {FREE_TIER_DAILY_HUMANIZER_LIMIT} humanizer uses per day. Sign in for a
+                  consistent limit across devices.
+                </p>
+              )}
+            </div>
+          )}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -237,12 +374,27 @@ export function HomePageClient() {
                 </div>
                 <Button
                   onClick={handleHumanize}
-                  disabled={processing || !input.trim() || wordCount > maxWords}
+                  disabled={
+                    processing || !input.trim() || wordCount > maxWords || atDailyLimit
+                  }
                   className="w-full"
                   size="lg"
                 >
-                  {processing ? 'Working…' : 'Humanize text'}
+                  {processing
+                    ? 'Working…'
+                    : atDailyLimit
+                      ? 'Daily limit reached — upgrade for more'
+                      : 'Humanize text'}
                 </Button>
+                {atDailyLimit && (
+                  <p className="text-xs text-center text-amber-800">
+                    Come back tomorrow for {FREE_TIER_DAILY_HUMANIZER_LIMIT} more free uses, or{' '}
+                    <Link href="/pricing" className="underline font-medium">
+                      upgrade to Pro
+                    </Link>
+                    .
+                  </p>
+                )}
               </CardContent>
             </Card>
 

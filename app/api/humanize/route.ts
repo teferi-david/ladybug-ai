@@ -7,7 +7,7 @@ import {
   incrementDailyUsage,
 } from '@/lib/auth-helpers'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
-import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
+import { FREE_TIER_DAILY_HUMANIZER_LIMIT, PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -169,14 +169,24 @@ export async function POST(request: NextRequest) {
         }, { status: 403 })
       }
     } else {
-      const { allowed } = await checkDailyUsage(freeTierUserId, ipAddress, 'humanizer')
+      const { allowed, usesRemaining, limit, usedToday } = await checkDailyUsage(
+        freeTierUserId,
+        ipAddress,
+        'humanizer'
+      )
       if (!allowed) {
         return NextResponse.json({
           status: 'error',
           error: 'Daily limit reached',
-          message: `You've used your 2 free uses today. Upgrade for unlimited use.`,
+          message: `You've used your ${FREE_TIER_DAILY_HUMANIZER_LIMIT} free uses today. Upgrade for unlimited use.`,
           upgradeRequired: true,
           usesRemaining: 0,
+          limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
+          freeUsage: {
+            usedToday,
+            usesRemaining: 0,
+            limit,
+          },
         }, { status: 403 })
       }
       if (wordCount > 200) {
@@ -206,17 +216,30 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
     
+    let freeUsagePayload: {
+      usedToday: number
+      usesRemaining: number
+      limit: number
+    } | undefined
+
     if (!paid) {
       await incrementDailyUsage(freeTierUserId, ipAddress, 'humanizer')
+      const after = await checkDailyUsage(freeTierUserId, ipAddress, 'humanizer')
+      freeUsagePayload = {
+        usedToday: after.usedToday,
+        usesRemaining: after.usesRemaining,
+        limit: after.limit,
+      }
       console.log(`Free tier humanize use (id: ${freeTierUserId ?? 'anon-ip'})`)
     } else {
       console.log(`Paid user ${user!.id} used ${wordCount} words for humanization`)
     }
-    
+
     return NextResponse.json({
       status: 'success',
       result: result,
       wordsUsed: wordCount,
+      ...(freeUsagePayload ? { freeUsage: freeUsagePayload } : {}),
       timestamp: new Date().toISOString()
     }, { 
       status: 200,

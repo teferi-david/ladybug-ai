@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import { Database } from '@/types/database.types'
+import { FREE_TIER_DAILY_HUMANIZER_LIMIT } from '@/lib/premium-config'
 import { isExpired } from './utils'
 
 type User = Database['public']['Tables']['users']['Row']
@@ -183,11 +184,13 @@ export async function checkDailyUsage(
   }
 
   const currentUses = usage?.uses_today || 0
-  const allowed = currentUses < 2
+  const allowed = currentUses < FREE_TIER_DAILY_HUMANIZER_LIMIT
 
   return {
     allowed,
-    usesRemaining: Math.max(0, 2 - currentUses),
+    usesRemaining: Math.max(0, FREE_TIER_DAILY_HUMANIZER_LIMIT - currentUses),
+    usedToday: currentUses,
+    limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
   }
 }
 
