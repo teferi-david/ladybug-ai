@@ -35,12 +35,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
     const stripe = getStripe()
 
+    // Stripe shows "Return to [business name]" using your Stripe account / portal branding;
+    // after closing the portal, users land on billing-return (see app/dashboard/billing-return).
     const portal = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${appUrl}/dashboard`,
+      return_url: `${appUrl}/dashboard/billing-return`,
     })
 
     return NextResponse.json({ url: portal.url })

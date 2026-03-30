@@ -54,11 +54,12 @@ export default function DashboardPage() {
     return () => subscription.unsubscribe()
   }, [loadProfile])
 
-  // After Stripe redirect, webhook may lag behind the success page — refetch profile a few times
+  // After Stripe redirect (checkout or billing portal), webhook may lag — refetch profile a few times
   useEffect(() => {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
-    if (params.get('from') !== 'checkout') return
+    const from = params.get('from')
+    if (from !== 'checkout' && from !== 'billing') return
     const id1 = window.setTimeout(() => void loadProfile(), 600)
     const id2 = window.setTimeout(() => void loadProfile(), 2000)
     const id3 = window.setTimeout(() => {
@@ -147,6 +148,19 @@ export default function DashboardPage() {
                     <p className="text-sm text-gray-600 mt-1">
                       Renews / access through: {formatDate(profile.plan_expiry)}
                     </p>
+                  )}
+                  {isPremium && profile?.subscription_cancel_at_period_end && profile?.plan_expiry && (
+                    <div
+                      className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950"
+                      role="status"
+                    >
+                      <p className="font-medium">Cancellation scheduled</p>
+                      <p className="mt-1 text-amber-900/90">
+                        Your subscription will end on{' '}
+                        <span className="font-medium">{formatDate(profile.plan_expiry)}</span>. Until
+                        then you keep full Pro access. You will not be charged again after that date.
+                      </p>
+                    </div>
                   )}
                   {!isPremium && (
                     <p className="text-sm text-gray-600 mt-1">

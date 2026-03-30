@@ -49,7 +49,9 @@ export async function POST(request: NextRequest) {
 
         const subscription = await stripe.subscriptions.retrieve(subId)
         const periodEnd = getPeriodEndIsoFromSubscriptionObject(subscription)
-        await updateUserPlan(userId, 'annual', periodEnd)
+        await updateUserPlan(userId, 'annual', periodEnd, undefined, {
+          cancelAtPeriodEnd: subscription.cancel_at_period_end === true,
+        })
 
         const c = session.customer
         let customerId: string | null = null
@@ -80,7 +82,9 @@ export async function POST(request: NextRequest) {
 
         if (subscription.status === 'active' || subscription.status === 'trialing') {
           const periodEnd = getPeriodEndIsoFromSubscriptionObject(subscription)
-          await updateUserPlan(userId, 'annual', periodEnd)
+          await updateUserPlan(userId, 'annual', periodEnd, undefined, {
+            cancelAtPeriodEnd: subscription.cancel_at_period_end === true,
+          })
         } else if (
           subscription.status === 'canceled' ||
           subscription.status === 'unpaid' ||
@@ -108,6 +112,7 @@ export async function POST(request: NextRequest) {
             subscription_status: 'cancelled',
             current_plan: 'free',
             plan_expiry: null,
+            subscription_cancel_at_period_end: false,
             updated_at: new Date().toISOString(),
           })
           .eq('id', userId)

@@ -50,7 +50,8 @@ export async function updateUserPlan(
   userId: string,
   planKey: PlanKey,
   planExpiry: string,
-  usesLeft?: number
+  usesLeft?: number,
+  options?: { cancelAtPeriodEnd?: boolean }
 ) {
   try {
     const updateData: any = {
@@ -58,6 +59,10 @@ export async function updateUserPlan(
       plan_expiry: planExpiry,
       subscription_status: 'active',
       updated_at: new Date().toISOString(),
+    }
+
+    if (typeof options?.cancelAtPeriodEnd === 'boolean') {
+      updateData.subscription_cancel_at_period_end = options.cancelAtPeriodEnd
     }
 
     // Set uses_left for single-use plans

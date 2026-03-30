@@ -22,6 +22,7 @@ export interface Database {
           plan_expiry: string | null
           uses_left: number
           subscription_status: string | null
+          subscription_cancel_at_period_end: boolean | null
           created_at: string
           updated_at: string
         }
@@ -34,6 +35,7 @@ export interface Database {
           plan_expiry?: string | null
           uses_left?: number
           subscription_status?: string | null
+          subscription_cancel_at_period_end?: boolean | null
           created_at?: string
           updated_at?: string
         }
@@ -46,6 +48,7 @@ export interface Database {
           plan_expiry?: string | null
           uses_left?: number
           subscription_status?: string | null
+          subscription_cancel_at_period_end?: boolean | null
           created_at?: string
           updated_at?: string
         }

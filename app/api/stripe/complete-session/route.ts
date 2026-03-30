@@ -119,7 +119,9 @@ export async function POST(request: NextRequest) {
     }
 
     const periodEnd = await getSubscriptionPeriodEndIso(stripe, subscription)
-    await updateUserPlan(user.id, 'annual', periodEnd)
+    await updateUserPlan(user.id, 'annual', periodEnd, undefined, {
+      cancelAtPeriodEnd: subscription.cancel_at_period_end === true,
+    })
 
     const customerId = getCustomerId(session)
 
