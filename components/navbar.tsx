@@ -2,14 +2,13 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 
 export function Navbar() {
-  const pathname = usePathname()
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
 
@@ -37,9 +36,9 @@ export function Navbar() {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
           <div className="relative w-8 h-8">
-            <Image 
-              src="/logo.jpg" 
-              alt="Ladybug AI Logo" 
+            <Image
+              src="/logo.jpg"
+              alt="Ladybug AI Logo"
               width={32}
               height={32}
               className="rounded-full object-cover"
@@ -48,41 +47,6 @@ export function Navbar() {
           </div>
           <span className="text-xl font-bold">Ladybug AI</span>
         </Link>
-
-        <div className="hidden md:flex items-center space-x-6">
-          <Link
-            href="/humanizer"
-            className={`text-sm font-medium hover:text-primary transition-colors ${
-              pathname === '/humanizer' ? 'text-primary' : 'text-gray-600'
-            }`}
-          >
-            AI Humanizer
-          </Link>
-          <Link
-            href="/paraphraser"
-            className={`text-sm font-medium hover:text-primary transition-colors ${
-              pathname === '/paraphraser' ? 'text-primary' : 'text-gray-600'
-            }`}
-          >
-            Paraphraser
-          </Link>
-          <Link
-            href="/citation"
-            className={`text-sm font-medium hover:text-primary transition-colors ${
-              pathname === '/citation' ? 'text-primary' : 'text-gray-600'
-            }`}
-          >
-            Citation Generator
-          </Link>
-          <Link
-            href="/pricing"
-            className={`text-sm font-medium hover:text-primary transition-colors ${
-              pathname === '/pricing' ? 'text-primary' : 'text-gray-600'
-            }`}
-          >
-            Pricing
-          </Link>
-        </div>
 
         <div className="flex items-center space-x-4">
           {user ? (
@@ -93,7 +57,7 @@ export function Navbar() {
                 </Button>
               </Link>
               <Button variant="outline" size="sm" onClick={handleSignOut}>
-                Sign Out
+                Sign out
               </Button>
             </>
           ) : (
@@ -104,7 +68,7 @@ export function Navbar() {
                 </Button>
               </Link>
               <Link href="/register">
-                <Button size="sm">Get Started</Button>
+                <Button size="sm">Get started</Button>
               </Link>
             </>
           )}
@@ -113,4 +77,3 @@ export function Navbar() {
     </nav>
   )
 }
-

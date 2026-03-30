@@ -6,9 +6,10 @@ import { Navbar } from '@/components/navbar'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Free AI Humanizer - Best AI Tool for Students | Ladybug AI',
-  description: 'Free AI Humanizer for students! Make AI text sound human, paraphrase essays, and generate citations. The best AI writing assistant for students. Try free - no credit card required.',
-  keywords: 'free ai humanizer, ai humanizer free, best ai tool for students, ai writing assistant, paraphraser, citation generator, humanize ai text, student writing tools',
+  title: 'AI Humanizer — Human-like text | Ladybug AI',
+  description:
+    'Paste AI-generated text and get a natural, human-style rewrite. Ladybug AI humanizer for clearer, more authentic wording.',
+  keywords: 'ai humanizer, humanize ai text, rewrite ai text, natural writing, Ladybug AI',
   icons: {
     icon: '/logo.jpg',
     shortcut: '/logo.jpg',
