@@ -35,6 +35,20 @@ export function HomePageClient() {
   const [upgradeMessage, setUpgradeMessage] = useState<string | undefined>(undefined)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  /** Validates session with Supabase then returns a fresh access token for API routes. */
+  const getAccessTokenForApi = useCallback(async () => {
+    await supabase.auth.getUser()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    let token = session?.access_token
+    if (!token) {
+      const { data: refreshed } = await supabase.auth.refreshSession()
+      token = refreshed.session?.access_token
+    }
+    return token
+  }, [supabase])
+
   const wordCount = input.trim().split(/\s+/).filter((w) => w.length > 0).length
   const maxWords = hasProAccess ? PREMIUM_MAX_WORDS_PER_REQUEST : 200
   const atDailyLimit =
@@ -58,37 +72,19 @@ export function HomePageClient() {
     setPlanLoaded(true)
   }, [])
 
-  useEffect(() => {
-    refreshPlanAccess()
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      refreshPlanAccess()
-    })
-    return () => subscription.unsubscribe()
-  }, [refreshPlanAccess])
-
+  /** Server is source of truth for Pro vs free (matches POST /api/humanize). */
   const refreshFreeUsage = useCallback(async () => {
-    if (hasProAccess) {
-      setFreeUsage(null)
-      return
-    }
     setUsageLoading(true)
     try {
       const { apiClient } = await import('@/lib/axios-client')
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      let token = session?.access_token
-      if (!token) {
-        const { data: refreshed } = await supabase.auth.refreshSession()
-        token = refreshed.session?.access_token
-      }
+      const token = await getAccessTokenForApi()
       const data = await apiClient.getHumanizeUsage(token)
       if (data.premium) {
+        setHasProAccess(true)
         setFreeUsage(null)
         return
       }
+      setHasProAccess(false)
       if (
         typeof data.limit === 'number' &&
         typeof data.usedToday === 'number' &&
@@ -99,21 +95,32 @@ export function HomePageClient() {
           usedToday: data.usedToday,
           usesRemaining: data.usesRemaining,
         })
+      } else {
+        setFreeUsage(null)
       }
     } catch {
       setFreeUsage(null)
     } finally {
       setUsageLoading(false)
     }
-  }, [hasProAccess, supabase])
+  }, [getAccessTokenForApi])
 
   useEffect(() => {
-    if (planLoaded && !hasProAccess) {
-      void refreshFreeUsage()
-    } else {
-      setFreeUsage(null)
-    }
-  }, [planLoaded, hasProAccess, refreshFreeUsage])
+    void refreshPlanAccess()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      void refreshPlanAccess().then(() => {
+        void refreshFreeUsage()
+      })
+    })
+    return () => subscription.unsubscribe()
+  }, [refreshPlanAccess, refreshFreeUsage])
+
+  useEffect(() => {
+    if (!planLoaded) return
+    void refreshFreeUsage()
+  }, [planLoaded, refreshFreeUsage])
 
   useEffect(() => {
     if (!hasProAccess && (humanizeLevel === 'college' || humanizeLevel === 'graduate')) {
@@ -157,14 +164,7 @@ export function HomePageClient() {
 
     try {
       const { apiClient } = await import('@/lib/axios-client')
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      let token = session?.access_token
-      if (!token) {
-        const { data: refreshed } = await supabase.auth.refreshSession()
-        token = refreshed.session?.access_token
-      }
+      const token = await getAccessTokenForApi()
       const { result, freeUsage: usageAfter } = await apiClient.humanizeText(input, humanizeLevel, token)
 
       const elapsed = Date.now() - start
@@ -176,9 +176,9 @@ export function HomePageClient() {
       setOutput(result)
       if (usageAfter) {
         setFreeUsage(usageAfter)
-      } else {
-        void refreshFreeUsage()
+        setHasProAccess(false)
       }
+      void refreshFreeUsage()
     } catch (error) {
       console.error(error)
       const e = error as Error & {

@@ -180,7 +180,12 @@ export async function checkDailyUsage(
 
   if (error) {
     console.error('Error checking daily usage:', error)
-    return { allowed: false, usesRemaining: 0 }
+    return {
+      allowed: false,
+      usesRemaining: 0,
+      usedToday: 0,
+      limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
+    }
   }
 
   const currentUses = usage?.uses_today || 0
