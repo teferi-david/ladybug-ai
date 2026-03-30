@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
+import { hasProHumanizeAccess } from '@/lib/plan-access'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, Loader2 } from 'lucide-react'
@@ -36,12 +37,27 @@ function PaymentSuccessContent() {
           })
 
           const data = await res.json().catch(() => ({}))
-          if (!res.ok) {
-            setError(data.error || 'Could not confirm your subscription. Webhook may still process shortly.')
+          if (res.ok) {
+            setSuccess(true)
             return
           }
 
-          setSuccess(true)
+          // Webhook may have activated the plan before this request finished
+          const { data: profile } = await supabase
+            .from('users')
+            .select('current_plan, plan_expiry')
+            .eq('id', session.user.id)
+            .single()
+
+          if (hasProHumanizeAccess(profile)) {
+            setSuccess(true)
+            return
+          }
+
+          setError(
+            data.error ||
+              'Could not confirm your subscription right away. Wait a minute and check your dashboard, or contact support if billing shows paid.'
+          )
           return
         }
 
