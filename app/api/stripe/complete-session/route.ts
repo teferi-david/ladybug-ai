@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe-server'
+import { getSubscriptionPeriodEndIso } from '@/lib/stripe-subscription-period'
 import { validateUserSession, updateUserPlan, supabaseServer } from '@/lib/supabaseServer'
 import type Stripe from 'stripe'
 
@@ -68,16 +69,6 @@ async function resolveSubscription(
   return null
 }
 
-function subscriptionPeriodEndIso(subscription: Stripe.Subscription): string {
-  const end =
-    subscription.current_period_end ??
-    (subscription as unknown as { currentPeriodEnd?: number }).currentPeriodEnd
-  if (end == null || typeof end !== 'number') {
-    throw new Error('Subscription missing current_period_end')
-  }
-  return new Date(end * 1000).toISOString()
-}
-
 /**
  * POST /api/stripe/complete-session
  * Authorization: Bearer <token>
@@ -127,7 +118,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const periodEnd = subscriptionPeriodEndIso(subscription)
+    const periodEnd = await getSubscriptionPeriodEndIso(stripe, subscription)
     await updateUserPlan(user.id, 'annual', periodEnd)
 
     const customerId = getCustomerId(session)

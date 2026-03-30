@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe-server'
+import { getPeriodEndIsoFromSubscriptionObject } from '@/lib/stripe-subscription-period'
 import { updateUserPlan, supabaseServer } from '@/lib/supabaseServer'
 import type Stripe from 'stripe'
 
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
         if (!subId) break
 
         const subscription = await stripe.subscriptions.retrieve(subId)
-        const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+        const periodEnd = getPeriodEndIsoFromSubscriptionObject(subscription)
         await updateUserPlan(userId, 'annual', periodEnd)
 
         const c = session.customer
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
         if (!userId) break
 
         if (subscription.status === 'active' || subscription.status === 'trialing') {
-          const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+          const periodEnd = getPeriodEndIsoFromSubscriptionObject(subscription)
           await updateUserPlan(userId, 'annual', periodEnd)
         } else if (
           subscription.status === 'canceled' ||
