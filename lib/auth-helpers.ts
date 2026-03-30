@@ -190,6 +190,51 @@ export function checkSubscriptionAccess(user: User): {
   return { hasAccess: true }
 }
 
+/** Anonymous / IP-only rows (user_id is null) for this IP + day + tool. */
+async function sumIpOnlyUsesToday(
+  ipAddress: string,
+  toolName: 'humanizer' | 'paraphraser' | 'citation',
+  today: string
+): Promise<number> {
+  const { data: rows, error } = await supabaseAdmin
+    .from('daily_usage')
+    .select('uses_today')
+    .eq('tool_name', toolName)
+    .eq('last_reset', today)
+    .is('user_id', null)
+    .eq('ip_address', ipAddress)
+
+  if (error) {
+    console.error('sumIpOnlyUsesToday:', error)
+    return 0
+  }
+  return (rows ?? []).reduce((s, r) => s + (r.uses_today ?? 0), 0)
+}
+
+/**
+ * Signed-in sessions store rows with user_id set and the same ip_address.
+ * After sign-out, we only have IP + user_id to link "same browser" to prior account uses today.
+ */
+async function sumUserRowsByIpToday(
+  ipAddress: string,
+  toolName: 'humanizer' | 'paraphraser' | 'citation',
+  today: string
+): Promise<number> {
+  const { data: rows, error } = await supabaseAdmin
+    .from('daily_usage')
+    .select('uses_today')
+    .eq('tool_name', toolName)
+    .eq('last_reset', today)
+    .eq('ip_address', ipAddress)
+    .not('user_id', 'is', null)
+
+  if (error) {
+    console.error('sumUserRowsByIpToday:', error)
+    return 0
+  }
+  return (rows ?? []).reduce((s, r) => s + (r.uses_today ?? 0), 0)
+}
+
 export async function checkDailyUsage(
   userId: string | null,
   ipAddress: string,
@@ -197,23 +242,31 @@ export async function checkDailyUsage(
 ): Promise<{ allowed: boolean; usesRemaining: number }> {
   const today = new Date().toISOString().split('T')[0]
 
-  // Try to find existing usage record
-  let query = supabaseAdmin
-    .from('daily_usage')
-    .select('*')
-    .eq('tool_name', toolName)
-    .eq('last_reset', today)
-
-  if (userId) {
-    query = query.eq('user_id', userId)
-  } else {
-    query = query.eq('ip_address', ipAddress)
+  if (!userId) {
+    const ipOnlyUses = await sumIpOnlyUsesToday(ipAddress, toolName, today)
+    const userRowsOnThisIp = await sumUserRowsByIpToday(ipAddress, toolName, today)
+    const currentUses = ipOnlyUses + userRowsOnThisIp
+    const allowed = currentUses < FREE_TIER_DAILY_HUMANIZER_LIMIT
+    return {
+      allowed,
+      usesRemaining: Math.max(0, FREE_TIER_DAILY_HUMANIZER_LIMIT - currentUses),
+      usedToday: currentUses,
+      limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
+    }
   }
 
-  const { data: usage, error } = await query.maybeSingle()
+  // Signed in: count both account-based uses and prior anonymous uses from this IP today
+  // so signing in/out does not reset the free daily budget.
+  const { data: userRow, error: userErr } = await supabaseAdmin
+    .from('daily_usage')
+    .select('uses_today')
+    .eq('tool_name', toolName)
+    .eq('last_reset', today)
+    .eq('user_id', userId)
+    .maybeSingle()
 
-  if (error) {
-    console.error('Error checking daily usage:', error)
+  if (userErr) {
+    console.error('Error checking daily usage (user row):', userErr)
     return {
       allowed: false,
       usesRemaining: 0,
@@ -222,7 +275,9 @@ export async function checkDailyUsage(
     }
   }
 
-  const currentUses = usage?.uses_today || 0
+  const userUses = userRow?.uses_today ?? 0
+  const ipOnlyUses = await sumIpOnlyUsesToday(ipAddress, toolName, today)
+  const currentUses = userUses + ipOnlyUses
   const allowed = currentUses < FREE_TIER_DAILY_HUMANIZER_LIMIT
 
   return {
@@ -244,25 +299,63 @@ export async function incrementDailyUsage(
 
   const today = new Date().toISOString().split('T')[0]
 
-  // First, try to get existing record
-  let query = supabaseAdmin
+  if (!userId) {
+    const { data: existingList, error: fetchError } = await supabaseAdmin
+      .from('daily_usage')
+      .select('*')
+      .eq('tool_name', toolName)
+      .eq('last_reset', today)
+      .is('user_id', null)
+      .eq('ip_address', ipAddress)
+      .limit(1)
+
+    if (fetchError) {
+      console.error('incrementDailyUsage lookup error (anon):', fetchError)
+      return
+    }
+
+    const existing = existingList?.[0]
+
+    if (existing) {
+      const { error: updateError } = await supabaseAdmin
+        .from('daily_usage')
+        .update({ uses_today: existing.uses_today + 1 })
+        .eq('id', existing.id)
+
+      if (updateError) {
+        console.error('incrementDailyUsage update error (anon):', updateError)
+      }
+    } else {
+      const { error: insertError } = await supabaseAdmin.from('daily_usage').insert({
+        user_id: null,
+        ip_address: ipAddress,
+        tool_name: toolName,
+        uses_today: 1,
+        last_reset: today,
+      })
+
+      if (insertError) {
+        console.error('incrementDailyUsage insert error (anon):', insertError)
+      }
+    }
+    return
+  }
+
+  // Signed in: only increment the account row; anonymous uses from this IP are summed in checkDailyUsage
+  const { data: existingList, error: fetchError } = await supabaseAdmin
     .from('daily_usage')
     .select('*')
     .eq('tool_name', toolName)
     .eq('last_reset', today)
-
-  if (userId) {
-    query = query.eq('user_id', userId)
-  } else {
-    query = query.eq('ip_address', ipAddress)
-  }
-
-  const { data: existing, error: fetchError } = await query.maybeSingle()
+    .eq('user_id', userId)
+    .limit(1)
 
   if (fetchError) {
-    console.error('incrementDailyUsage lookup error:', fetchError)
+    console.error('incrementDailyUsage lookup error (user):', fetchError)
     return
   }
+
+  const existing = existingList?.[0]
 
   if (existing) {
     const { error: updateError } = await supabaseAdmin
@@ -271,7 +364,7 @@ export async function incrementDailyUsage(
       .eq('id', existing.id)
 
     if (updateError) {
-      console.error('incrementDailyUsage update error:', updateError)
+      console.error('incrementDailyUsage update error (user):', updateError)
     }
   } else {
     const { error: insertError } = await supabaseAdmin.from('daily_usage').insert({
@@ -283,7 +376,7 @@ export async function incrementDailyUsage(
     })
 
     if (insertError) {
-      console.error('incrementDailyUsage insert error:', insertError)
+      console.error('incrementDailyUsage insert error (user):', insertError)
     }
   }
 }
