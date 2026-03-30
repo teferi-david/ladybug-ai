@@ -1,9 +1,12 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
+/** Long-running LLM routes (humanize, paraphrase) need more than default browser/axios limits. */
+const LONG_REQUEST_TIMEOUT_MS = 180_000 // 3 minutes
+
 // Create Axios instance with proper configuration
 const axiosClient: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_APP_URL || '',
-  timeout: 30000, // 30 second timeout
+  timeout: 60000, // default; humanize/paraphrase override below
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -70,10 +73,22 @@ export const apiClient = {
         headers['Authorization'] = `Bearer ${authToken}`
       }
       
-      const response = await axiosClient.post('/api/humanize', { text, level }, { headers })
+      const response = await axiosClient.post(
+        '/api/humanize',
+        { text, level },
+        { headers, timeout: LONG_REQUEST_TIMEOUT_MS }
+      )
       return response.data.result
     } catch (error: any) {
       console.error('Humanize API error:', error)
+      const isTimeout =
+        error.code === 'ECONNABORTED' ||
+        (typeof error.message === 'string' && error.message.toLowerCase().includes('timeout'))
+      if (isTimeout) {
+        throw new Error(
+          'Request timed out. Long or complex text can take over a minute. Try a shorter passage, or wait and try again.'
+        )
+      }
       const data = error.response?.data
       const msg =
         (typeof data?.message === 'string' && data.message) ||
@@ -91,7 +106,11 @@ export const apiClient = {
         headers['Authorization'] = `Bearer ${authToken}`
       }
       
-      const response = await axiosClient.post('/api/paraphrase', { text }, { headers })
+      const response = await axiosClient.post(
+        '/api/paraphrase',
+        { text },
+        { headers, timeout: LONG_REQUEST_TIMEOUT_MS }
+      )
       return response.data.result
     } catch (error: any) {
       console.error('Paraphrase API error:', error)

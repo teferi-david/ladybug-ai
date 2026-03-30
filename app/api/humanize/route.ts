@@ -6,6 +6,8 @@ import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+/** Allow long OpenAI runs (reasoning models, large completions). Vercel caps by plan. */
+export const maxDuration = 300
 
 // Handle GET requests
 export async function GET() {

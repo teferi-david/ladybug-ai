@@ -5,6 +5,7 @@ import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+export const maxDuration = 300
 
 // Handle GET requests
 export async function GET() {
