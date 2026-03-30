@@ -1,3 +1,4 @@
+import type { NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import { Database } from '@/types/database.types'
 import { isExpired } from './utils'
@@ -48,11 +49,49 @@ export async function getAuthUserIdFromCookies(): Promise<string | null> {
 }
 
 /**
- * Prefer Bearer JWT, then cookie session — so signed-in users are always identified on the server.
+ * Read session from the incoming API request cookies (most reliable in Route Handlers).
  */
-export async function getAuthUserIdFromRequest(authHeader: string | null): Promise<string | null> {
+export async function getAuthUserIdFromNextRequest(request: NextRequest): Promise<string | null> {
+  try {
+    const { createServerClient } = await import('@supabase/ssr')
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll() {
+            /* Read-only here; session refresh runs in middleware + browser client */
+          },
+        },
+      }
+    )
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
+    if (error || !user) return null
+    return user.id
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Prefer Bearer JWT, then cookies on this request, then next/headers cookies.
+ */
+export async function getAuthUserIdFromRequest(
+  authHeader: string | null,
+  request?: NextRequest
+): Promise<string | null> {
   const fromBearer = await getAuthUserIdFromToken(authHeader)
   if (fromBearer) return fromBearer
+  if (request) {
+    const fromReq = await getAuthUserIdFromNextRequest(request)
+    if (fromReq) return fromReq
+  }
   return getAuthUserIdFromCookies()
 }
 
@@ -136,10 +175,9 @@ export async function checkDailyUsage(
     query = query.eq('ip_address', ipAddress)
   }
 
-  const { data: usage, error } = await query.single()
+  const { data: usage, error } = await query.maybeSingle()
 
-  if (error && error.code !== 'PGRST116') {
-    // PGRST116 is "no rows returned", which is fine
+  if (error) {
     console.error('Error checking daily usage:', error)
     return { allowed: false, usesRemaining: 0 }
   }
@@ -173,27 +211,34 @@ export async function incrementDailyUsage(
     query = query.eq('ip_address', ipAddress)
   }
 
-  const { data: existing } = await query.single()
+  const { data: existing, error: fetchError } = await query.maybeSingle()
+
+  if (fetchError) {
+    console.error('incrementDailyUsage lookup error:', fetchError)
+    return
+  }
 
   if (existing) {
-    // Update existing record
-    let updateQuery = supabaseAdmin
+    const { error: updateError } = await supabaseAdmin
       .from('daily_usage')
       .update({ uses_today: existing.uses_today + 1 })
       .eq('id', existing.id)
 
-    await updateQuery
+    if (updateError) {
+      console.error('incrementDailyUsage update error:', updateError)
+    }
   } else {
-    // Insert new record
-    await supabaseAdmin
-      .from('daily_usage')
-      .insert({
-        user_id: userId,
-        ip_address: ipAddress,
-        tool_name: toolName,
-        uses_today: 1,
-        last_reset: today,
-      })
+    const { error: insertError } = await supabaseAdmin.from('daily_usage').insert({
+      user_id: userId,
+      ip_address: ipAddress,
+      tool_name: toolName,
+      uses_today: 1,
+      last_reset: today,
+    })
+
+    if (insertError) {
+      console.error('incrementDailyUsage insert error:', insertError)
+    }
   }
 }
 

@@ -100,8 +100,8 @@ export async function POST(request: NextRequest) {
   
   try {
     const authHeader = request.headers.get('authorization')
-    /** Bearer first, then Supabase session cookies — fixes missing Authorization on client. */
-    const authUserId = await getAuthUserIdFromRequest(authHeader)
+    /** Bearer + request cookies (localStorage-only clients bypassed before createBrowserClient). */
+    const authUserId = await getAuthUserIdFromRequest(authHeader, request)
     const user = authUserId ? await getUserRowById(authUserId) : null
     const freeTierUserId = authUserId
 
