@@ -89,6 +89,7 @@ export default function DashboardPage() {
       const data = await res.json()
       if (!res.ok) {
         alert(data.message || data.error || 'Could not open billing portal')
+        await loadProfile()
         return
       }
       if (data.url) {

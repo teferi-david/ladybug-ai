@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe-server'
-import { validateUserSession, getUserById } from '@/lib/supabaseServer'
+import { validateUserSession, getUserById, supabaseServer } from '@/lib/supabaseServer'
+import type Stripe from 'stripe'
+
+function isMissingStripeCustomerError(e: unknown): boolean {
+  const err = e as Stripe.errors.StripeError | { code?: string; message?: string; type?: string }
+  if (err?.code === 'resource_missing') return true
+  const msg = typeof err?.message === 'string' ? err.message : ''
+  return /no such customer/i.test(msg)
+}
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -11,6 +19,7 @@ export const runtime = 'nodejs'
  * Opens Stripe Customer Portal (manage/cancel subscription).
  */
 export async function POST(request: NextRequest) {
+  let userId: string | null = null
   try {
     const authHeader = request.headers.get('authorization')
     if (!authHeader?.startsWith('Bearer ')) {
@@ -23,6 +32,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
     }
 
+    userId = user.id
     const row = await getUserById(user.id)
     const customerId = row?.stripe_customer_id
     if (!customerId) {
@@ -48,6 +58,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: portal.url })
   } catch (e: any) {
     console.error('billing portal error:', e)
+
+    // Stale ID (test/live mix, customer deleted in Dashboard, or old account) — clear so UI can recover
+    if (isMissingStripeCustomerError(e) && userId) {
+      await supabaseServer
+        .from('users')
+        .update({
+          stripe_customer_id: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId)
+
+      return NextResponse.json(
+        {
+          error: 'stripe_customer_invalid',
+          message:
+            'That Stripe billing profile is no longer valid (for example after switching test/live mode or if the customer was removed). We cleared the link on your account. Use Pricing to subscribe again if you need billing access, or contact support.',
+        },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
       { error: e.message || 'Could not open billing portal' },
       { status: 500 }
