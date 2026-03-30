@@ -7,10 +7,17 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Check } from 'lucide-react'
 
+const FEATURES = [
+  'Unlimited AI humanizer (no daily cap while subscribed)',
+  'All humanize levels (high school, college, graduate)',
+  'Higher word limits vs free tier',
+  'Cancel anytime in the Stripe customer portal',
+]
+
 export default function PricingPage() {
   const router = useRouter()
-  const [loading, setLoading] = useState<string | null>(null)
-  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState<unknown>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -18,192 +25,114 @@ export default function PricingPage() {
     })
   }, [])
 
-  const handleCheckout = async (planType: string) => {
+  const handleCheckout = async () => {
     if (!user) {
       router.push('/register')
       return
     }
 
-    setLoading(planType)
+    setLoading(true)
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
+      if (!token) {
+        router.push('/login')
+        return
+      }
 
-      const response = await fetch('/api/square/create-checkout', {
+      const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ planType }),
+        body: JSON.stringify({}),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        alert(data.error || 'An error occurred')
+        alert(data.error || 'Checkout could not be started. Try again.')
         return
       }
 
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert('No checkout URL returned.')
       }
-    } catch (error) {
-      alert('An error occurred. Please try again.')
+    } catch {
+      alert('Something went wrong. Please try again.')
     } finally {
-      setLoading(null)
+      setLoading(false)
     }
   }
 
-  const plans = [
-    {
-      id: 'trial',
-      name: '3-Day Trial',
-      price: '$1.49',
-      period: 'one-time',
-      description: 'Perfect for trying out all features',
-      features: [
-        'Access to all AI tools',
-        'AI Humanizer',
-        'Paraphraser',
-        'Citation Generator (APA & MLA)',
-        '3 days full access',
-      ],
-    },
-    {
-      id: 'monthly',
-      name: 'Monthly Plan',
-      price: '$15.49',
-      period: 'per month',
-      description: 'Unlimited access, billed monthly',
-      features: [
-        'Unlimited AI Humanizer',
-        'Unlimited Paraphraser',
-        'Unlimited Citation Generator',
-        'Priority support',
-        'Cancel anytime',
-      ],
-    },
-    {
-      id: 'annual',
-      name: 'Annual Plan',
-      price: '$149.49',
-      period: 'per year',
-      description: 'Best value - save $36/year',
-      popular: true,
-      features: [
-        'Everything in Monthly',
-        '$12.49/mo equivalent',
-        'Save $36 per year',
-        'Priority support',
-        'Early access to new features',
-      ],
-    },
-    {
-      id: 'singleUse',
-      name: 'Single Use',
-      price: '$3.99',
-      period: 'one-time',
-      description: '2,000 tokens, 24-hour access',
-      features: [
-        '2,000 token limit',
-        '24-hour access window',
-        'All AI tools',
-        'Perfect for one project',
-        'No subscription',
-      ],
-    },
-  ]
-
   return (
     <div className="container mx-auto px-4 py-16">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Simple, Transparent Pricing
-          </h1>
+      <div className="max-w-lg mx-auto">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Pricing</h1>
           <p className="text-xl text-gray-600">
-            Choose the plan that works best for you
+            One simple plan — billed annually at $9.95/month equivalent.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {plans.map((plan) => (
-            <Card
-              key={plan.id}
-              className={`flex flex-col ${
-                plan.popular ? 'border-primary border-2 shadow-lg' : ''
-              }`}
+        <Card className="border-primary border-2 shadow-lg">
+          <div className="bg-primary text-white text-center py-2 text-sm font-semibold rounded-t-lg">
+            Ladybug AI Pro
+          </div>
+          <CardHeader>
+            <CardTitle>Annual subscription</CardTitle>
+            <div className="mt-4">
+              <span className="text-4xl font-bold text-primary">$9.95</span>
+              <span className="text-gray-600 ml-1">/month</span>
+            </div>
+            <CardDescription className="text-base pt-2">
+              Billed annually. Secure checkout powered by Stripe.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {FEATURES.map((feature) => (
+                <li key={feature} className="flex items-start">
+                  <Check className="h-5 w-5 text-primary mr-2 flex-shrink-0 mt-0.5" />
+                  <span className="text-sm">{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+          <CardFooter>
+            <Button
+              onClick={handleCheckout}
+              disabled={loading}
+              className="w-full"
+              size="lg"
             >
-              {plan.popular && (
-                <div className="bg-primary text-white text-center py-2 text-sm font-semibold rounded-t-lg">
-                  Most Popular
-                </div>
-              )}
-              <CardHeader>
-                <CardTitle>{plan.name}</CardTitle>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold text-primary">{plan.price}</span>
-                  <span className="text-gray-600 ml-2">/{plan.period}</span>
-                </div>
-                <CardDescription>{plan.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <ul className="space-y-3">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start">
-                      <Check className="h-5 w-5 text-primary mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  onClick={() => handleCheckout(plan.id)}
-                  disabled={loading === plan.id}
-                  className="w-full"
-                  variant={plan.popular ? 'default' : 'outline'}
-                >
-                  {loading === plan.id ? 'Processing...' : user ? 'Get Started' : 'Sign Up to Continue'}
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+              {loading ? 'Redirecting to Stripe…' : user ? 'Subscribe' : 'Sign up to subscribe'}
+            </Button>
+          </CardFooter>
+        </Card>
 
-        <div className="mt-16 text-center">
-          <h2 className="text-2xl font-bold mb-4">Frequently Asked Questions</h2>
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto text-left">
-            <div>
-              <h3 className="font-semibold mb-2">Can I cancel anytime?</h3>
-              <p className="text-gray-600 text-sm">
-                Yes, you can cancel your subscription at any time from your dashboard.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">What payment methods do you accept?</h3>
-              <p className="text-gray-600 text-sm">
-                We accept all major credit cards via Square.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">How does the trial work?</h3>
-              <p className="text-gray-600 text-sm">
-                The 3-day trial gives you full access to all features for 3 days for just $1.49.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">What are tokens?</h3>
-              <p className="text-gray-600 text-sm">
-                Tokens are units of text processing. Approximately 1 token = 4 characters.
-              </p>
-            </div>
+        <div className="mt-10 text-left max-w-lg mx-auto space-y-6">
+          <h2 className="text-xl font-bold text-center">FAQ</h2>
+          <div>
+            <h3 className="font-semibold mb-1">How does billing work?</h3>
+            <p className="text-gray-600 text-sm">
+              You are charged once per year for twelve months at the $9.95/month rate (total varies
+              by taxes). Manage or cancel in your Stripe billing portal.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-1">What about the free tier?</h3>
+            <p className="text-gray-600 text-sm">
+              Guests get limited daily tries. Subscribers get unlimited use within normal fair-use
+              limits described at checkout.
+            </p>
           </div>
         </div>
       </div>
     </div>
   )
 }
-

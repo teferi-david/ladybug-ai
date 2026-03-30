@@ -74,7 +74,12 @@ export const apiClient = {
       return response.data.result
     } catch (error: any) {
       console.error('Humanize API error:', error)
-      throw new Error(`Humanization failed: ${error.response?.data?.error || error.message}`)
+      const data = error.response?.data
+      const msg =
+        (typeof data?.message === 'string' && data.message) ||
+        (typeof data?.error === 'string' && data.error) ||
+        error.message
+      throw new Error(msg)
     }
   },
 

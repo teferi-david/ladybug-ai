@@ -51,6 +51,11 @@ export function Navbar() {
         <div className="flex items-center space-x-4">
           {user ? (
             <>
+              <Link href="/pricing">
+                <Button variant="ghost" size="sm">
+                  Pricing
+                </Button>
+              </Link>
               <Link href="/dashboard">
                 <Button variant="ghost" size="sm">
                   Dashboard
@@ -62,6 +67,11 @@ export function Navbar() {
             </>
           ) : (
             <>
+              <Link href="/pricing">
+                <Button variant="ghost" size="sm">
+                  Pricing
+                </Button>
+              </Link>
               <Link href="/login">
                 <Button variant="ghost" size="sm">
                   Login

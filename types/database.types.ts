@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type PlanType = 'trial' | 'monthly' | 'annual' | 'single-use' | 'none'
+export type PlanType = 'free' | 'trial' | 'monthly' | 'annual' | 'single-use' | 'none'
 export type ToolName = 'humanizer' | 'paraphraser' | 'citation'
 
 export interface Database {
@@ -21,6 +21,7 @@ export interface Database {
           current_plan: PlanType
           plan_expiry: string | null
           uses_left: number
+          subscription_status: string | null
           created_at: string
           updated_at: string
         }
@@ -32,6 +33,7 @@ export interface Database {
           current_plan?: PlanType
           plan_expiry?: string | null
           uses_left?: number
+          subscription_status?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -43,6 +45,7 @@ export interface Database {
           current_plan?: PlanType
           plan_expiry?: string | null
           uses_left?: number
+          subscription_status?: string | null
           created_at?: string
           updated_at?: string
         }

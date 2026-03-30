@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           status: 'error',
           error: 'Daily limit reached',
-          message: `You've used your 2 free uses today. Please upgrade to continue.`,
+          message: `You've used your 2 free uses today. Upgrade for unlimited use.`,
           upgradeRequired: true,
           usesRemaining: 0
         }, { status: 403 })
