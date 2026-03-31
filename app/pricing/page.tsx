@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { ProUpgradeButton } from '@/components/pro-upgrade-button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Check } from 'lucide-react'
 
 const FEATURES = [
-  '1-day free trial, then billed annually',
+  'Full Pro access during your 1-day trial',
   'Unlimited AI humanizer (no daily cap while subscribed)',
   'Paraphraser, Citations, and other Pro AI tools',
   'All humanize levels (High school, College, Graduate)',
@@ -76,8 +76,10 @@ export default function PricingPage() {
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Pricing</h1>
-          <p className="text-xl text-gray-600">
-            One simple plan — billed annually at $9.95/month equivalent.
+          <p className="text-2xl md:text-3xl font-bold text-primary mb-2">1 Day free trial</p>
+          <p className="text-sm text-gray-500 max-w-md mx-auto">
+            One simple Pro plan. After your trial, pricing is $9.95/month equivalent, charged as one annual
+            payment (taxes may apply).
           </p>
         </div>
 
@@ -86,14 +88,15 @@ export default function PricingPage() {
             Ladybug AI Pro
           </div>
           <CardHeader>
-            <CardTitle>Annual subscription</CardTitle>
-            <div className="mt-4">
-              <span className="text-4xl font-bold text-primary">$9.95</span>
-              <span className="text-gray-600 ml-1">/month</span>
+            <CardTitle className="text-xl">Annual subscription</CardTitle>
+            <div className="space-y-1.5 pt-1">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Start with a 1-day free trial, then continue annually.
+              </p>
+              <p className="text-xs text-gray-500 leading-snug">
+                Then $9.95/month equivalent, billed annually as one payment. Secure checkout with Stripe.
+              </p>
             </div>
-            <CardDescription className="text-base pt-2">
-              Start with a 1-day free trial, then continue annually. Secure checkout powered by Stripe.
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
