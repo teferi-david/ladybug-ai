@@ -42,6 +42,6 @@ export const config = {
     /*
      * Exclude sitemap.xml & robots.txt so middleware never wraps them (avoids HTML responses for crawlers).
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap\\.xml|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap\\.xml|robots\\.txt|auth/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
