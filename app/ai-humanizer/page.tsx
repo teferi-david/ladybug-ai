@@ -58,15 +58,15 @@ export default function AiHumanizerLandingPage() {
             <h2 className="text-xl font-bold text-gray-900">Try the humanizer</h2>
             <p className="mt-3 leading-relaxed">
               The main tool lives on the home page: paste your text, pick a level, and run{' '}
-              <strong>Humanize</strong>. Free tier includes daily limits; Pro unlocks higher word caps and
-              extra levels.
+              <strong>Humanize</strong>. Free tier includes daily limits; a 1-day Pro trial gives unlimited
+              runs, higher word caps, College / Graduate levels, plus Paraphraser and Citations.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild size="lg">
                 <Link href="/">Open AI humanizer</Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link href="/pricing">Pricing</Link>
+                <Link href="/pricing">Try for free</Link>
               </Button>
             </div>
           </section>

@@ -70,7 +70,7 @@ export class SubscriptionManager {
     }
     
     if (!status.isActive) {
-      return 'Please upgrade to use AI features.'
+      return 'Start a 1-day free trial on the pricing page for unlimited AI Humanizer and Pro tools.'
     }
     
     if (status.isNearExpiry) {

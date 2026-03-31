@@ -96,10 +96,12 @@ export default function CitationPage() {
     return (
       <div className="container mx-auto px-4 py-16 max-w-lg text-center">
         <h1 className="text-2xl font-bold mb-2 tracking-tight">Citation generator</h1>
-        <p className="text-gray-600 mb-8 leading-relaxed">APA & MLA — Pro feature.</p>
+        <p className="text-gray-600 mb-8 leading-relaxed">
+          APA &amp; MLA — included with Pro. Try free for 1 day with unlimited humanizer and all tools.
+        </p>
         <div className="flex justify-center pt-2">
           <ProUpgradeButton asChild size="lg" className="min-w-[min(100%,280px)] px-8">
-            <Link href="/pricing">Upgrade to unlock</Link>
+            <Link href="/pricing">Try for free</Link>
           </ProUpgradeButton>
         </div>
       </div>

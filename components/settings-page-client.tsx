@@ -194,12 +194,12 @@ export function SettingsPageClient() {
               {!isPremium && (
                 <div className="mt-2 space-y-6 border-t border-gray-100 pt-8">
                   <p className="max-w-prose text-sm leading-relaxed tracking-tight text-gray-600">
-                    Upgrade for all tools, no daily limits, and up to 1,000 words per run on the
-                    humanizer.
+                    Start a 1-day free trial for unlimited AI Humanizer, Paraphraser, Citations, and higher
+                    word limits — then billed annually if you continue.
                   </p>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <ProUpgradeButton asChild className="w-full sm:w-auto sm:min-w-[220px]">
-                      <Link href="/pricing">Upgrade to Pro</Link>
+                      <Link href="/pricing">Try for free</Link>
                     </ProUpgradeButton>
                   </div>
                 </div>

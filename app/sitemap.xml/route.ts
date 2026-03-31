@@ -1,44 +1,13 @@
 import { getSiteUrl } from '@/lib/site-url'
-
-/** Escape for XML text content (URLs can contain & etc.) */
-function escapeXml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
-
-type Entry = { loc: string; changefreq: string; priority: string }
-
-function buildSitemapXml(entries: Entry[]): string {
-  const lastmod = new Date().toISOString().split('T')[0]
-  const body = entries
-    .map(
-      (e) => `  <url>
-    <loc>${escapeXml(e.loc)}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>${e.changefreq}</changefreq>
-    <priority>${e.priority}</priority>
-  </url>`
-    )
-    .join('\n')
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${body}
-</urlset>`
-}
+import { buildSitemapXml, xmlSitemapResponse, type SitemapEntry } from '@/lib/sitemap-xml'
 
 /**
- * Explicit XML sitemap so crawlers always receive application/xml (not an HTML shell).
- * Submit https://YOUR_DOMAIN/sitemap.xml in Google Search Console.
+ * Main sitemap. Submit https://YOUR_DOMAIN/sitemap.xml in Google Search Console.
  */
 export async function GET() {
   const base = getSiteUrl()
 
-  const entries: Entry[] = [
+  const entries: SitemapEntry[] = [
     { loc: base, changefreq: 'weekly', priority: '1.0' },
     { loc: `${base}/ai-humanizer`, changefreq: 'weekly', priority: '0.98' },
     { loc: `${base}/bypass-turnitin`, changefreq: 'weekly', priority: '0.95' },
@@ -50,13 +19,5 @@ export async function GET() {
     { loc: `${base}/forgot-password`, changefreq: 'yearly', priority: '0.25' },
   ]
 
-  const xml = buildSitemapXml(entries)
-
-  return new Response(xml, {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600, s-maxage=3600',
-    },
-  })
+  return xmlSitemapResponse(buildSitemapXml(entries))
 }

@@ -85,10 +85,13 @@ export default function ParaphraserPage() {
     return (
       <div className="container mx-auto px-4 py-16 max-w-lg text-center">
         <h1 className="text-2xl font-bold mb-2 tracking-tight">Paraphraser</h1>
-        <p className="text-gray-600 mb-8 leading-relaxed">Pro feature — rewrite text with one click.</p>
+        <p className="text-gray-600 mb-8 leading-relaxed">
+          Included with Pro. Start a 1-day free trial for unlimited paraphrasing plus the AI Humanizer,
+          Citations, and more.
+        </p>
         <div className="flex justify-center pt-2">
           <ProUpgradeButton asChild size="lg" className="min-w-[min(100%,280px)] px-8">
-            <Link href="/pricing">Upgrade to unlock</Link>
+            <Link href="/pricing">Try for free</Link>
           </ProUpgradeButton>
         </div>
       </div>

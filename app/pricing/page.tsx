@@ -10,6 +10,7 @@ import { Check } from 'lucide-react'
 const FEATURES = [
   '1-day free trial, then billed annually',
   'Unlimited AI humanizer (no daily cap while subscribed)',
+  'Paraphraser, Citations, and other Pro AI tools',
   'All humanize levels (High school, College, Graduate)',
   'Higher word limits vs free tier',
   'Cancel anytime in the Stripe customer portal',
@@ -112,7 +113,11 @@ export default function PricingPage() {
               className="w-full"
               size="lg"
             >
-              {loading ? 'Redirecting to Stripe…' : user ? 'Subscribe' : 'Sign up to subscribe'}
+              {loading
+                ? 'Redirecting to Stripe…'
+                : user
+                  ? 'Start 1-day free trial'
+                  : 'Sign up — try free for 1 day'}
             </ProUpgradeButton>
           </CardFooter>
         </Card>
@@ -129,8 +134,8 @@ export default function PricingPage() {
           <div>
             <h3 className="font-semibold mb-1">What about the free tier?</h3>
             <p className="text-gray-600 text-sm">
-              Guests get limited daily tries. Subscribers get unlimited use within normal fair-use
-              limits described at checkout.
+              Guests get limited daily tries on the humanizer. After checkout you get a 1-day free trial,
+              then annual billing — unlimited humanizer and Pro tools within normal fair-use limits.
             </p>
           </div>
         </div>

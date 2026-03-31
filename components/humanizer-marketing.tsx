@@ -112,7 +112,10 @@ export function HumanizerMarketing() {
             <li>Pick a humanize level (High school, or College / Graduate on Pro).</li>
             <li>Click Humanize and wait for processing.</li>
             <li>Review the output, copy, and edit as needed.</li>
-            <li>Run again until you&apos;re happy — free tier includes daily limits; Pro unlocks more.</li>
+            <li>
+              Run again until you&apos;re happy — free tier has daily limits; a 1-day Pro trial removes the
+              cap on the humanizer and opens Paraphraser, Citations, and other tools.
+            </li>
           </ol>
         </Section>
 
@@ -130,7 +133,10 @@ export function HumanizerMarketing() {
           <ul className="list-disc space-y-2 pl-5">
             <li>Simple interface — paste, choose level, humanize</li>
             <li>Works in modern browsers; responsive layout</li>
-            <li>Free tier with fair daily limits; Pro for full modes and higher word caps</li>
+            <li>
+              Free tier with fair daily limits; Pro (1-day trial, then annual) for full modes, higher word
+              caps, and companion tools
+            </li>
             <li>Privacy-minded: treat your text as sensitive; don&apos;t paste secrets you can&apos;t share</li>
           </ul>
         </Section>

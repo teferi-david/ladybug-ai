@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
           status: 'error',
           error: 'Upgrade required',
           message:
-            'College and Graduate humanization are Pro features. Upgrade to unlock.',
+            'College and Graduate humanization are Pro features. Start a 1-day free trial for unlimited access.',
           upgradeRequired: true,
         },
         { status: 403 }
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           status: 'error',
           error: 'Daily limit reached',
-          message: `You've used your ${FREE_TIER_DAILY_HUMANIZER_LIMIT} free uses today. Upgrade for unlimited use.`,
+          message: `You've used your ${FREE_TIER_DAILY_HUMANIZER_LIMIT} free uses today. Start a 1-day free trial for unlimited humanizer and all Pro tools.`,
           upgradeRequired: true,
           usesRemaining: 0,
           limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           status: 'error',
           error: 'Word limit exceeded',
-          message: `Free tier is limited to 200 words. This text has ${wordCount} words. Please upgrade for longer texts.`,
+          message: `Free tier is limited to 200 words. This text has ${wordCount} words. Start a 1-day free trial for higher per-run limits.`,
           upgradeRequired: true,
         }, { status: 403 })
       }

@@ -22,7 +22,8 @@ export async function requirePremiumUser(
       response: NextResponse.json(
         {
           error: 'Premium required',
-          message: 'This tool is included with Pro. Upgrade to unlock.',
+          message:
+            'This tool is included with Pro. Start a 1-day free trial for unlimited use with the humanizer, paraphraser, citations, and more.',
           upgradeRequired: true,
         },
         { status: 403 }

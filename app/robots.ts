@@ -12,6 +12,10 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/dashboard/', '/settings'],
       },
     ],
-    sitemap: `${base}/sitemap.xml`,
+    sitemap: [
+      `${base}/sitemap.xml`,
+      `${base}/sitemap-ai-humanizer.xml`,
+      `${base}/sitemap-bypass-turnitin.xml`,
+    ],
   }
 }

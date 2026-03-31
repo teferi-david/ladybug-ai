@@ -252,7 +252,7 @@ export function HomePageClient() {
                             <span className="font-medium text-gray-800">
                               {freeUsage.usesRemaining}
                             </span>{' '}
-                            left — then upgrade for unlimited.
+                            left — start a 1-day free trial for unlimited use.
                           </span>
                         ) : (
                           <span className="text-amber-900 font-medium">
@@ -264,7 +264,7 @@ export function HomePageClient() {
                     </div>
                     {freeUsage.usesRemaining === 0 && (
                       <ProUpgradeButton asChild size="sm" className="w-full shrink-0 sm:w-auto">
-                        <Link href="/pricing">Upgrade to Pro</Link>
+                        <Link href="/pricing">Try for free</Link>
                       </ProUpgradeButton>
                     )}
                   </div>
@@ -346,11 +346,12 @@ export function HomePageClient() {
                   {!hasProAccess && planLoaded && (
                     <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
                       <p className="text-xs text-gray-500 flex-1 leading-relaxed">
-                        College &amp; Graduate modes are included with Pro. Free tier: up to 200 words per
-                        run; Pro: up to {PREMIUM_MAX_WORDS_PER_REQUEST} words, no daily cap.
+                        College &amp; Graduate modes and unlimited runs are on Pro. Free tier: up to 200
+                        words per run; Pro (after your 1-day trial): up to {PREMIUM_MAX_WORDS_PER_REQUEST}{' '}
+                        words, no daily cap — plus Paraphraser, Citations, and other tools.
                       </p>
                       <ProUpgradeButton asChild size="sm" className="w-full shrink-0 sm:w-auto">
-                        <Link href="/pricing">Upgrade to unlock</Link>
+                        <Link href="/pricing">Try for free</Link>
                       </ProUpgradeButton>
                     </div>
                   )}
@@ -371,7 +372,7 @@ export function HomePageClient() {
                     <p className="text-sm text-red-500 mt-2">
                       {hasProAccess
                         ? `Pro allows up to ${PREMIUM_MAX_WORDS_PER_REQUEST} words per run. Shorten your text.`
-                        : 'Free tier is limited to 200 words. Shorten your text or upgrade to Pro.'}
+                        : 'Free tier is limited to 200 words. Shorten your text or start a 1-day free trial for higher limits.'}
                     </p>
                   )}
                 </div>
@@ -386,16 +387,16 @@ export function HomePageClient() {
                   {processing
                     ? 'Working…'
                     : atDailyLimit
-                      ? 'Daily limit reached — upgrade for more'
+                      ? 'Daily limit reached — try Pro free for unlimited'
                       : 'Humanize text'}
                 </Button>
                 {atDailyLimit && (
                   <p className="text-xs text-center text-amber-800">
                     Come back tomorrow for {FREE_TIER_DAILY_HUMANIZER_LIMIT} more free uses, or{' '}
                     <Link href="/pricing" className="underline font-medium">
-                      upgrade to Pro
-                    </Link>
-                    .
+                      start a 1-day free trial
+                    </Link>{' '}
+                    for unlimited humanizer and all Pro tools.
                   </p>
                 )}
               </CardContent>

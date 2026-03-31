@@ -3,7 +3,7 @@ import { Button, type ButtonProps } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 /**
- * Golden gradient CTA — matches “Upgrade to unlock” on the humanizer (Apple-style: 44pt min tap target, rounded-xl).
+ * Golden gradient CTA for trial / pricing (Apple-style: 44pt min tap target, rounded-xl).
  */
 export const proUpgradeButtonClassName = cn(
   'font-semibold text-amber-950',

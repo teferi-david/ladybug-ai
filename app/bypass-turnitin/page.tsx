@@ -89,7 +89,7 @@ export default function BypassTurnitinLandingPage() {
                 <Link href="/">Open AI Humanizer</Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link href="/pricing">View pricing</Link>
+                <Link href="/pricing">Try for free</Link>
               </Button>
             </div>
           </section>
