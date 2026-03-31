@@ -39,6 +39,9 @@ export const config = {
     /*
      * Skip api (humanize reads cookies from the request body path), static assets, images.
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    /*
+     * Exclude sitemap.xml & robots.txt so middleware never wraps them (avoids HTML responses for crawlers).
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap\\.xml|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
