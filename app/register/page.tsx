@@ -40,7 +40,7 @@ export default function RegisterPage() {
       }
 
       if (data.user) {
-        router.push('/dashboard')
+        router.push('/settings')
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -54,7 +54,7 @@ export default function RegisterPage() {
     setError(null)
 
     try {
-      const redirectTo = `${window.location.origin}/dashboard`
+      const redirectTo = `${window.location.origin}/settings`
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo },

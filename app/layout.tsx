@@ -72,7 +72,7 @@ export default function RootLayout({
       <body className={`${inter.className} flex min-h-screen flex-col`}>
         <SeoJsonLd />
         <Navbar />
-        <main className="flex-1">{children}</main>
+        <main className="flex min-h-0 flex-1 flex-col">{children}</main>
         <footer className="border-t border-gray-100 bg-white py-4 text-center">
           <p className="text-xs text-gray-500">
             Contact us:{' '}

@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Redirect to dashboard with success parameters
-    const dashboardUrl = new URL('/dashboard', process.env.NEXT_PUBLIC_APP_URL!)
+    const dashboardUrl = new URL('/settings', process.env.NEXT_PUBLIC_APP_URL!)
     dashboardUrl.searchParams.set('payment_success', 'true')
     dashboardUrl.searchParams.set('plan', plan)
     dashboardUrl.searchParams.set('user_id', userId)

@@ -56,7 +56,7 @@ function PaymentSuccessContent() {
 
           setError(
             data.error ||
-              'Could not confirm your subscription right away. Wait a minute and check your dashboard, or contact support if billing shows paid.'
+              'Could not confirm your subscription right away. Wait a minute and check Settings, or contact support if billing shows paid.'
           )
           return
         }
@@ -125,8 +125,8 @@ function PaymentSuccessContent() {
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push('/dashboard')} className="w-full">
-              Go to Dashboard
+            <Button onClick={() => router.push('/settings')} className="w-full">
+              Go to Settings
             </Button>
           </CardContent>
         </Card>
@@ -147,7 +147,7 @@ function PaymentSuccessContent() {
           </CardHeader>
           <CardContent>
             <Button
-              onClick={() => router.push('/dashboard?from=checkout')}
+              onClick={() => router.push('/settings?from=checkout')}
               className="w-full"
               size="lg"
             >

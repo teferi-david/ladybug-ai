@@ -76,9 +76,9 @@ export function Navbar() {
                   <Link href="/pricing">Pricing</Link>
                 </ProUpgradeButton>
               )}
-              <Link href="/dashboard">
+              <Link href="/settings">
                 <Button variant="ghost" size="sm">
-                  Dashboard
+                  Settings
                 </Button>
               </Link>
               <Button variant="outline" size="sm" onClick={handleSignOut}>

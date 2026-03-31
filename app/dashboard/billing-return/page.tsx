@@ -14,7 +14,7 @@ export default function BillingReturnPage() {
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <Button asChild className="w-full" size="lg">
-            <Link href="/dashboard?from=billing">Continue to dashboard</Link>
+            <Link href="/settings?from=billing">Continue to settings</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
             <Link href="/">Back to home</Link>

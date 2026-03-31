@@ -13,6 +13,8 @@ import { supabase } from '@/lib/supabase/client'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
 import { FREE_TIER_DAILY_HUMANIZER_LIMIT, PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 import { UpgradeModal } from '@/components/upgrade-modal'
+import { HumanizerHero } from '@/components/humanizer-hero'
+import { HumanizerMarketing } from '@/components/humanizer-marketing'
 
 type FreeUsage = {
   usedToday: number
@@ -214,6 +216,7 @@ export function HomePageClient() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+      <HumanizerHero />
       <UpgradeModal
         open={upgradeModalOpen}
         onClose={() => setUpgradeModalOpen(false)}
@@ -282,7 +285,7 @@ export function HomePageClient() {
           >
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold mb-4">
               <Sparkles className="h-4 w-4" />
-              Ladybug AI humanizer
+              Ladybug AI — Humanizer
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-3">Human-like text in one click</h1>
             <p className="text-lg text-gray-600">
@@ -452,6 +455,7 @@ export function HomePageClient() {
           </div>
         </div>
       </section>
+      <HumanizerMarketing />
     </div>
   )
 }
