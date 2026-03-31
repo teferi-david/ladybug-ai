@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { Analytics } from '@vercel/analytics/next'
 import { Navbar } from '@/components/navbar'
 import { SeoJsonLd } from '@/components/seo-json-ld'
 import { getSiteUrl } from '@/lib/site-url'
@@ -84,6 +85,7 @@ export default function RootLayout({
             </a>
           </p>
         </footer>
+        <Analytics />
       </body>
     </html>
   )
