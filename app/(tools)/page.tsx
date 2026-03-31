@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: 'AI Humanizer — Humanizer AI & Ladybug AI Humanizer',
   description:
     'Ladybug AI humanizer: humanizer AI that rewrites AI text to sound natural. Free AI humanizer for students — paste text, get human-like output.',
+  verification: {
+    google: 'qvADDwV66FQYyjM9peClKgzJiRefSJ-3I-7-hFJ_EnI',
+  },
   alternates: {
     canonical: getSiteUrl(),
   },
