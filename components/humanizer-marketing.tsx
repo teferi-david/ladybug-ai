@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Link from 'next/link'
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -18,7 +19,13 @@ export function HumanizerMarketing() {
     <article className="border-t border-gray-200 bg-white">
       <div className="container mx-auto max-w-4xl px-4 py-12 md:py-16">
         <p className="mb-10 text-center text-xs font-medium uppercase tracking-wide text-gray-500">
-          Learn more about the Ladybug AI Humanizer
+          Learn more about the Ladybug AI Humanizer —{' '}
+          <Link
+            href="/ai-humanizer"
+            className="font-medium text-primary underline underline-offset-2 hover:text-primary/90"
+          >
+            AI humanizer landing page
+          </Link>
         </p>
 
         <Section title="Humanize AI content — natural, undetectable-style output">
@@ -26,6 +33,16 @@ export function HumanizerMarketing() {
             The Ladybug AI humanizer adds a natural human touch to AI-generated text so it resonates with
             readers and reads less like a machine. Our AI-to-human text flow keeps your meaning while
             smoothing robotic phrasing — ideal for essays, posts, and professional drafts.
+          </p>
+          <p>
+            For context on <strong>Turnitin</strong>, AI detection, and responsible use, see our{' '}
+            <Link
+              href="/bypass-turnitin"
+              className="font-medium text-primary underline underline-offset-2 hover:text-primary/90"
+            >
+              AI humanizer &amp; Turnitin guide
+            </Link>
+            .
           </p>
           <p>
             Humanize drafts produced by ChatGPT, Gemini, Claude, and other assistants. Output stays
