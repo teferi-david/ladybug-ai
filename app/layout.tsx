@@ -39,14 +39,14 @@ export const metadata: Metadata = {
       follow: true,
     },
   },
-  // Favicons: small PNG + ICO for Google Search (see scripts/generate-favicons.mjs). OG still uses logo.jpg.
+  // Favicons: 32/48 PNG first so Chrome tabs don’t downscale a 192px asset; ICO is 16+32 only (see generate-favicons).
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any', type: 'image/x-icon' },
+      { url: '/icon-32.png', sizes: '32x32', type: 'image/png' },
       { url: '/icon-48.png', sizes: '48x48', type: 'image/png' },
-      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
     ],
-    shortcut: '/favicon.ico',
+    shortcut: '/icon-32.png',
     apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   openGraph: {

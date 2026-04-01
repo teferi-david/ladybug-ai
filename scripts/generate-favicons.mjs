@@ -25,29 +25,29 @@ async function main() {
     process.exit(1)
   }
 
+  const icon32 = path.join(publicDir, 'icon-32.png')
   const icon48 = path.join(publicDir, 'icon-48.png')
   const icon192 = path.join(publicDir, 'icon-192.png')
   const apple = path.join(publicDir, 'apple-touch-icon.png')
   const faviconIco = path.join(publicDir, 'favicon.ico')
 
+  // Tab icons: 32px first (Chrome tab). 192px is for shortcuts / high-DPI only — not as generic rel=icon.
+  await squarePng(32, icon32)
   await squarePng(48, icon48)
   await squarePng(192, icon192)
   await squarePng(180, apple)
 
-  const buf48 = fs.readFileSync(icon48)
-  const buf32 = await sharp(src)
-    .resize(32, 32, { fit: 'cover', position: 'centre' })
-    .png({ compressionLevel: 9 })
-    .toBuffer()
+  const buf32 = fs.readFileSync(icon32)
   const buf16 = await sharp(src)
     .resize(16, 16, { fit: 'cover', position: 'centre' })
     .png({ compressionLevel: 9 })
     .toBuffer()
 
-  const ico = await toIco([buf16, buf32, buf48])
+  // Single-size ICO stacks often break Chrome; use 16 + 32 only (no 48 inside .ico).
+  const ico = await toIco([buf16, buf32])
   fs.writeFileSync(faviconIco, ico)
 
-  console.log('Wrote:', icon48, icon192, apple, faviconIco)
+  console.log('Wrote:', icon32, icon48, icon192, apple, faviconIco)
 }
 
 main().catch((e) => {
