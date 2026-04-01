@@ -8,7 +8,7 @@ type User = Database['public']['Tables']['users']['Row']
 
 /**
  * Supabase Auth user id from the JWT — does not require a `public.users` row.
- * Use for free-tier daily limits so signed-in users are always capped per account, not only by IP.
+ * Free-tier daily_usage is keyed by IP + tool + day (DB unique); auth id is used for increment FK / attribution.
  */
 export async function getAuthUserIdFromToken(authHeader: string | null): Promise<string | null> {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -107,14 +107,15 @@ export async function getUserRowById(userId: string): Promise<User | null> {
  * OAuth / Google users may exist in auth.users before a public.users row exists.
  * If daily_usage.user_id references public.users(id), inserts fail silently until this row exists.
  */
-export async function ensurePublicUserRowForAuth(userId: string): Promise<void> {
+/** Ensures public.users exists for FK (e.g. daily_usage). Returns false if the row cannot be created. */
+export async function ensurePublicUserRowForAuth(userId: string): Promise<boolean> {
   const { data: existing } = await supabaseAdmin.from('users').select('id').eq('id', userId).maybeSingle()
-  if (existing) return
+  if (existing) return true
 
   const { data: authRes, error: authErr } = await supabaseAdmin.auth.admin.getUserById(userId)
   if (authErr || !authRes.user) {
     console.error('ensurePublicUserRowForAuth: auth.admin.getUserById failed', authErr)
-    return
+    return false
   }
   const u = authRes.user
   const email = u.email ?? `${u.id}@users.placeholder`
@@ -134,7 +135,9 @@ export async function ensurePublicUserRowForAuth(userId: string): Promise<void> 
 
   if (insertErr && insertErr.code !== '23505') {
     console.error('ensurePublicUserRowForAuth: insert public.users failed', insertErr)
+    return false
   }
+  return true
 }
 
 export async function getUserFromToken(authHeader: string | null): Promise<User | null> {
@@ -190,33 +193,11 @@ export function checkSubscriptionAccess(user: User): {
   return { hasAccess: true }
 }
 
-/** Anonymous / IP-only rows (user_id is null) for this IP + day + tool. */
-async function sumIpOnlyUsesToday(
-  ipAddress: string,
-  toolName: 'humanizer' | 'paraphraser' | 'citation',
-  today: string
-): Promise<{ sum: number; ok: boolean }> {
-  const { data: rows, error } = await supabaseAdmin
-    .from('daily_usage')
-    .select('uses_today')
-    .eq('tool_name', toolName)
-    .eq('last_reset', today)
-    .is('user_id', null)
-    .eq('ip_address', ipAddress)
-
-  if (error) {
-    console.error('sumIpOnlyUsesToday:', error)
-    return { sum: 0, ok: false }
-  }
-  const sum = (rows ?? []).reduce((s, r) => s + (r.uses_today ?? 0), 0)
-  return { sum, ok: true }
-}
-
 /**
- * Signed-in sessions store rows with user_id set and the same ip_address.
- * After sign-out, we only have IP + user_id to link "same browser" to prior account uses today.
+ * DB enforces UNIQUE (ip_address, tool_name, last_reset) — one counter per IP+tool+calendar day.
+ * Signed-in and anonymous traffic on the same IP share that single row.
  */
-async function sumUserRowsByIpToday(
+async function sumUsesForIpToolDay(
   ipAddress: string,
   toolName: 'humanizer' | 'paraphraser' | 'citation',
   today: string
@@ -227,10 +208,9 @@ async function sumUserRowsByIpToday(
     .eq('tool_name', toolName)
     .eq('last_reset', today)
     .eq('ip_address', ipAddress)
-    .not('user_id', 'is', null)
 
   if (error) {
-    console.error('sumUserRowsByIpToday:', error)
+    console.error('sumUsesForIpToolDay:', error)
     return { sum: 0, ok: false }
   }
   const sum = (rows ?? []).reduce((s, r) => s + (r.uses_today ?? 0), 0)
@@ -245,56 +225,13 @@ export type DailyUsageCheckResult = {
 }
 
 export async function checkDailyUsage(
-  userId: string | null,
+  _userId: string | null,
   ipAddress: string,
   toolName: 'humanizer' | 'paraphraser' | 'citation'
 ): Promise<DailyUsageCheckResult> {
   const today = new Date().toISOString().split('T')[0]
-
-  if (!userId) {
-    const ipOnly = await sumIpOnlyUsesToday(ipAddress, toolName, today)
-    const onIp = await sumUserRowsByIpToday(ipAddress, toolName, today)
-    if (!ipOnly.ok || !onIp.ok) {
-      return {
-        allowed: false,
-        usesRemaining: 0,
-        usedToday: FREE_TIER_DAILY_HUMANIZER_LIMIT,
-        limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
-      }
-    }
-    const currentUses = ipOnly.sum + onIp.sum
-    const allowed = currentUses < FREE_TIER_DAILY_HUMANIZER_LIMIT
-    return {
-      allowed,
-      usesRemaining: Math.max(0, FREE_TIER_DAILY_HUMANIZER_LIMIT - currentUses),
-      usedToday: currentUses,
-      limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
-    }
-  }
-
-  // Signed in: count both account-based uses and prior anonymous uses from this IP today
-  // so signing in/out does not reset the free daily budget.
-  const { data: userRow, error: userErr } = await supabaseAdmin
-    .from('daily_usage')
-    .select('uses_today')
-    .eq('tool_name', toolName)
-    .eq('last_reset', today)
-    .eq('user_id', userId)
-    .maybeSingle()
-
-  if (userErr) {
-    console.error('Error checking daily usage (user row):', userErr)
-    return {
-      allowed: false,
-      usesRemaining: 0,
-      usedToday: 0,
-      limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
-    }
-  }
-
-  const userUses = userRow?.uses_today ?? 0
-  const ipOnly = await sumIpOnlyUsesToday(ipAddress, toolName, today)
-  if (!ipOnly.ok) {
+  const { sum: currentUses, ok } = await sumUsesForIpToolDay(ipAddress, toolName, today)
+  if (!ok) {
     return {
       allowed: false,
       usesRemaining: 0,
@@ -302,9 +239,7 @@ export async function checkDailyUsage(
       limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
     }
   }
-  const currentUses = userUses + ipOnly.sum
   const allowed = currentUses < FREE_TIER_DAILY_HUMANIZER_LIMIT
-
   return {
     allowed,
     usesRemaining: Math.max(0, FREE_TIER_DAILY_HUMANIZER_LIMIT - currentUses),
@@ -313,100 +248,80 @@ export async function checkDailyUsage(
   }
 }
 
+function isUniqueViolation(err: { code?: string } | null | undefined): boolean {
+  return err?.code === '23505'
+}
+
+const INCREMENT_CONFLICT_RETRIES = 2
+
 /** Returns true only when the DB write succeeded (callers must not grant free tier without this). */
 export async function incrementDailyUsage(
   userId: string | null,
   ipAddress: string,
-  toolName: 'humanizer' | 'paraphraser' | 'citation'
+  toolName: 'humanizer' | 'paraphraser' | 'citation',
+  conflictRetry = 0
 ): Promise<boolean> {
   if (userId) {
-    await ensurePublicUserRowForAuth(userId)
+    const ensured = await ensurePublicUserRowForAuth(userId)
+    if (!ensured) return false
   }
 
   const today = new Date().toISOString().split('T')[0]
+  const nowIso = new Date().toISOString()
 
-  if (!userId) {
-    const { data: existingList, error: fetchError } = await supabaseAdmin
-      .from('daily_usage')
-      .select('*')
-      .eq('tool_name', toolName)
-      .eq('last_reset', today)
-      .is('user_id', null)
-      .eq('ip_address', ipAddress)
-      .limit(1)
-
-    if (fetchError) {
-      console.error('incrementDailyUsage lookup error (anon):', fetchError)
-      return false
-    }
-
-    const existing = existingList?.[0]
-
-    if (existing) {
-      const { error: updateError } = await supabaseAdmin
-        .from('daily_usage')
-        .update({ uses_today: existing.uses_today + 1 })
-        .eq('id', existing.id)
-
-      if (updateError) {
-        console.error('incrementDailyUsage update error (anon):', updateError)
-        return false
-      }
-      return true
-    }
-    const { error: insertError } = await supabaseAdmin.from('daily_usage').insert({
-      user_id: null,
-      ip_address: ipAddress,
-      tool_name: toolName,
-      uses_today: 1,
-      last_reset: today,
-    })
-
-    if (insertError) {
-      console.error('incrementDailyUsage insert error (anon):', insertError)
-      return false
-    }
-    return true
-  }
-
-  // Signed in: only increment the account row; anonymous uses from this IP are summed in checkDailyUsage
+  // Unique (ip_address, tool_name, last_reset): one row per IP+day+tool regardless of user_id
   const { data: existingList, error: fetchError } = await supabaseAdmin
     .from('daily_usage')
     .select('*')
     .eq('tool_name', toolName)
     .eq('last_reset', today)
-    .eq('user_id', userId)
+    .eq('ip_address', ipAddress)
     .limit(1)
 
   if (fetchError) {
-    console.error('incrementDailyUsage lookup error (user):', fetchError)
+    console.error('incrementDailyUsage lookup error:', fetchError)
     return false
   }
 
   const existing = existingList?.[0]
 
   if (existing) {
+    const nextUses = (existing.uses_today ?? 0) + 1
     const { error: updateError } = await supabaseAdmin
       .from('daily_usage')
-      .update({ uses_today: existing.uses_today + 1 })
+      .update({
+        uses_today: nextUses,
+        updated_at: nowIso,
+        ...(userId ? { user_id: userId } : {}),
+      })
       .eq('id', existing.id)
 
     if (updateError) {
-      console.error('incrementDailyUsage update error (user):', updateError)
+      console.error('incrementDailyUsage update error:', updateError)
       return false
     }
     return true
   }
-  const { error: insertError } = await supabaseAdmin.from('daily_usage').insert({
-    user_id: userId,
+
+  const insertPayload: Database['public']['Tables']['daily_usage']['Insert'] = {
     ip_address: ipAddress,
     tool_name: toolName,
     uses_today: 1,
     last_reset: today,
-  })
+    created_at: nowIso,
+    updated_at: nowIso,
+  }
+  if (userId) {
+    insertPayload.user_id = userId
+  }
+
+  const { error: insertError } = await supabaseAdmin.from('daily_usage').insert(insertPayload)
 
   if (insertError) {
-    console.error('incrementDailyUsage insert error (user):', insertError)
+    if (isUniqueViolation(insertError) && conflictRetry < INCREMENT_CONFLICT_RETRIES) {
+      return incrementDailyUsage(userId, ipAddress, toolName, conflictRetry + 1)
+    }
+    console.error('incrementDailyUsage insert error:', insertError)
     return false
   }
   return true
