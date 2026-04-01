@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import { Analytics } from '@vercel/analytics/next'
 import { Navbar } from '@/components/navbar'
@@ -76,6 +77,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} flex min-h-screen flex-col`}>
+        {/* Google AdSense: loads in document head (beforeInteractive). Site-wide via root layout. */}
+        <Script
+          id="google-adsense"
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6972924983170533"
+          crossOrigin="anonymous"
+          strategy="beforeInteractive"
+        />
         <SeoJsonLd />
         <Navbar />
         <main className="flex min-h-0 flex-1 flex-col">{children}</main>
