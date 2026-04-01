@@ -102,6 +102,9 @@ export async function POST(request: NextRequest) {
             .from('users')
             .update({
               subscription_status: 'cancelled',
+              current_plan: 'free',
+              plan_expiry: null,
+              subscription_cancel_at_period_end: false,
               updated_at: new Date().toISOString(),
             })
             .eq('id', userId)
