@@ -14,6 +14,7 @@ import { hasProHumanizeAccess } from '@/lib/plan-access'
 import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 import { UpgradeModal } from '@/components/upgrade-modal'
 import { HumanizerHero } from '@/components/humanizer-hero'
+import { HumanizerDetectorLogos } from '@/components/humanizer-detector-logos'
 import { HumanizerMarketing } from '@/components/humanizer-marketing'
 import type { HumanizeLevel } from '@/lib/humanize-levels'
 import { isProOnlyHumanizeLevel } from '@/lib/humanize-levels'
@@ -237,6 +238,7 @@ export function HomePageClient() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       <HumanizerHero />
+      <HumanizerDetectorLogos />
       <UpgradeModal
         open={upgradeModalOpen}
         onClose={() => setUpgradeModalOpen(false)}
