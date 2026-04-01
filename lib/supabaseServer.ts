@@ -40,12 +40,19 @@ export async function getUserById(userId: string) {
   }
 }
 
+function isMissingColumnOrSchemaCacheError(message: string): boolean {
+  const m = message.toLowerCase()
+  return (
+    m.includes('could not find') ||
+    m.includes('schema cache') ||
+    m.includes('does not exist') ||
+    m.includes('column')
+  )
+}
+
 /**
- * Updates user plan and expiry in the users table
- * @param userId - User ID
- * @param planKey - Plan type
- * @param planExpiry - Expiry date
- * @param usesLeft - Optional uses left for single-use plans
+ * Updates user plan and expiry in the users table.
+ * Retries with fewer fields if optional columns (basic word quota, cancel-at-period-end) are not migrated yet.
  */
 export async function updateUserPlan(
   userId: string,
@@ -55,41 +62,65 @@ export async function updateUserPlan(
   options?: { cancelAtPeriodEnd?: boolean }
 ) {
   try {
-    const updateData: Record<string, unknown> = {
+    const updatedAt = new Date().toISOString()
+
+    const bareMinimum: Record<string, unknown> = {
       current_plan: planKey,
       plan_expiry: planExpiry,
       subscription_status: 'active',
-      updated_at: new Date().toISOString(),
+      updated_at: updatedAt,
     }
 
-    if (typeof options?.cancelAtPeriodEnd === 'boolean') {
-      updateData.subscription_cancel_at_period_end = options.cancelAtPeriodEnd
-    }
-
-    if (isBasicPlanKey(String(planKey))) {
-      updateData.basic_words_year_start = new Date().toISOString()
-      updateData.basic_words_yearly_used = 0
-    } else if (isUnlimitedPlanKey(String(planKey))) {
-      updateData.basic_words_year_start = null
-      updateData.basic_words_yearly_used = null
-    }
-
-    // Set uses_left for single-use plans
     if (planKey === 'single-use' && usesLeft !== undefined) {
-      updateData.uses_left = usesLeft
+      bareMinimum.uses_left = usesLeft
     }
 
-    const { error } = await supabaseServer
-      .from('users')
-      .update(updateData as Database['public']['Tables']['users']['Update'])
-      .eq('id', userId)
-
-    if (error) {
-      console.error('Error updating user plan:', error)
-      throw new Error(`Failed to update user plan: ${error.message}`)
+    const basicQuota: Record<string, unknown> = {}
+    if (isBasicPlanKey(String(planKey))) {
+      basicQuota.basic_words_year_start = new Date().toISOString()
+      basicQuota.basic_words_yearly_used = 0
+    } else if (isUnlimitedPlanKey(String(planKey))) {
+      basicQuota.basic_words_year_start = null
+      basicQuota.basic_words_yearly_used = null
     }
 
-    console.log(`User ${userId} plan updated to ${planKey} with expiry ${planExpiry}`)
+    const withCancel: Record<string, unknown> = { ...bareMinimum }
+    if (typeof options?.cancelAtPeriodEnd === 'boolean') {
+      withCancel.subscription_cancel_at_period_end = options.cancelAtPeriodEnd
+    }
+
+    const attempts: Record<string, unknown>[] = [
+      { ...withCancel, ...basicQuota },
+      { ...withCancel },
+      { ...bareMinimum },
+    ]
+
+    let lastMessage = ''
+    for (let i = 0; i < attempts.length; i++) {
+      const { error } = await supabaseServer
+        .from('users')
+        .update(attempts[i] as Database['public']['Tables']['users']['Update'])
+        .eq('id', userId)
+
+      if (!error) {
+        if (i > 0) {
+          console.warn(
+            `updateUserPlan: used fallback attempt ${i + 1}. Apply supabase/migrations (basic_word_quota, subscription_cancel_at_period_end) for full schema.`
+          )
+        }
+        console.log(`User ${userId} plan updated to ${planKey} with expiry ${planExpiry}`)
+        return
+      }
+
+      lastMessage = error.message
+      if (!isMissingColumnOrSchemaCacheError(error.message)) {
+        console.error('Error updating user plan:', error)
+        throw new Error(`Failed to update user plan: ${error.message}`)
+      }
+    }
+
+    console.error('Error updating user plan (all retries failed):', lastMessage)
+    throw new Error(`Failed to update user plan: ${lastMessage}`)
   } catch (error) {
     console.error('Unexpected error updating user plan:', error)
     throw error
