@@ -18,13 +18,15 @@ const UNLIMITED_ANNUAL_TOTAL = 119.4
 const basicAnnualEq = BASIC_ANNUAL_TOTAL / 12
 const unlimitedAnnualEq = UNLIMITED_ANNUAL_TOTAL / 12
 
-/** Approx. savings vs paying the monthly rate for 12 months. */
 const basicAnnualSavePct = Math.round(
   (1 - BASIC_ANNUAL_TOTAL / (BASIC_MONTHLY * 12)) * 100
 )
 const unlimitedAnnualSavePct = Math.round(
   (1 - UNLIMITED_ANNUAL_TOTAL / (UNLIMITED_MONTHLY * 12)) * 100
 )
+
+const emeraldBadgeClass =
+  'rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800'
 
 const BASIC_FEATURES = [
   '500,000 words per year (all tools combined)',
@@ -35,7 +37,7 @@ const BASIC_FEATURES = [
 ]
 
 const UNLIMITED_FEATURES = [
-  'Unlimited words — no yearly cap',
+  'Unlimited words across all tools',
   'Everything in Basic, without usage limits',
   '1-day free trial, then billing continues',
   'Cancel anytime in the Stripe customer portal',
@@ -45,7 +47,6 @@ export default function PricingPage() {
   const router = useRouter()
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [user, setUser] = useState<unknown>(null)
-  /** Default to annual — users land on best value first. */
   const [cycle, setCycle] = useState<'annual' | 'monthly'>('annual')
 
   useEffect(() => {
@@ -106,75 +107,66 @@ export default function PricingPage() {
     cycle === 'annual' ? STRIPE_PRICE_IDS.unlimitedAnnual : STRIPE_PRICE_IDS.unlimitedMonthly
 
   return (
-    <div className="container mx-auto px-4 py-16">
+    <div className="container mx-auto px-4 py-12 md:py-16">
       <div className="mx-auto max-w-5xl">
+        {/* No top “Pricing” title — page context is obvious (Grubby-style: jump to value) */}
         <div className="mb-10 text-center">
-          <h1 className="mb-4 text-4xl font-bold md:text-5xl">Pricing</h1>
           <p className="mb-2 text-2xl font-bold text-primary md:text-3xl">1 Day free trial</p>
-          <p className="mx-auto mb-6 max-w-xl text-sm text-gray-500">
-            Start with a 1-day free trial, then continue on the plan you choose. Annual plans show the
-            equivalent monthly rate so you can compare fairly to monthly billing.
+          <p className="mx-auto mb-8 max-w-lg text-sm text-gray-500">
+            Start with a 1-day free trial, then continue on the plan you choose. Annual pricing shows as a
+            simple monthly equivalent.
           </p>
 
-          <div className="mb-2 inline-flex rounded-full border border-gray-200 bg-gray-50 p-1">
-            <button
-              type="button"
-              onClick={() => setCycle('annual')}
-              className={cn(
-                'rounded-full px-5 py-2 text-sm font-semibold transition-colors',
-                cycle === 'annual' ? 'bg-primary text-white shadow' : 'text-gray-600 hover:text-gray-900'
-              )}
-            >
-              Annual
-            </button>
-            <button
-              type="button"
-              onClick={() => setCycle('monthly')}
-              className={cn(
-                'rounded-full px-5 py-2 text-sm font-semibold transition-colors',
-                cycle === 'monthly' ? 'bg-primary text-white shadow' : 'text-gray-600 hover:text-gray-900'
-              )}
-            >
-              Monthly
-            </button>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="inline-flex rounded-full border border-gray-200 bg-gray-50 p-1 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setCycle('annual')}
+                className={cn(
+                  'rounded-full px-5 py-2 text-sm font-semibold transition-colors',
+                  cycle === 'annual' ? 'bg-primary text-white shadow' : 'text-gray-600 hover:text-gray-900'
+                )}
+              >
+                Annual
+              </button>
+              <button
+                type="button"
+                onClick={() => setCycle('monthly')}
+                className={cn(
+                  'rounded-full px-5 py-2 text-sm font-semibold transition-colors',
+                  cycle === 'monthly' ? 'bg-primary text-white shadow' : 'text-gray-600 hover:text-gray-900'
+                )}
+              >
+                Monthly
+              </button>
+            </div>
+            {cycle === 'annual' && (
+              <span className={emeraldBadgeClass}>70% off</span>
+            )}
           </div>
-
-          {cycle === 'annual' && (
-            <p className="text-sm font-medium text-emerald-700">
-              Save up to 70% compared to paying monthly — exact savings on each plan below.
-            </p>
-          )}
         </div>
 
         <div className="grid gap-8 md:grid-cols-2">
           <Card className="flex flex-col border-2 border-gray-200 shadow-md">
-            <CardHeader>
-              <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">Basic</div>
-              <CardTitle className="text-2xl">Core tools</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-2xl font-bold tracking-tight md:text-3xl">Basic</CardTitle>
               {cycle === 'annual' ? (
-                <div className="mt-3 space-y-1">
+                <div className="mt-4 space-y-2">
                   <div className="flex flex-wrap items-baseline gap-2">
-                    <span className="text-4xl font-bold text-primary">
-                      ${basicAnnualEq.toFixed(2)}
-                    </span>
+                    <span className="text-4xl font-bold text-primary">${basicAnnualEq.toFixed(2)}</span>
                     <span className="text-gray-600">/month</span>
-                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
-                      ~{basicAnnualSavePct}% off vs monthly
-                    </span>
+                    <span className={emeraldBadgeClass}>~{basicAnnualSavePct}% off vs monthly</span>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    Billed ${BASIC_ANNUAL_TOTAL.toFixed(2)}/year (${basicAnnualEq.toFixed(2)} × 12). Taxes
-                    may apply.
-                  </p>
+                  <p className="text-xs text-gray-500">Billed Annually</p>
                 </div>
               ) : (
-                <div className="mt-3">
+                <div className="mt-4">
                   <span className="text-4xl font-bold text-primary">${BASIC_MONTHLY.toFixed(2)}</span>
                   <span className="text-gray-600"> /month</span>
                 </div>
               )}
             </CardHeader>
-            <CardContent className="flex-1">
+            <CardContent className="flex-1 pt-0">
               <ul className="space-y-3">
                 {BASIC_FEATURES.map((feature) => (
                   <li key={feature} className="flex items-start text-sm">
@@ -205,35 +197,25 @@ export default function PricingPage() {
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
               Best for heavy use
             </div>
-            <CardHeader className="pt-6">
-              <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Unlimited
-              </div>
-              <CardTitle className="text-2xl">No word cap</CardTitle>
+            <CardHeader className="pb-2 pt-6">
+              <CardTitle className="text-2xl font-bold tracking-tight md:text-3xl">Unlimited</CardTitle>
               {cycle === 'annual' ? (
-                <div className="mt-3 space-y-1">
+                <div className="mt-4 space-y-2">
                   <div className="flex flex-wrap items-baseline gap-2">
-                    <span className="text-4xl font-bold text-primary">
-                      ${unlimitedAnnualEq.toFixed(2)}
-                    </span>
+                    <span className="text-4xl font-bold text-primary">${unlimitedAnnualEq.toFixed(2)}</span>
                     <span className="text-gray-600">/month</span>
-                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
-                      ~{unlimitedAnnualSavePct}% off vs monthly
-                    </span>
+                    <span className={emeraldBadgeClass}>~{unlimitedAnnualSavePct}% off vs monthly</span>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    Billed ${UNLIMITED_ANNUAL_TOTAL.toFixed(2)}/year (${unlimitedAnnualEq.toFixed(2)} × 12).
-                    Taxes may apply.
-                  </p>
+                  <p className="text-xs text-gray-500">Billed Annually</p>
                 </div>
               ) : (
-                <div className="mt-3">
+                <div className="mt-4">
                   <span className="text-4xl font-bold text-primary">${UNLIMITED_MONTHLY.toFixed(2)}</span>
                   <span className="text-gray-600"> /month</span>
                 </div>
               )}
             </CardHeader>
-            <CardContent className="flex-1">
+            <CardContent className="flex-1 pt-0">
               <ul className="space-y-3">
                 {UNLIMITED_FEATURES.map((feature) => (
                   <li key={feature} className="flex items-start text-sm">
@@ -261,13 +243,13 @@ export default function PricingPage() {
           </Card>
         </div>
 
-        <div className="mx-auto mt-12 max-w-2xl space-y-6 text-left">
+        <div className="mx-auto mt-14 max-w-2xl space-y-6 text-left">
           <h2 className="text-center text-xl font-bold">FAQ</h2>
           <div>
             <h3 className="mb-1 font-semibold">How does billing work?</h3>
             <p className="text-sm text-gray-600">
-              After the 1-day trial, Stripe charges your selected plan. Annual plans charge once per year at
-              the totals above. Manage or cancel in the Stripe billing portal.
+              After the 1-day trial, Stripe charges your selected plan. Annual plans are billed once per year.
+              Manage or cancel in the Stripe billing portal.
             </p>
           </div>
           <div>
