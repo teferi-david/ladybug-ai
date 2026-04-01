@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe-server'
 import { getPeriodEndIsoFromSubscriptionObject } from '@/lib/stripe-subscription-period'
+import { planKeyFromStripePriceId } from '@/lib/stripe-plans'
 import { updateUserPlan, supabaseServer } from '@/lib/supabaseServer'
 import type Stripe from 'stripe'
+
+function planKeyFromSubscription(sub: Stripe.Subscription): string {
+  const priceId = sub.items.data[0]?.price?.id
+  return planKeyFromStripePriceId(priceId) ?? 'unlimited_annual'
+}
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -49,7 +55,8 @@ export async function POST(request: NextRequest) {
 
         const subscription = await stripe.subscriptions.retrieve(subId)
         const periodEnd = getPeriodEndIsoFromSubscriptionObject(subscription)
-        await updateUserPlan(userId, 'annual', periodEnd, undefined, {
+        const planKey = planKeyFromSubscription(subscription)
+        await updateUserPlan(userId, planKey, periodEnd, undefined, {
           cancelAtPeriodEnd: subscription.cancel_at_period_end === true,
         })
 
@@ -82,7 +89,8 @@ export async function POST(request: NextRequest) {
 
         if (subscription.status === 'active' || subscription.status === 'trialing') {
           const periodEnd = getPeriodEndIsoFromSubscriptionObject(subscription)
-          await updateUserPlan(userId, 'annual', periodEnd, undefined, {
+          const planKey = planKeyFromSubscription(subscription)
+          await updateUserPlan(userId, planKey, periodEnd, undefined, {
             cancelAtPeriodEnd: subscription.cancel_at_period_end === true,
           })
         } else if (

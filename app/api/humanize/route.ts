@@ -7,6 +7,11 @@ import {
   incrementDailyUsage,
 } from '@/lib/auth-helpers'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
+import {
+  checkBasicWordQuota,
+  incrementBasicWordsUsed,
+} from '@/lib/basic-word-quota'
+import { isBasicPlanKey } from '@/lib/stripe-plans'
 import { FREE_TIER_DAILY_HUMANIZER_LIMIT, PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 
 export const dynamic = 'force-dynamic'
@@ -160,6 +165,18 @@ export async function POST(request: NextRequest) {
     }
 
     if (paid) {
+      const quota = await checkBasicWordQuota(user!.id, user!, wordCount)
+      if (!quota.ok) {
+        return NextResponse.json(
+          {
+            status: 'error',
+            error: 'Yearly word limit reached',
+            message: quota.message,
+            upgradeRequired: true,
+          },
+          { status: 403 }
+        )
+      }
       if (wordCount > PREMIUM_MAX_WORDS_PER_REQUEST) {
         return NextResponse.json({
           status: 'error',
@@ -178,7 +195,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           status: 'error',
           error: 'Daily limit reached',
-          message: `You've used your ${FREE_TIER_DAILY_HUMANIZER_LIMIT} free uses today. Start a 1-day free trial for unlimited humanizer and all Pro tools.`,
+          message: `You’ve reached today’s limit on the free humanizer. Try a plan for free to keep going with unlimited access to all tools.`,
           upgradeRequired: true,
           usesRemaining: 0,
           limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
@@ -232,6 +249,9 @@ export async function POST(request: NextRequest) {
       }
       console.log(`Free tier humanize use (id: ${freeTierUserId ?? 'anon-ip'})`)
     } else {
+      if (isBasicPlanKey(user!.current_plan)) {
+        await incrementBasicWordsUsed(user!.id, wordCount)
+      }
       console.log(`Paid user ${user!.id} used ${wordCount} words for humanization`)
     }
 

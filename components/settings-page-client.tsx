@@ -9,8 +9,13 @@ import { Button } from '@/components/ui/button'
 import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Badge } from '@/components/ui/badge'
 import { Zap, ExternalLink } from 'lucide-react'
-import { getPlanDetails, isPlanActive } from '@/lib/user-plans'
+import { isPlanActive } from '@/lib/user-plans'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
+import {
+  BASIC_YEARLY_WORD_CAP,
+  getPlanDisplayName,
+  isBasicPlanKey,
+} from '@/lib/stripe-plans'
 import type { User } from '@supabase/supabase-js'
 import type { Database } from '@/types/database.types'
 
@@ -110,8 +115,6 @@ export function SettingsPageClient() {
 
   const isPremium = hasProHumanizeAccess(profile)
   const planActive = isPlanActive(merged)
-  const planMeta = getPlanDetails(profile?.current_plan || 'free')
-
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -139,8 +142,17 @@ export function SettingsPageClient() {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h3 className="text-xl font-semibold">
-                    {isPremium ? 'Ladybug AI Pro' : planMeta?.description || 'Free'}
+                    {isPremium ? getPlanDisplayName(profile?.current_plan) : 'Free'}
                   </h3>
+                  {isPremium && profile && isBasicPlanKey(profile.current_plan) && (
+                    <p className="mt-2 text-sm text-gray-600">
+                      Words used this year:{' '}
+                      <span className="font-medium tabular-nums">
+                        {(profile.basic_words_yearly_used ?? 0).toLocaleString()} /{' '}
+                        {BASIC_YEARLY_WORD_CAP.toLocaleString()}
+                      </span>
+                    </p>
+                  )}
                   {isPremium && profile?.plan_expiry && (
                     <p className="mt-1 text-sm text-gray-600">
                       Renews / access through: {formatDate(profile.plan_expiry)}

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { paraphraseText } from '@/lib/openai'
 import { requirePremiumUser } from '@/lib/api-auth'
+import { checkBasicWordQuota, incrementBasicWordsUsed } from '@/lib/basic-word-quota'
+import { isBasicPlanKey } from '@/lib/stripe-plans'
 import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 
 export const dynamic = 'force-dynamic'
@@ -94,6 +96,7 @@ export async function POST(request: NextRequest) {
   try {
     const auth = await requirePremiumUser(request.headers.get('authorization'))
     if ('response' in auth) return auth.response
+    const { user } = auth
 
     const body = await request.json()
     const { text } = body
@@ -106,6 +109,19 @@ export async function POST(request: NextRequest) {
     }
 
     const wordCount = text.trim().split(/\s+/).filter((w: string) => w.length > 0).length
+
+    const quota = await checkBasicWordQuota(user.id, user, wordCount)
+    if (!quota.ok) {
+      return NextResponse.json(
+        {
+          error: 'Yearly word limit reached',
+          message: quota.message,
+          upgradeRequired: true,
+        },
+        { status: 403 }
+      )
+    }
+
     if (wordCount > PREMIUM_MAX_WORDS_PER_REQUEST) {
       return NextResponse.json(
         {
@@ -119,9 +135,13 @@ export async function POST(request: NextRequest) {
     console.log('Processing text:', text.substring(0, 100) + '...')
     
     const result = await paraphraseText(text)
-    
+
+    if (isBasicPlanKey(user.current_plan)) {
+      await incrementBasicWordsUsed(user.id, wordCount)
+    }
+
     console.log('Paraphrasing completed')
-    
+
     return NextResponse.json({
       status: 'success',
       result: result,

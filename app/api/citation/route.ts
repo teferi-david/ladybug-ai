@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateCitation } from '@/lib/openai'
 import { requirePremiumUser } from '@/lib/api-auth'
+import { checkBasicWordQuota, countWordsFromRecord, incrementBasicWordsUsed } from '@/lib/basic-word-quota'
+import { isBasicPlanKey } from '@/lib/stripe-plans'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -92,6 +94,7 @@ export async function POST(request: NextRequest) {
   try {
     const auth = await requirePremiumUser(request.headers.get('authorization'))
     if ('response' in auth) return auth.response
+    const { user } = auth
 
     const body = await request.json()
     const { type, author, title, year, publisher, url, accessDate } = body
@@ -100,6 +103,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid type', message: 'type must be "apa" or "mla"' },
         { status: 400 }
+      )
+    }
+
+    const wordCount = countWordsFromRecord(body as Record<string, unknown>)
+    const quota = await checkBasicWordQuota(user.id, user, wordCount)
+    if (!quota.ok) {
+      return NextResponse.json(
+        {
+          error: 'Yearly word limit reached',
+          message: quota.message,
+          upgradeRequired: true,
+        },
+        { status: 403 }
       )
     }
 
@@ -114,9 +130,13 @@ export async function POST(request: NextRequest) {
       url,
       accessDate,
     })
-    
+
+    if (isBasicPlanKey(user.current_plan)) {
+      await incrementBasicWordsUsed(user.id, wordCount)
+    }
+
     console.log('Citation generation completed')
-    
+
     return NextResponse.json({
       status: 'success',
       result: result,

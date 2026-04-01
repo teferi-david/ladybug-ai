@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
-import { Database } from '@/types/database.types'
+import type { Database } from '@/types/database.types'
 import { PLAN_CONFIG, PlanKey } from './squareClient'
+import { isBasicPlanKey, isUnlimitedPlanKey } from '@/lib/stripe-plans'
 
 // Initialize Supabase server client with service role key for admin operations
 const supabaseServer = createClient<Database>(
@@ -48,13 +49,13 @@ export async function getUserById(userId: string) {
  */
 export async function updateUserPlan(
   userId: string,
-  planKey: PlanKey,
+  planKey: PlanKey | string,
   planExpiry: string,
   usesLeft?: number,
   options?: { cancelAtPeriodEnd?: boolean }
 ) {
   try {
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       current_plan: planKey,
       plan_expiry: planExpiry,
       subscription_status: 'active',
@@ -65,6 +66,14 @@ export async function updateUserPlan(
       updateData.subscription_cancel_at_period_end = options.cancelAtPeriodEnd
     }
 
+    if (isBasicPlanKey(String(planKey))) {
+      updateData.basic_words_year_start = new Date().toISOString()
+      updateData.basic_words_yearly_used = 0
+    } else if (isUnlimitedPlanKey(String(planKey))) {
+      updateData.basic_words_year_start = null
+      updateData.basic_words_yearly_used = null
+    }
+
     // Set uses_left for single-use plans
     if (planKey === 'single-use' && usesLeft !== undefined) {
       updateData.uses_left = usesLeft
@@ -72,7 +81,7 @@ export async function updateUserPlan(
 
     const { error } = await supabaseServer
       .from('users')
-      .update(updateData)
+      .update(updateData as Database['public']['Tables']['users']['Update'])
       .eq('id', userId)
 
     if (error) {

@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe-server'
 import { getSubscriptionPeriodEndIso } from '@/lib/stripe-subscription-period'
 import { validateUserSession, updateUserPlan, supabaseServer } from '@/lib/supabaseServer'
+import { planKeyFromStripePriceId } from '@/lib/stripe-plans'
 import type Stripe from 'stripe'
+
+function planKeyFromSubscription(sub: Stripe.Subscription): string {
+  const priceId = sub.items.data[0]?.price?.id
+  return planKeyFromStripePriceId(priceId) ?? 'unlimited_annual'
+}
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -119,7 +125,8 @@ export async function POST(request: NextRequest) {
     }
 
     const periodEnd = await getSubscriptionPeriodEndIso(stripe, subscription)
-    await updateUserPlan(user.id, 'annual', periodEnd, undefined, {
+    const planKey = planKeyFromSubscription(subscription)
+    await updateUserPlan(user.id, planKey, periodEnd, undefined, {
       cancelAtPeriodEnd: subscription.cancel_at_period_end === true,
     })
 
@@ -135,7 +142,7 @@ export async function POST(request: NextRequest) {
         .eq('id', user.id)
     }
 
-    return NextResponse.json({ ok: true, plan: 'annual', plan_expiry: periodEnd })
+    return NextResponse.json({ ok: true, plan: planKey, plan_expiry: periodEnd })
   } catch (e: any) {
     console.error('complete-session error:', e)
     return NextResponse.json(

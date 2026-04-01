@@ -6,7 +6,17 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type PlanType = 'free' | 'trial' | 'monthly' | 'annual' | 'single-use' | 'none'
+export type PlanType =
+  | 'free'
+  | 'trial'
+  | 'monthly'
+  | 'annual'
+  | 'single-use'
+  | 'none'
+  | 'basic_monthly'
+  | 'basic_annual'
+  | 'unlimited_monthly'
+  | 'unlimited_annual'
 export type ToolName = 'humanizer' | 'paraphraser' | 'citation'
 
 export interface Database {
@@ -23,6 +33,8 @@ export interface Database {
           uses_left: number
           subscription_status: string | null
           subscription_cancel_at_period_end: boolean | null
+          basic_words_yearly_used: number | null
+          basic_words_year_start: string | null
           created_at: string
           updated_at: string
         }
@@ -36,6 +48,8 @@ export interface Database {
           uses_left?: number
           subscription_status?: string | null
           subscription_cancel_at_period_end?: boolean | null
+          basic_words_yearly_used?: number | null
+          basic_words_year_start?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -49,6 +63,8 @@ export interface Database {
           uses_left?: number
           subscription_status?: string | null
           subscription_cancel_at_period_end?: boolean | null
+          basic_words_yearly_used?: number | null
+          basic_words_year_start?: string | null
           created_at?: string
           updated_at?: string
         }

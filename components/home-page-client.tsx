@@ -11,7 +11,7 @@ import { Progress } from '@/components/ui/progress'
 import { Sparkles, Copy, Check, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
-import { FREE_TIER_DAILY_HUMANIZER_LIMIT, PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
+import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 import { UpgradeModal } from '@/components/upgrade-modal'
 import { HumanizerHero } from '@/components/humanizer-hero'
 import { HumanizerMarketing } from '@/components/humanizer-marketing'
@@ -32,7 +32,6 @@ export function HomePageClient() {
   const [hasProAccess, setHasProAccess] = useState(false)
   const [planLoaded, setPlanLoaded] = useState(false)
   const [freeUsage, setFreeUsage] = useState<FreeUsage | null>(null)
-  const [usageLoading, setUsageLoading] = useState(false)
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState<string | undefined>(undefined)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -76,7 +75,6 @@ export function HomePageClient() {
 
   /** Server is source of truth for Pro vs free (matches POST /api/humanize). */
   const refreshFreeUsage = useCallback(async () => {
-    setUsageLoading(true)
     try {
       const { apiClient } = await import('@/lib/axios-client')
       const token = await getAccessTokenForApi()
@@ -102,8 +100,6 @@ export function HomePageClient() {
       }
     } catch {
       setFreeUsage(null)
-    } finally {
-      setUsageLoading(false)
     }
   }, [getAccessTokenForApi])
 
@@ -224,59 +220,6 @@ export function HomePageClient() {
       />
       <section className="py-10 md:py-14">
         <div className="container mx-auto px-4">
-          {!hasProAccess && planLoaded && (
-            <div className="max-w-6xl mx-auto mb-6">
-              {usageLoading && !freeUsage ? (
-                <p className="text-center text-sm text-gray-500">Loading daily usage…</p>
-              ) : freeUsage ? (
-                <div
-                  className={`rounded-xl border px-4 py-3 text-sm ${
-                    freeUsage.usesRemaining === 0
-                      ? 'border-amber-300 bg-amber-50 text-amber-950'
-                      : 'border-gray-200 bg-white text-gray-800'
-                  }`}
-                  role="status"
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="font-semibold">Free tier — daily humanizer</p>
-                      <p className="mt-0.5 text-gray-600">
-                        <span className="tabular-nums">
-                          {freeUsage.usedToday} / {freeUsage.limit}
-                        </span>{' '}
-                        uses today
-                        {freeUsage.usesRemaining > 0 ? (
-                          <span className="text-gray-600">
-                            {' '}
-                            ·{' '}
-                            <span className="font-medium text-gray-800">
-                              {freeUsage.usesRemaining}
-                            </span>{' '}
-                            left — start a 1-day free trial for unlimited use.
-                          </span>
-                        ) : (
-                          <span className="text-amber-900 font-medium">
-                            {' '}
-                            · You’ve hit today’s limit.
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    {freeUsage.usesRemaining === 0 && (
-                      <ProUpgradeButton asChild size="sm" className="w-full shrink-0 sm:w-auto">
-                        <Link href="/pricing">Try for free</Link>
-                      </ProUpgradeButton>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-center text-xs text-gray-500">
-                  Free tier: {FREE_TIER_DAILY_HUMANIZER_LIMIT} humanizer uses per day. Sign in for a
-                  consistent limit across devices.
-                </p>
-              )}
-            </div>
-          )}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -387,16 +330,15 @@ export function HomePageClient() {
                   {processing
                     ? 'Working…'
                     : atDailyLimit
-                      ? 'Daily limit reached — try Pro free for unlimited'
+                      ? 'Limit reached — try a plan for free'
                       : 'Humanize text'}
                 </Button>
                 {atDailyLimit && (
                   <p className="text-xs text-center text-amber-800">
-                    Come back tomorrow for {FREE_TIER_DAILY_HUMANIZER_LIMIT} more free uses, or{' '}
                     <Link href="/pricing" className="underline font-medium">
-                      start a 1-day free trial
+                      Try a plan for free
                     </Link>{' '}
-                    for unlimited humanizer and all Pro tools.
+                    to keep using the humanizer and all tools.
                   </p>
                 )}
               </CardContent>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe-server'
+import { isValidCheckoutPriceId, STRIPE_PRICE_IDS } from '@/lib/stripe-plans'
 import { validateUserSession } from '@/lib/supabaseServer'
 
 export const dynamic = 'force-dynamic'
@@ -23,18 +24,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
     }
 
-    const priceId = process.env.STRIPE_PRICE_ID
-    if (!priceId) {
-      console.error('STRIPE_PRICE_ID is not set')
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
-    }
-
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    let body: { successUrl?: string; cancelUrl?: string } = {}
+    let body: { successUrl?: string; cancelUrl?: string; priceId?: string } = {}
     try {
       body = await request.json()
     } catch {
       body = {}
+    }
+
+    const priceId =
+      body.priceId && isValidCheckoutPriceId(body.priceId)
+        ? body.priceId
+        : process.env.STRIPE_PRICE_ID && isValidCheckoutPriceId(process.env.STRIPE_PRICE_ID)
+          ? process.env.STRIPE_PRICE_ID
+          : STRIPE_PRICE_IDS.unlimitedAnnual
+
+    if (!isValidCheckoutPriceId(priceId)) {
+      console.error('Invalid or missing Stripe price id')
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
 
     const successUrl =
