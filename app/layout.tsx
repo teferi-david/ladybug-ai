@@ -67,6 +67,10 @@ export const metadata: Metadata = {
       'Humanizer AI and Ladybug AI humanizer: make AI text sound natural. Free tier available.',
     images: ['/logo.jpg'],
   },
+  /** Renders <meta name="google-adsense-account" content="..."> in <head> (site-wide). */
+  other: {
+    'google-adsense-account': 'ca-pub-6972924983170533',
+  },
 }
 
 export default function RootLayout({
