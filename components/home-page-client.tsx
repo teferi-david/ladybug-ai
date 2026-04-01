@@ -68,7 +68,7 @@ export function HomePageClient() {
     }
     const { data: row } = await supabase
       .from('users')
-      .select('current_plan, plan_expiry')
+      .select('current_plan, plan_expiry, subscription_status, uses_left')
       .eq('id', session.user.id)
       .single()
     setHasProAccess(hasProHumanizeAccess(row))

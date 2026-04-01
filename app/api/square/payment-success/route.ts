@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
       .update({
         current_plan: planType,
         plan_expiry: expiryDate.toISOString(),
+        subscription_status: 'active',
         words_used: 0, // Reset word count for new plan
         payment_id: paymentId,
         updated_at: new Date().toISOString()

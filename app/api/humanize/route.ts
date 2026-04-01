@@ -225,6 +225,18 @@ export async function POST(request: NextRequest) {
           upgradeRequired: true,
         }, { status: 403 })
       }
+      const reserved = await incrementDailyUsage(freeTierUserId, ipAddress, 'humanizer')
+      if (!reserved) {
+        return NextResponse.json(
+          {
+            status: 'error',
+            error: 'Usage tracking unavailable',
+            message:
+              'We could not record your free-tier use. Please try again in a moment. If this keeps happening, contact support.',
+          },
+          { status: 503 }
+        )
+      }
     }
 
     console.log('Processing text:', text.substring(0, 100) + '...', 'Level:', level)
@@ -251,7 +263,6 @@ export async function POST(request: NextRequest) {
     } | undefined
 
     if (!paid) {
-      await incrementDailyUsage(freeTierUserId, ipAddress, 'humanizer')
       const after = await checkDailyUsage(freeTierUserId, ipAddress, 'humanizer')
       freeUsagePayload = {
         usedToday: after.usedToday,

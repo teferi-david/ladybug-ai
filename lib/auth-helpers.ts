@@ -195,7 +195,7 @@ async function sumIpOnlyUsesToday(
   ipAddress: string,
   toolName: 'humanizer' | 'paraphraser' | 'citation',
   today: string
-): Promise<number> {
+): Promise<{ sum: number; ok: boolean }> {
   const { data: rows, error } = await supabaseAdmin
     .from('daily_usage')
     .select('uses_today')
@@ -206,9 +206,10 @@ async function sumIpOnlyUsesToday(
 
   if (error) {
     console.error('sumIpOnlyUsesToday:', error)
-    return 0
+    return { sum: 0, ok: false }
   }
-  return (rows ?? []).reduce((s, r) => s + (r.uses_today ?? 0), 0)
+  const sum = (rows ?? []).reduce((s, r) => s + (r.uses_today ?? 0), 0)
+  return { sum, ok: true }
 }
 
 /**
@@ -219,7 +220,7 @@ async function sumUserRowsByIpToday(
   ipAddress: string,
   toolName: 'humanizer' | 'paraphraser' | 'citation',
   today: string
-): Promise<number> {
+): Promise<{ sum: number; ok: boolean }> {
   const { data: rows, error } = await supabaseAdmin
     .from('daily_usage')
     .select('uses_today')
@@ -230,22 +231,38 @@ async function sumUserRowsByIpToday(
 
   if (error) {
     console.error('sumUserRowsByIpToday:', error)
-    return 0
+    return { sum: 0, ok: false }
   }
-  return (rows ?? []).reduce((s, r) => s + (r.uses_today ?? 0), 0)
+  const sum = (rows ?? []).reduce((s, r) => s + (r.uses_today ?? 0), 0)
+  return { sum, ok: true }
+}
+
+export type DailyUsageCheckResult = {
+  allowed: boolean
+  usesRemaining: number
+  usedToday: number
+  limit: number
 }
 
 export async function checkDailyUsage(
   userId: string | null,
   ipAddress: string,
   toolName: 'humanizer' | 'paraphraser' | 'citation'
-): Promise<{ allowed: boolean; usesRemaining: number }> {
+): Promise<DailyUsageCheckResult> {
   const today = new Date().toISOString().split('T')[0]
 
   if (!userId) {
-    const ipOnlyUses = await sumIpOnlyUsesToday(ipAddress, toolName, today)
-    const userRowsOnThisIp = await sumUserRowsByIpToday(ipAddress, toolName, today)
-    const currentUses = ipOnlyUses + userRowsOnThisIp
+    const ipOnly = await sumIpOnlyUsesToday(ipAddress, toolName, today)
+    const onIp = await sumUserRowsByIpToday(ipAddress, toolName, today)
+    if (!ipOnly.ok || !onIp.ok) {
+      return {
+        allowed: false,
+        usesRemaining: 0,
+        usedToday: FREE_TIER_DAILY_HUMANIZER_LIMIT,
+        limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
+      }
+    }
+    const currentUses = ipOnly.sum + onIp.sum
     const allowed = currentUses < FREE_TIER_DAILY_HUMANIZER_LIMIT
     return {
       allowed,
@@ -276,8 +293,16 @@ export async function checkDailyUsage(
   }
 
   const userUses = userRow?.uses_today ?? 0
-  const ipOnlyUses = await sumIpOnlyUsesToday(ipAddress, toolName, today)
-  const currentUses = userUses + ipOnlyUses
+  const ipOnly = await sumIpOnlyUsesToday(ipAddress, toolName, today)
+  if (!ipOnly.ok) {
+    return {
+      allowed: false,
+      usesRemaining: 0,
+      usedToday: FREE_TIER_DAILY_HUMANIZER_LIMIT,
+      limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
+    }
+  }
+  const currentUses = userUses + ipOnly.sum
   const allowed = currentUses < FREE_TIER_DAILY_HUMANIZER_LIMIT
 
   return {
@@ -288,11 +313,12 @@ export async function checkDailyUsage(
   }
 }
 
+/** Returns true only when the DB write succeeded (callers must not grant free tier without this). */
 export async function incrementDailyUsage(
   userId: string | null,
   ipAddress: string,
   toolName: 'humanizer' | 'paraphraser' | 'citation'
-): Promise<void> {
+): Promise<boolean> {
   if (userId) {
     await ensurePublicUserRowForAuth(userId)
   }
@@ -311,7 +337,7 @@ export async function incrementDailyUsage(
 
     if (fetchError) {
       console.error('incrementDailyUsage lookup error (anon):', fetchError)
-      return
+      return false
     }
 
     const existing = existingList?.[0]
@@ -324,21 +350,23 @@ export async function incrementDailyUsage(
 
       if (updateError) {
         console.error('incrementDailyUsage update error (anon):', updateError)
+        return false
       }
-    } else {
-      const { error: insertError } = await supabaseAdmin.from('daily_usage').insert({
-        user_id: null,
-        ip_address: ipAddress,
-        tool_name: toolName,
-        uses_today: 1,
-        last_reset: today,
-      })
-
-      if (insertError) {
-        console.error('incrementDailyUsage insert error (anon):', insertError)
-      }
+      return true
     }
-    return
+    const { error: insertError } = await supabaseAdmin.from('daily_usage').insert({
+      user_id: null,
+      ip_address: ipAddress,
+      tool_name: toolName,
+      uses_today: 1,
+      last_reset: today,
+    })
+
+    if (insertError) {
+      console.error('incrementDailyUsage insert error (anon):', insertError)
+      return false
+    }
+    return true
   }
 
   // Signed in: only increment the account row; anonymous uses from this IP are summed in checkDailyUsage
@@ -352,7 +380,7 @@ export async function incrementDailyUsage(
 
   if (fetchError) {
     console.error('incrementDailyUsage lookup error (user):', fetchError)
-    return
+    return false
   }
 
   const existing = existingList?.[0]
@@ -365,20 +393,23 @@ export async function incrementDailyUsage(
 
     if (updateError) {
       console.error('incrementDailyUsage update error (user):', updateError)
+      return false
     }
-  } else {
-    const { error: insertError } = await supabaseAdmin.from('daily_usage').insert({
-      user_id: userId,
-      ip_address: ipAddress,
-      tool_name: toolName,
-      uses_today: 1,
-      last_reset: today,
-    })
-
-    if (insertError) {
-      console.error('incrementDailyUsage insert error (user):', insertError)
-    }
+    return true
   }
+  const { error: insertError } = await supabaseAdmin.from('daily_usage').insert({
+    user_id: userId,
+    ip_address: ipAddress,
+    tool_name: toolName,
+    uses_today: 1,
+    last_reset: today,
+  })
+
+  if (insertError) {
+    console.error('incrementDailyUsage insert error (user):', insertError)
+    return false
+  }
+  return true
 }
 
 export async function decrementSingleUseCredits(userId: string, newCreditsRemaining: number): Promise<void> {

@@ -37,7 +37,11 @@ export default function CitationPage() {
       router.push('/login')
       return
     }
-    const { data: row } = await supabase.from('users').select('current_plan, plan_expiry').eq('id', session.user.id).single()
+    const { data: row } = await supabase
+      .from('users')
+      .select('current_plan, plan_expiry, subscription_status, uses_left')
+      .eq('id', session.user.id)
+      .single()
     setPremium(hasProHumanizeAccess(row))
     setLoading(false)
   }, [router])
