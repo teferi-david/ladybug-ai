@@ -28,7 +28,7 @@ const unlimitedAnnualSavePct = Math.round(
 
 const BASIC_FEATURES = [
   '500,000 words per year (all tools combined)',
-  'AI Humanizer — all levels (High school, College, Graduate)',
+  'AI Humanizer — Basic, Advanced, and Academic (Turnitin) modes',
   'Paraphraser & citation tools',
   '1-day free trial, then billing continues',
   'Cancel anytime in the Stripe customer portal',

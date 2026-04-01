@@ -1,3 +1,5 @@
+import type { HumanizeLevel } from '@/lib/humanize-levels'
+
 /**
  * System prompt for AI → human-like student rewrite (college-style baseline).
  * Level-specific tweaks are appended in lib/openai.ts.
@@ -219,11 +221,11 @@ export const HUMANIZE_STUDENT_SYSTEM_PROMPT = `You are a text rewriter. Your sol
 - Preserve all paragraph breaks from the original (you may adjust slightly but keep the general structure).
 - If the input has a title, keep it but you may slightly rephrase it.`
 
-export const LEVEL_VOICE_HINTS: Record<'highschool' | 'college' | 'graduate', string> = {
-  highschool:
-    'Voice target: high school student — a bit younger and simpler than the default college voice, still smart and natural, same humanizing rules.',
-  college:
-    'Voice target: college student (B+ to A-) as described in the system instructions — this is the default.',
-  graduate:
-    'Voice target: graduate student — slightly more mature word choice than undergrad, still casual-academic and human (not stiff or AI-polished).',
+export const LEVEL_VOICE_HINTS: Record<HumanizeLevel, string> = {
+  basic:
+    'Voice target: clear, everyday student writing — straightforward and natural, same humanizing rules as the system prompt.',
+  advanced:
+    'Voice target: stronger student draft (B+ to A-) as in the system instructions — more polish than Basic, still human and varied.',
+  academic:
+    'Voice target: academic submission style — mature, course-paper tone with careful word choice and structure. Optimize for natural phrasing and sentence variety so the text reads like authentic student work (including contexts where similarity tools are used); never add fabricated citations or encourage misconduct. Preserve the user\'s ideas and facts.',
 }

@@ -15,6 +15,8 @@ import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 import { UpgradeModal } from '@/components/upgrade-modal'
 import { HumanizerHero } from '@/components/humanizer-hero'
 import { HumanizerMarketing } from '@/components/humanizer-marketing'
+import type { HumanizeLevel } from '@/lib/humanize-levels'
+import { isProOnlyHumanizeLevel } from '@/lib/humanize-levels'
 
 type FreeUsage = {
   usedToday: number
@@ -28,7 +30,7 @@ export function HomePageClient() {
   const [processing, setProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
   const [copied, setCopied] = useState(false)
-  const [humanizeLevel, setHumanizeLevel] = useState<'highschool' | 'college' | 'graduate'>('highschool')
+  const [humanizeLevel, setHumanizeLevel] = useState<HumanizeLevel>('basic')
   const [hasProAccess, setHasProAccess] = useState(false)
   const [planLoaded, setPlanLoaded] = useState(false)
   const [freeUsage, setFreeUsage] = useState<FreeUsage | null>(null)
@@ -121,8 +123,8 @@ export function HomePageClient() {
   }, [planLoaded, refreshFreeUsage])
 
   useEffect(() => {
-    if (!hasProAccess && (humanizeLevel === 'college' || humanizeLevel === 'graduate')) {
-      setHumanizeLevel('highschool')
+    if (!hasProAccess && isProOnlyHumanizeLevel(humanizeLevel)) {
+      setHumanizeLevel('basic')
     }
   }, [hasProAccess, humanizeLevel])
 
@@ -139,8 +141,8 @@ export function HomePageClient() {
     }
   }
 
-  const setLevel = (level: 'highschool' | 'college' | 'graduate') => {
-    if ((level === 'college' || level === 'graduate') && !hasProAccess) return
+  const setLevel = (level: HumanizeLevel) => {
+    if (isProOnlyHumanizeLevel(level) && !hasProAccess) return
     setHumanizeLevel(level)
   }
 
@@ -251,36 +253,32 @@ export function HomePageClient() {
                   <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
-                      variant={humanizeLevel === 'highschool' ? 'default' : 'outline'}
+                      variant={humanizeLevel === 'basic' ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => setLevel('highschool')}
+                      onClick={() => setLevel('basic')}
                       className="flex-1 min-w-[100px]"
                     >
-                      High school
+                      Basic
                     </Button>
                     <Button
                       type="button"
-                      variant={humanizeLevel === 'college' ? 'default' : 'outline'}
+                      variant={humanizeLevel === 'advanced' ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => setLevel('college')}
+                      onClick={() => setLevel('advanced')}
+                      className="flex-1 min-w-[100px]"
+                    >
+                      Advanced
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={humanizeLevel === 'academic' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setLevel('academic')}
                       disabled={!hasProAccess}
                       className="flex-1 min-w-[100px] relative disabled:opacity-60"
                     >
                       <span className="flex items-center justify-center gap-1">
-                        College
-                        {!hasProAccess && <Lock className="h-3.5 w-3.5 shrink-0" />}
-                      </span>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={humanizeLevel === 'graduate' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setLevel('graduate')}
-                      disabled={!hasProAccess}
-                      className="flex-1 min-w-[100px] relative disabled:opacity-60"
-                    >
-                      <span className="flex items-center justify-center gap-1">
-                        Graduate
+                        Academic (Turnitin)
                         {!hasProAccess && <Lock className="h-3.5 w-3.5 shrink-0" />}
                       </span>
                     </Button>
@@ -289,9 +287,9 @@ export function HomePageClient() {
                   {!hasProAccess && planLoaded && (
                     <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
                       <p className="text-xs text-gray-500 flex-1 leading-relaxed">
-                        College &amp; Graduate modes and unlimited runs are on Pro. Free tier: up to 200
-                        words per run; Pro (after your 1-day trial): up to {PREMIUM_MAX_WORDS_PER_REQUEST}{' '}
-                        words, no daily cap — plus Paraphraser, Citations, and other tools.
+                        Basic and Advanced are free (fair daily limits). Academic (Turnitin) and unlimited
+                        runs are on paid plans. Free tier: up to 200 words per run; paid: up to{' '}
+                        {PREMIUM_MAX_WORDS_PER_REQUEST} words — plus Paraphraser, Citations, and more.
                       </p>
                       <ProUpgradeButton asChild size="sm" className="w-full shrink-0 sm:w-auto">
                         <Link href="/pricing">Try for free</Link>

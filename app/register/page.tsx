@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { GoogleBrandIcon } from '@/components/google-brand-icon'
+import { AuthEmailDivider } from '@/components/auth-email-divider'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -63,7 +65,6 @@ export default function RegisterPage() {
         setError(error.message)
         setGoogleLoading(false)
       }
-      // On success, browser redirects to Google then back to app.
     } catch {
       setError('Google sign-up failed. Please try again.')
       setGoogleLoading(false)
@@ -71,19 +72,31 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[calc(100vh-80px)]">
+    <div className="container mx-auto flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-16">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Create Account</CardTitle>
           <CardDescription>Sign up for Ladybug AI</CardDescription>
         </CardHeader>
-        <form onSubmit={handleRegister}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
+        <CardContent className="space-y-4">
+          {error && (
+            <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700">{error}</div>
+          )}
+
+          <Button
+            type="button"
+            variant="outline"
+            className="flex h-11 w-full items-center justify-center gap-3 border-gray-300 bg-white font-medium text-gray-800 hover:bg-gray-50"
+            onClick={handleGoogleSignIn}
+            disabled={loading || googleLoading}
+          >
+            <GoogleBrandIcon className="shrink-0" />
+            {googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}
+          </Button>
+
+          <AuthEmailDivider />
+
+          <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
@@ -118,30 +131,20 @@ export default function RegisterPage() {
                 minLength={6}
               />
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleSignIn}
-              disabled={loading || googleLoading}
-            >
-              {googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}
+            <Button type="submit" className="w-full" disabled={loading || googleLoading}>
+              {loading ? 'Creating account...' : 'Create account with email'}
             </Button>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create Account'}
-            </Button>
-            <p className="text-sm text-center text-gray-600">
-              Already have an account?{' '}
-              <Link href="/login" className="text-primary hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col pt-2">
+          <p className="text-center text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link href="/login" className="text-primary hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </CardFooter>
       </Card>
     </div>
   )
 }
-

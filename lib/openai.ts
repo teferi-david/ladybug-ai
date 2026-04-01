@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import type { HumanizeLevel } from '@/lib/humanize-levels'
 import { HUMANIZE_STUDENT_SYSTEM_PROMPT, LEVEL_VOICE_HINTS } from '@/lib/prompts/humanize-student-system'
 
 // Initialize OpenAI client (set OPENAI_API_KEY in env — never commit keys)
@@ -12,7 +13,7 @@ const HUMANIZE_MODEL = process.env.OPENAI_HUMANIZE_MODEL ?? 'o4-mini'
 /**
  * Humanize text using OpenAI (default: o4-mini) and the student-voice system prompt.
  */
-export async function humanizeText(text: string, level: 'highschool' | 'college' | 'graduate' = 'highschool'): Promise<string> {
+export async function humanizeText(text: string, level: HumanizeLevel = 'basic'): Promise<string> {
   try {
     if (!process.env.OPENAI_API_KEY?.trim()) {
       throw new Error('OPENAI_API_KEY is not configured')

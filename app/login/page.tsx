@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { GoogleBrandIcon } from '@/components/google-brand-icon'
+import { AuthEmailDivider } from '@/components/auth-email-divider'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -57,7 +59,6 @@ export default function LoginPage() {
         setError(error.message)
         setGoogleLoading(false)
       }
-      // On success, browser redirects to Google then back to app.
     } catch {
       setError('Google sign-in failed. Please try again.')
       setGoogleLoading(false)
@@ -65,19 +66,31 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[calc(100vh-80px)]">
+    <div className="container mx-auto flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-16">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Welcome Back</CardTitle>
           <CardDescription>Sign in to your Ladybug AI account</CardDescription>
         </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
+        <CardContent className="space-y-4">
+          {error && (
+            <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700">{error}</div>
+          )}
+
+          <Button
+            type="button"
+            variant="outline"
+            className="flex h-11 w-full items-center justify-center gap-3 border-gray-300 bg-white font-medium text-gray-800 hover:bg-gray-50"
+            onClick={handleGoogleSignIn}
+            disabled={loading || googleLoading}
+          >
+            <GoogleBrandIcon className="shrink-0" />
+            {googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}
+          </Button>
+
+          <AuthEmailDivider />
+
+          <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -105,30 +118,20 @@ export default function LoginPage() {
                 Forgot password?
               </Link>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleSignIn}
-              disabled={loading || googleLoading}
-            >
-              {googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}
+            <Button type="submit" className="w-full" disabled={loading || googleLoading}>
+              {loading ? 'Signing in...' : 'Sign in with email'}
             </Button>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
-            <p className="text-sm text-center text-gray-600">
-              Don&apos;t have an account?{' '}
-              <Link href="/register" className="text-primary hover:underline">
-                Sign up
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col pt-2">
+          <p className="text-center text-sm text-gray-600">
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="text-primary hover:underline">
+              Sign up
+            </Link>
+          </p>
+        </CardFooter>
       </Card>
     </div>
   )
 }
-

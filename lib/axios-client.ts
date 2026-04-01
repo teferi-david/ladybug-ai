@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import type { HumanizeLevel } from '@/lib/humanize-levels'
 
 /** Long-running LLM routes (humanize, paraphrase) need more than default browser/axios limits. */
 const LONG_REQUEST_TIMEOUT_MS = 180_000 // 3 minutes
@@ -88,7 +89,7 @@ export const apiClient = {
   // POST request for humanize
   async humanizeText(
     text: string,
-    level: 'highschool' | 'college' | 'graduate' = 'highschool',
+    level: HumanizeLevel = 'basic',
     authToken?: string
   ): Promise<{
     result: string

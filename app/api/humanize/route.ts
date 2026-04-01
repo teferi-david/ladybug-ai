@@ -12,6 +12,12 @@ import {
   incrementBasicWordsUsed,
 } from '@/lib/basic-word-quota'
 import { isBasicPlanKey } from '@/lib/stripe-plans'
+import {
+  HUMANIZE_LEVELS,
+  normalizeHumanizeLevel,
+  isProOnlyHumanizeLevel,
+  type HumanizeLevel,
+} from '@/lib/humanize-levels'
 import { FREE_TIER_DAILY_HUMANIZER_LIMIT, PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 
 export const dynamic = 'force-dynamic'
@@ -127,8 +133,21 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const { text, level: rawLevel = 'highschool' } = body
-    const level = rawLevel as 'highschool' | 'college' | 'graduate'
+    const { text, level: rawLevel } = body
+    let level: HumanizeLevel
+    if (rawLevel === undefined || rawLevel === '') {
+      level = 'basic'
+    } else {
+      const n = normalizeHumanizeLevel(String(rawLevel))
+      if (!n) {
+        return NextResponse.json({
+          status: 'error',
+          error: 'Invalid level',
+          message: `Level must be one of: ${HUMANIZE_LEVELS.join(', ')} (legacy: highschool, college, graduate)`,
+        }, { status: 400 })
+      }
+      level = n
+    }
 
     if (!text || typeof text !== 'string') {
       return NextResponse.json({
@@ -138,17 +157,9 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    if (!['highschool', 'college', 'graduate'].includes(level)) {
-      return NextResponse.json({
-        status: 'error',
-        error: 'Invalid level',
-        message: 'Level must be one of: highschool, college, graduate',
-      }, { status: 400 })
-    }
-
     const wordCount = text.trim().split(/\s+/).filter((word) => word.length > 0).length
 
-    const proLevels = level === 'college' || level === 'graduate'
+    const proLevels = isProOnlyHumanizeLevel(level)
     const paid = user && hasProHumanizeAccess(user)
 
     if (proLevels && !paid) {
@@ -157,7 +168,7 @@ export async function POST(request: NextRequest) {
           status: 'error',
           error: 'Upgrade required',
           message:
-            'College and Graduate humanization are Pro features. Start a 1-day free trial for unlimited access.',
+            'Academic (Turnitin) mode is included with a paid plan. Basic and Advanced stay free on the free tier — upgrade to unlock Academic and more.',
           upgradeRequired: true,
         },
         { status: 403 }

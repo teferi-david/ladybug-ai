@@ -59,7 +59,7 @@ export default function AiHumanizerLandingPage() {
             <p className="mt-3 leading-relaxed">
               The main tool lives on the home page: paste your text, pick a level, and run{' '}
               <strong>Humanize</strong>. Free tier includes daily limits; a 1-day Pro trial gives unlimited
-              runs, higher word caps, College / Graduate levels, plus Paraphraser and Citations.
+              runs, higher word caps, Academic (Turnitin) mode, plus Paraphraser and Citations.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild size="lg">
