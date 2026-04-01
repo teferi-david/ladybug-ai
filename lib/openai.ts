@@ -7,11 +7,14 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-/** Default humanize model (reasoning). Override with OPENAI_HUMANIZE_MODEL if needed. */
-const HUMANIZE_MODEL = process.env.OPENAI_HUMANIZE_MODEL ?? 'o4-mini'
+/** Shared default for humanize, paraphrase, citation. Override with OPENAI_MODEL. */
+const DEFAULT_OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'gpt-5-mini'
+
+/** Humanize can still be overridden alone with OPENAI_HUMANIZE_MODEL. */
+const HUMANIZE_MODEL = process.env.OPENAI_HUMANIZE_MODEL ?? DEFAULT_OPENAI_MODEL
 
 /**
- * Humanize text using OpenAI (default: o4-mini) and the student-voice system prompt.
+ * Humanize text using OpenAI (default: gpt-5-mini) and the student-voice system prompt.
  */
 export async function humanizeText(text: string, level: HumanizeLevel = 'basic'): Promise<string> {
   try {
@@ -63,7 +66,7 @@ export async function paraphraseText(text: string): Promise<string> {
     console.log('Cleaned text:', cleanedText.substring(0, 100) + '...')
     
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: DEFAULT_OPENAI_MODEL,
       messages: [
         {
           role: 'system',
@@ -91,7 +94,7 @@ export async function paraphraseText(text: string): Promise<string> {
 }
 
 /**
- * Generate citation using OpenAI GPT-4o-mini
+ * Generate citation using OpenAI (default: gpt-5-mini)
  */
 export async function generateCitation(citationData: {
   type: 'apa' | 'mla'
@@ -119,7 +122,7 @@ export async function generateCitation(citationData: {
     const prompt = `Format one ${type.toUpperCase()} citation (student paper style) from:\n${bits.join('\n')}\n\nReturn only the citation line(s). No explanation.`
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: DEFAULT_OPENAI_MODEL,
       messages: [
         {
           role: 'system',

@@ -9,9 +9,11 @@ export function HumanizerHero() {
           100% Undetectable Content
         </h2>
         <p className="mx-auto mt-2 max-w-3xl text-sm text-gray-700 md:text-base">
-          Humanize AI content — get natural, human-like output that reads clearly and resonates with real
-          readers. Ladybug AI brings a human touch to AI-generated drafts so your text feels authentic and
-          polished.
+          Humanize AI text and bypass Turnitin, GPTZero, and major AI detectors — 100% guaranteed. Ladybug AI
+          rewrites AI-generated drafts into natural, human-like prose that reads clearly and resonates with
+          real readers. Built for searches like how to bypass Turnitin, Turnitin AI detection, GPTZero
+          checker, undetectable AI, AI detector bypass, and beat Turnitin — so your work feels authentic,
+          polished, and ready to pass AI scanning tools.
         </p>
       </div>
     </div>
