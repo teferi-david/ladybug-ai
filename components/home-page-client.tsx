@@ -24,6 +24,12 @@ type FreeUsage = {
   limit: number
 }
 
+const HUMANIZE_LOADING_MESSAGES = [
+  'Bypassing Turnitin',
+  'Bypassing GPTZero',
+  'Bypassing All AI Detectors',
+] as const
+
 export function HomePageClient() {
   const [input, setInput] = useState('')
   const [output, setOutput] = useState('')
@@ -37,6 +43,8 @@ export function HomePageClient() {
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState<string | undefined>(undefined)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const loadingMsgIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [loadingPhase, setLoadingPhase] = useState(0)
 
   /** Validates session with Supabase then returns a fresh access token for API routes. */
   const getAccessTokenForApi = useCallback(async () => {
@@ -131,6 +139,7 @@ export function HomePageClient() {
   useEffect(() => {
     return () => {
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+      if (loadingMsgIntervalRef.current) clearInterval(loadingMsgIntervalRef.current)
     }
   }, [])
 
@@ -138,6 +147,13 @@ export function HomePageClient() {
     if (progressIntervalRef.current) {
       clearInterval(progressIntervalRef.current)
       progressIntervalRef.current = null
+    }
+  }
+
+  const clearLoadingMessageInterval = () => {
+    if (loadingMsgIntervalRef.current) {
+      clearInterval(loadingMsgIntervalRef.current)
+      loadingMsgIntervalRef.current = null
     }
   }
 
@@ -152,6 +168,11 @@ export function HomePageClient() {
     setProcessing(true)
     setOutput('')
     setProgress(0)
+    setLoadingPhase(0)
+    clearLoadingMessageInterval()
+    loadingMsgIntervalRef.current = setInterval(() => {
+      setLoadingPhase((p) => (p + 1) % HUMANIZE_LOADING_MESSAGES.length)
+    }, 1600)
 
     const minDurationMs = 2800
     const start = Date.now()
@@ -198,6 +219,7 @@ export function HomePageClient() {
       }
     } finally {
       clearProgressAnimation()
+      clearLoadingMessageInterval()
       setProcessing(false)
     }
   }
@@ -349,14 +371,19 @@ export function HomePageClient() {
               </CardHeader>
               <CardContent className="flex-1 flex flex-col gap-4">
                 {processing && (
-                  <div className="space-y-3 py-2">
-                    <p className="text-sm font-medium text-center text-gray-800">
-                      Bypassing Turnitin and GPT Zero
+                  <div className="space-y-4 py-2">
+                    <p
+                      key={loadingPhase}
+                      className="text-sm font-semibold text-center text-gray-900 min-h-[1.35rem]"
+                    >
+                      {HUMANIZE_LOADING_MESSAGES[loadingPhase]}
                     </p>
-                    <Progress value={progress} className="h-3" />
-                    <p className="text-xs text-center text-gray-500">
-                      Refining tone and phrasing…
-                    </p>
+                    <div
+                      className="rounded-full p-[3px] animate-[pulse_1.4s_ease-in-out_infinite] shadow-[0_0_22px_rgba(59,130,246,0.55)] ring-2 ring-primary/35 bg-gradient-to-r from-primary/25 via-amber-300/20 to-primary/25"
+                    >
+                      <Progress value={progress} className="h-3 rounded-full bg-secondary/90" />
+                    </div>
+                    <p className="text-xs text-center text-gray-500">Refining tone and phrasing…</p>
                   </div>
                 )}
 

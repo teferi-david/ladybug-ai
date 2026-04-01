@@ -8,13 +8,18 @@ const openai = new OpenAI({
 })
 
 /** Shared default for humanize, paraphrase, citation. Override with OPENAI_MODEL. */
-const DEFAULT_OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'gpt-5-mini'
+const DEFAULT_OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'gpt-5.4-nano'
 
 /** Humanize can still be overridden alone with OPENAI_HUMANIZE_MODEL. */
 const HUMANIZE_MODEL = process.env.OPENAI_HUMANIZE_MODEL ?? DEFAULT_OPENAI_MODEL
 
+/** Replace em dash punctuation with commas (keeps numeric ranges with hyphen-minus intact). */
+function stripEmDashPunctuation(text: string): string {
+  return text.replace(/\s*\u2014\s*/g, ', ').replace(/,\s*,+/g, ', ')
+}
+
 /**
- * Humanize text using OpenAI (default: gpt-5-mini) and the student-voice system prompt.
+ * Humanize text using OpenAI (default: gpt-5.4-nano) and the student-voice system prompt.
  */
 export async function humanizeText(text: string, level: HumanizeLevel = 'basic'): Promise<string> {
   try {
@@ -30,8 +35,6 @@ export async function humanizeText(text: string, level: HumanizeLevel = 'basic')
     const voiceHint = LEVEL_VOICE_HINTS[level]
     const userContent = `${voiceHint}
 
----
-
 Rewrite the following AI-generated text according to all system instructions.
 
 ${cleanedText}`
@@ -45,7 +48,8 @@ ${cleanedText}`
       max_completion_tokens: 16384,
     })
 
-    const result = completion.choices[0]?.message?.content?.trim() || cleanedText
+    const raw = completion.choices[0]?.message?.content?.trim() || cleanedText
+    const result = stripEmDashPunctuation(raw)
     console.log('OpenAI result:', result.substring(0, 100) + '...')
 
     return result
@@ -94,7 +98,7 @@ export async function paraphraseText(text: string): Promise<string> {
 }
 
 /**
- * Generate citation using OpenAI (default: gpt-5-mini)
+ * Generate citation using OpenAI (default: gpt-5.4-nano)
  */
 export async function generateCitation(citationData: {
   type: 'apa' | 'mla'
