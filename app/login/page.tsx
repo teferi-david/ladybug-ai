@@ -7,9 +7,12 @@ import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { GoogleBrandIcon } from '@/components/google-brand-icon'
 import { AuthEmailDivider } from '@/components/auth-email-divider'
+import { AuthSplitLayout } from '@/components/auth-split-layout'
+
+const CTA_GRADIENT =
+  'w-full bg-gradient-to-r from-primary to-rose-500 text-white shadow-md hover:from-primary/90 hover:to-rose-500/90'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -38,7 +41,7 @@ export default function LoginPage() {
       if (data.user) {
         router.push('/settings')
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
@@ -66,72 +69,72 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="container mx-auto flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-16">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome Back</CardTitle>
-          <CardDescription>Sign in to your Ladybug AI account</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {error && (
-            <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700">{error}</div>
-          )}
+    <AuthSplitLayout
+      title="Welcome back"
+      subtitle="Sign in to Ladybug AI — humanize AI text and bypass detectors in seconds."
+    >
+      {error && (
+        <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
-          <Button
-            type="button"
-            variant="outline"
-            className="flex h-11 w-full items-center justify-center gap-3 border-gray-300 bg-white font-medium text-gray-800 hover:bg-gray-50"
-            onClick={handleGoogleSignIn}
-            disabled={loading || googleLoading}
-          >
-            <GoogleBrandIcon className="shrink-0" />
-            {googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}
-          </Button>
+      <Button
+        type="button"
+        variant="outline"
+        className="flex h-11 w-full items-center justify-center gap-3 border-gray-300 bg-white font-medium text-gray-800 hover:bg-gray-50"
+        onClick={handleGoogleSignIn}
+        disabled={loading || googleLoading}
+      >
+        <GoogleBrandIcon className="shrink-0" />
+        {googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}
+      </Button>
 
-          <AuthEmailDivider />
+      <AuthEmailDivider />
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div className="text-right">
-              <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                Forgot password?
-              </Link>
-            </div>
-            <Button type="submit" className="w-full" disabled={loading || googleLoading}>
-              {loading ? 'Signing in...' : 'Sign in with email'}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex flex-col pt-2">
-          <p className="text-center text-sm text-gray-600">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-primary hover:underline">
-              Sign up
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
-    </div>
+      <form onSubmit={handleLogin} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <div className="text-right">
+          <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+            Forgot password?
+          </Link>
+        </div>
+        <Button type="submit" className={CTA_GRADIENT} disabled={loading || googleLoading}>
+          {loading ? 'Signing in...' : 'Continue'}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-xs text-gray-500">
+        By continuing you agree to our Terms of Service and Privacy Policy.
+      </p>
+
+      <p className="mt-4 text-center text-sm text-gray-600">
+        Don&apos;t have an account?{' '}
+        <Link href="/register" className="font-medium text-primary hover:underline">
+          Sign up
+        </Link>
+      </p>
+    </AuthSplitLayout>
   )
 }

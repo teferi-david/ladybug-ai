@@ -35,6 +35,7 @@ export interface Database {
           subscription_cancel_at_period_end: boolean | null
           basic_words_yearly_used: number | null
           basic_words_year_start: string | null
+          signup_bonus_humanizer_runs_remaining: number
           created_at: string
           updated_at: string
         }
@@ -50,6 +51,7 @@ export interface Database {
           subscription_cancel_at_period_end?: boolean | null
           basic_words_yearly_used?: number | null
           basic_words_year_start?: string | null
+          signup_bonus_humanizer_runs_remaining?: number
           created_at?: string
           updated_at?: string
         }
@@ -65,6 +67,7 @@ export interface Database {
           subscription_cancel_at_period_end?: boolean | null
           basic_words_yearly_used?: number | null
           basic_words_year_start?: string | null
+          signup_bonus_humanizer_runs_remaining?: number
           created_at?: string
           updated_at?: string
         }

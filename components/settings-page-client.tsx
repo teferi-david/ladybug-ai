@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
@@ -9,6 +9,14 @@ import { Button } from '@/components/ui/button'
 import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Badge } from '@/components/ui/badge'
 import { Zap, ExternalLink } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { isPlanActive } from '@/lib/user-plans'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
 import {
@@ -27,6 +35,9 @@ export function SettingsPageClient() {
   const [profile, setProfile] = useState<UserRow | null>(null)
   const [loading, setLoading] = useState(true)
   const [portalLoading, setPortalLoading] = useState(false)
+  const [signupWelcomeOpen, setSignupWelcomeOpen] = useState(false)
+  const [signupBonusWords, setSignupBonusWords] = useState(0)
+  const signupWelcomeHandled = useRef(false)
 
   const loadProfile = useCallback(async () => {
     const {
@@ -37,6 +48,32 @@ export function SettingsPageClient() {
       return
     }
     setAuthUser(session.user)
+
+    if (session.access_token) {
+      try {
+        const signupRes = await fetch('/api/auth/complete-signup', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        if (signupRes.ok) {
+          const signupData = (await signupRes.json()) as {
+            isNewProfile?: boolean
+            signupBonusWords?: number
+          }
+          if (
+            signupData.isNewProfile &&
+            (signupData.signupBonusWords ?? 0) > 0 &&
+            !signupWelcomeHandled.current
+          ) {
+            signupWelcomeHandled.current = true
+            setSignupBonusWords(signupData.signupBonusWords ?? 0)
+            setSignupWelcomeOpen(true)
+          }
+        }
+      } catch {
+        /* non-blocking */
+      }
+    }
 
     const { data, error } = await supabase.from('users').select('*').eq('id', session.user.id).single()
 
@@ -123,7 +160,26 @@ export function SettingsPageClient() {
     })
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <>
+      <Dialog open={signupWelcomeOpen} onOpenChange={setSignupWelcomeOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Welcome to Ladybug AI</DialogTitle>
+            <DialogDescription className="text-base text-gray-700">
+              You have <strong>{signupBonusWords.toLocaleString()} more words for free</strong> today — two
+              bonus humanizer runs on top of your daily free uses. Open the AI Humanizer on the home page to
+              start.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" className="w-full sm:w-auto" onClick={() => setSignupWelcomeOpen(false)}>
+              Got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="min-h-full bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="mx-auto max-w-4xl">
           <div className="mb-8">
@@ -221,5 +277,6 @@ export function SettingsPageClient() {
         </div>
       </div>
     </div>
+    </>
   )
 }

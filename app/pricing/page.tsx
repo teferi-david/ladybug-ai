@@ -8,6 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Check } from 'lucide-react'
 import { STRIPE_PRICE_IDS } from '@/lib/stripe-plans'
 import { cn } from '@/lib/utils'
+import { JoinStudentsVideoSection } from '@/components/join-students-video-section'
 
 /** Display math (annual total ÷ 12) — matches Stripe prices. */
 const BASIC_MONTHLY = 14.99
@@ -242,6 +243,8 @@ export default function PricingPage() {
             </CardFooter>
           </Card>
         </div>
+
+        <JoinStudentsVideoSection />
 
         <div className="mx-auto mt-14 max-w-2xl space-y-6 text-left">
           <h2 className="text-center text-xl font-bold">FAQ</h2>

@@ -8,13 +8,16 @@ import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
-import { Sparkles, Copy, Check, Lock } from 'lucide-react'
+import { Copy, Check, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
 import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 import { UpgradeModal } from '@/components/upgrade-modal'
 import { HumanizerHero } from '@/components/humanizer-hero'
 import { HumanizerSeoSection } from '@/components/humanizer-seo-section'
+import { HumanizerDetectorLogos } from '@/components/humanizer-detector-logos'
+import { HumanizerDetectorResults } from '@/components/humanizer-detector-results'
+import { JoinStudentsVideoSection } from '@/components/join-students-video-section'
 import { HumanizerMarketing } from '@/components/humanizer-marketing'
 import type { HumanizeLevel } from '@/lib/humanize-levels'
 import { isProOnlyHumanizeLevel } from '@/lib/humanize-levels'
@@ -249,16 +252,14 @@ export function HomePageClient() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
-            className="text-center max-w-3xl mx-auto mb-10"
+            className="mx-auto mb-10 max-w-3xl text-center"
           >
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold mb-4">
-              <Sparkles className="h-4 w-4" />
-              Ladybug AI — Humanizer
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-3">Human-like text in one click</h1>
-            <p className="text-lg text-gray-600">
-              Humanizer AI for natural rewrites: paste AI-generated text on the left, and your human-style
-              output appears on the right. Ladybug AI helps essays and papers read clearly.
+            <h1 className="mb-3 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl lg:text-5xl">
+              Humanize AI text &amp; bypass AI detectors
+            </h1>
+            <p className="text-base text-gray-600 md:text-lg">
+              The fastest, most affordable, and least detectable AI humanizer, guaranteed to outperform any
+              competitor.
             </p>
           </motion.div>
 
@@ -425,6 +426,13 @@ export function HomePageClient() {
         </div>
       </section>
       <HumanizerSeoSection />
+      <JoinStudentsVideoSection />
+      <div className="border-b border-amber-200/70 bg-gradient-to-r from-amber-50/90 via-white to-rose-50/80">
+        <div className="container mx-auto px-4 py-8 md:py-10">
+          <HumanizerDetectorLogos />
+        </div>
+      </div>
+      <HumanizerDetectorResults />
       <HumanizerMarketing />
     </div>
   )

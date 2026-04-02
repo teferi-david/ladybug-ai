@@ -1,5 +1,6 @@
 /**
- * Trust strip: major AI detector brands (wordmark style) below the #1 hero line.
+ * Trust strip: detector guarantee + major AI detector brands (wordmark style).
+ * Rendered below the YouTube short on the home humanizer flow.
  */
 /** Display strings mirror common brand styling (case as typically shown). */
 const DETECTOR_BRANDS = [
@@ -16,10 +17,7 @@ const DETECTOR_BRANDS = [
 
 export function HumanizerDetectorLogos() {
   return (
-    <div
-      className="mt-5 border-t border-amber-200/60 pt-6 md:mt-6 md:pt-7"
-      aria-labelledby="humanizer-detector-logos-heading"
-    >
+    <div aria-labelledby="humanizer-detector-logos-heading">
       <p
         id="humanizer-detector-logos-heading"
         className="mx-auto max-w-4xl text-center text-sm leading-relaxed text-gray-700 md:text-base"

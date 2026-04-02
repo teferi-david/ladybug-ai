@@ -1,7 +1,10 @@
 import type { NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import { Database } from '@/types/database.types'
-import { FREE_TIER_DAILY_HUMANIZER_LIMIT } from '@/lib/premium-config'
+import {
+  FREE_TIER_DAILY_HUMANIZER_LIMIT,
+  SIGNUP_BONUS_HUMANIZER_RUNS,
+} from '@/lib/premium-config'
 import { isExpired } from './utils'
 
 type User = Database['public']['Tables']['users']['Row']
@@ -107,15 +110,17 @@ export async function getUserRowById(userId: string): Promise<User | null> {
  * OAuth / Google users may exist in auth.users before a public.users row exists.
  * If daily_usage.user_id references public.users(id), inserts fail silently until this row exists.
  */
-/** Ensures public.users exists for FK (e.g. daily_usage). Returns false if the row cannot be created. */
-export async function ensurePublicUserRowForAuth(userId: string): Promise<boolean> {
+export type EnsurePublicUserResult = { ok: boolean; created: boolean }
+
+/** Ensures public.users exists for FK (e.g. daily_usage). New rows get signup bonus humanizer runs. */
+export async function ensurePublicUserRowForAuth(userId: string): Promise<EnsurePublicUserResult> {
   const { data: existing } = await supabaseAdmin.from('users').select('id').eq('id', userId).maybeSingle()
-  if (existing) return true
+  if (existing) return { ok: true, created: false }
 
   const { data: authRes, error: authErr } = await supabaseAdmin.auth.admin.getUserById(userId)
   if (authErr || !authRes.user) {
     console.error('ensurePublicUserRowForAuth: auth.admin.getUserById failed', authErr)
-    return false
+    return { ok: false, created: false }
   }
   const u = authRes.user
   const email = u.email ?? `${u.id}@users.placeholder`
@@ -131,13 +136,17 @@ export async function ensurePublicUserRowForAuth(userId: string): Promise<boolea
     current_plan: 'free',
     uses_left: 0,
     subscription_status: 'inactive',
+    signup_bonus_humanizer_runs_remaining: SIGNUP_BONUS_HUMANIZER_RUNS,
   })
 
   if (insertErr && insertErr.code !== '23505') {
     console.error('ensurePublicUserRowForAuth: insert public.users failed', insertErr)
-    return false
+    return { ok: false, created: false }
   }
-  return true
+  if (insertErr?.code === '23505') {
+    return { ok: true, created: false }
+  }
+  return { ok: true, created: true }
 }
 
 export async function getUserFromToken(authHeader: string | null): Promise<User | null> {
@@ -217,6 +226,16 @@ async function sumUsesForIpToolDay(
   return { sum, ok: true }
 }
 
+async function getSignupBonusHumanizerRunsRemaining(userId: string): Promise<number> {
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('signup_bonus_humanizer_runs_remaining')
+    .eq('id', userId)
+    .maybeSingle()
+  if (error || !data) return 0
+  return Math.max(0, data.signup_bonus_humanizer_runs_remaining ?? 0)
+}
+
 export type DailyUsageCheckResult = {
   allowed: boolean
   usesRemaining: number
@@ -225,7 +244,7 @@ export type DailyUsageCheckResult = {
 }
 
 export async function checkDailyUsage(
-  _userId: string | null,
+  userId: string | null,
   ipAddress: string,
   toolName: 'humanizer' | 'paraphraser' | 'citation'
 ): Promise<DailyUsageCheckResult> {
@@ -239,10 +258,16 @@ export async function checkDailyUsage(
       limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
     }
   }
-  const allowed = currentUses < FREE_TIER_DAILY_HUMANIZER_LIMIT
+  let bonusRemaining = 0
+  if (userId && toolName === 'humanizer') {
+    bonusRemaining = await getSignupBonusHumanizerRunsRemaining(userId)
+  }
+  const underIpLimit = currentUses < FREE_TIER_DAILY_HUMANIZER_LIMIT
+  const allowed = underIpLimit || bonusRemaining > 0
+  const baseRemaining = Math.max(0, FREE_TIER_DAILY_HUMANIZER_LIMIT - currentUses)
   return {
     allowed,
-    usesRemaining: Math.max(0, FREE_TIER_DAILY_HUMANIZER_LIMIT - currentUses),
+    usesRemaining: baseRemaining + bonusRemaining,
     usedToday: currentUses,
     limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
   }
@@ -263,7 +288,7 @@ export async function incrementDailyUsage(
 ): Promise<boolean> {
   if (userId) {
     const ensured = await ensurePublicUserRowForAuth(userId)
-    if (!ensured) return false
+    if (!ensured.ok) return false
   }
 
   const today = new Date().toISOString().split('T')[0]
@@ -284,44 +309,73 @@ export async function incrementDailyUsage(
   }
 
   const existing = existingList?.[0]
+  const currentUses = existing ? (existing.uses_today ?? 0) : 0
 
-  if (existing) {
-    const nextUses = (existing.uses_today ?? 0) + 1
-    const { error: updateError } = await supabaseAdmin
-      .from('daily_usage')
-      .update({
-        uses_today: nextUses,
-        updated_at: nowIso,
-        ...(userId ? { user_id: userId } : {}),
-      })
-      .eq('id', existing.id)
+  if (currentUses < FREE_TIER_DAILY_HUMANIZER_LIMIT) {
+    if (existing) {
+      const nextUses = currentUses + 1
+      const { error: updateError } = await supabaseAdmin
+        .from('daily_usage')
+        .update({
+          uses_today: nextUses,
+          updated_at: nowIso,
+          ...(userId ? { user_id: userId } : {}),
+        })
+        .eq('id', existing.id)
 
-    if (updateError) {
-      console.error('incrementDailyUsage update error:', updateError)
+      if (updateError) {
+        console.error('incrementDailyUsage update error:', updateError)
+        return false
+      }
+      return true
+    }
+
+    const insertPayload: Database['public']['Tables']['daily_usage']['Insert'] = {
+      ip_address: ipAddress,
+      tool_name: toolName,
+      uses_today: 1,
+      last_reset: today,
+      created_at: nowIso,
+      updated_at: nowIso,
+    }
+    if (userId) {
+      insertPayload.user_id = userId
+    }
+
+    const { error: insertError } = await supabaseAdmin.from('daily_usage').insert(insertPayload)
+
+    if (insertError) {
+      if (isUniqueViolation(insertError) && conflictRetry < INCREMENT_CONFLICT_RETRIES) {
+        return incrementDailyUsage(userId, ipAddress, toolName, conflictRetry + 1)
+      }
+      console.error('incrementDailyUsage insert error:', insertError)
       return false
     }
     return true
   }
 
-  const insertPayload: Database['public']['Tables']['daily_usage']['Insert'] = {
-    ip_address: ipAddress,
-    tool_name: toolName,
-    uses_today: 1,
-    last_reset: today,
-    created_at: nowIso,
-    updated_at: nowIso,
-  }
-  if (userId) {
-    insertPayload.user_id = userId
+  if (toolName !== 'humanizer' || !userId) {
+    return false
   }
 
-  const { error: insertError } = await supabaseAdmin.from('daily_usage').insert(insertPayload)
+  const bonus = await getSignupBonusHumanizerRunsRemaining(userId)
+  if (bonus <= 0) {
+    return false
+  }
 
-  if (insertError) {
-    if (isUniqueViolation(insertError) && conflictRetry < INCREMENT_CONFLICT_RETRIES) {
-      return incrementDailyUsage(userId, ipAddress, toolName, conflictRetry + 1)
-    }
-    console.error('incrementDailyUsage insert error:', insertError)
+  const { data: consumed, error: bonusErr } = await supabaseAdmin
+    .from('users')
+    .update({
+      signup_bonus_humanizer_runs_remaining: bonus - 1,
+      updated_at: nowIso,
+    })
+    .eq('id', userId)
+    .eq('signup_bonus_humanizer_runs_remaining', bonus)
+    .select('id')
+    .maybeSingle()
+
+  if (bonusErr || !consumed) {
+    console.error('incrementDailyUsage signup bonus decrement:', bonusErr)
     return false
   }
   return true
