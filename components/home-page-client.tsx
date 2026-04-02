@@ -14,7 +14,6 @@ import { hasProHumanizeAccess } from '@/lib/plan-access'
 import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 import { UpgradeModal } from '@/components/upgrade-modal'
 import { HumanizerHero } from '@/components/humanizer-hero'
-import { HumanizerSeoSection } from '@/components/humanizer-seo-section'
 import { HumanizerDetectorLogos } from '@/components/humanizer-detector-logos'
 import { HumanizerDetectorResults } from '@/components/humanizer-detector-results'
 import { JoinStudentsVideoSection } from '@/components/join-students-video-section'
@@ -425,7 +424,6 @@ export function HomePageClient() {
           </div>
         </div>
       </section>
-      <HumanizerSeoSection />
       <JoinStudentsVideoSection />
       <div className="border-b border-amber-200/70 bg-gradient-to-r from-amber-50/90 via-white to-rose-50/80">
         <div className="container mx-auto px-4 py-8 md:py-10">

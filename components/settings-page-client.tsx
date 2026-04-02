@@ -167,8 +167,8 @@ export function SettingsPageClient() {
             <DialogTitle>Welcome to Ladybug AI</DialogTitle>
             <DialogDescription className="text-base text-gray-700">
               You have <strong>{signupBonusWords.toLocaleString()} more words for free</strong> today — two
-              bonus humanizer runs on top of your daily free uses. Open the AI Humanizer on the home page to
-              start.
+              bonus runs on top of your daily free uses (shared across Humanizer, Paraphraser, and Citations).
+              Open any of those tools to start.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

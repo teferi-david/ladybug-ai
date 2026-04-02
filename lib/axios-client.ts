@@ -86,6 +86,36 @@ export const apiClient = {
     return response.data
   },
 
+  async getParaphraseUsage(authToken?: string): Promise<{
+    premium: boolean
+    limit: number | null
+    usedToday: number | null
+    usesRemaining: number | null
+    atLimit?: boolean
+  }> {
+    const headers: Record<string, string> = {}
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`
+    }
+    const response = await axiosClient.get('/api/paraphrase/usage', { headers })
+    return response.data
+  },
+
+  async getCitationUsage(authToken?: string): Promise<{
+    premium: boolean
+    limit: number | null
+    usedToday: number | null
+    usesRemaining: number | null
+    atLimit?: boolean
+  }> {
+    const headers: Record<string, string> = {}
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`
+    }
+    const response = await axiosClient.get('/api/citation/usage', { headers })
+    return response.data
+  },
+
   // POST request for humanize
   async humanizeText(
     text: string,
@@ -138,22 +168,31 @@ export const apiClient = {
   },
 
   // POST request for paraphrase
-  async paraphraseText(text: string, authToken?: string): Promise<string> {
+  async paraphraseText(
+    text: string,
+    authToken?: string
+  ): Promise<{ result: string; freeUsage?: { usedToday: number; usesRemaining: number; limit: number } }> {
     try {
-      const headers: any = {}
+      const headers: Record<string, string> = {}
       if (authToken) {
         headers['Authorization'] = `Bearer ${authToken}`
       }
-      
+
       const response = await axiosClient.post(
         '/api/paraphrase',
         { text },
         { headers, timeout: LONG_REQUEST_TIMEOUT_MS }
       )
-      return response.data.result
-    } catch (error: any) {
+      return {
+        result: response.data.result,
+        freeUsage: response.data.freeUsage,
+      }
+    } catch (error: unknown) {
       console.error('Paraphrase API error:', error)
-      throw new Error(`Paraphrasing failed: ${error.response?.data?.error || error.message}`)
+      const err = error as { response?: { data?: { error?: string; message?: string } }; message?: string }
+      throw new Error(
+        `Paraphrasing failed: ${err.response?.data?.message || err.response?.data?.error || err.message}`
+      )
     }
   },
 

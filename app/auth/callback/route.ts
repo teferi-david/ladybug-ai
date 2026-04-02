@@ -2,16 +2,30 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
+/** Same-origin path only; avoids open redirects. */
+function safeNextPath(next: string | null): string {
+  if (!next) return '/settings'
+  try {
+    const p = decodeURIComponent(next)
+    if (!p.startsWith('/') || p.startsWith('//')) return '/settings'
+    return p
+  } catch {
+    return '/settings'
+  }
+}
+
 /**
  * OAuth (Google) redirect target. Supabase validates redirectTo against the project's
- * "Redirect URLs" list — add exactly (no query string):
+ * "Redirect URLs" list — add:
  *   https://YOUR_DOMAIN/auth/callback
+ *   https://YOUR_DOMAIN/auth/callback?next=%2Fpricing (if using post-signup next=)
  *   http://localhost:3000/auth/callback (dev)
  */
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const origin = requestUrl.origin
+  const nextPath = safeNextPath(requestUrl.searchParams.get('next'))
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=oauth`)
@@ -47,5 +61,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?error=oauth`)
   }
 
-  return NextResponse.redirect(`${origin}/settings`)
+  return NextResponse.redirect(`${origin}${nextPath}`)
 }

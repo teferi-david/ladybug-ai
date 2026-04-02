@@ -87,16 +87,13 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <ProUpgradeButton asChild size="sm" className="min-h-10 px-4">
-                <Link href="/pricing">Start for free</Link>
-              </ProUpgradeButton>
               <Link href="/login">
                 <Button variant="ghost" size="sm">
                   Login
                 </Button>
               </Link>
               <ProUpgradeButton asChild size="sm" className="min-h-10 px-4">
-                <Link href="/register">Sign up</Link>
+                <Link href="/register">Start for free</Link>
               </ProUpgradeButton>
             </>
           )}

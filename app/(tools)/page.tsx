@@ -3,7 +3,8 @@ import { HomePageClient } from '@/components/home-page-client'
 import { getSiteUrl } from '@/lib/site-url'
 
 export const metadata: Metadata = {
-  title: 'AI Humanizer — Humanizer AI & Ladybug AI Humanizer',
+  /** Avoids root `template: '%s | Ladybug AI'` doubling the brand name. */
+  title: { absolute: 'Undetectable AI Humanizer: Ladybug AI' },
   description:
     'Ladybug AI humanizer: humanizer AI that rewrites AI text to sound natural. Free AI humanizer for students — paste text, get human-like output.',
   verification: {
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
     canonical: getSiteUrl(),
   },
   openGraph: {
-    title: 'Ladybug AI — AI Humanizer & Humanizer AI',
+    title: 'Undetectable AI Humanizer: Ladybug AI',
     description:
       'Humanizer AI and Ladybug AI humanizer: natural rewrites for AI-generated text. Try free.',
     url: getSiteUrl(),

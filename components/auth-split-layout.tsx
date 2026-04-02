@@ -5,26 +5,26 @@ import { Check } from 'lucide-react'
 
 const BULLETS = [
   'Humanize AI text in 3 seconds or less',
-  'Bypass GPT zero, Turnitin & all AI detectors — guaranteed!',
+  'Bypass GPT zero, Turnitin & all AI detectors - guaranteed!',
   '24/7 customer support',
   'Trusted by 100,000+ users!',
 ] as const
 
 const marketingBlock = (
-  <div className="mx-auto flex w-full max-w-lg flex-col items-center text-center">
+  <div className="mx-auto w-full max-w-lg text-left">
     <p className="text-balance text-2xl font-semibold leading-snug tracking-tight text-white drop-shadow-sm xl:text-[1.65rem]">
       Humanize AI Texts and Bypass Content Detectors
     </p>
     <p className="mt-4 text-base font-medium text-white drop-shadow-sm md:text-lg">
-      Sign up now to get <span className="font-semibold text-rose-200">400 FREE words</span>
+      Sign up now to get <span className="font-semibold text-rose-200">150 FREE words</span>
     </p>
-    <ul className="mt-8 w-full space-y-4 text-sm leading-relaxed text-white/95 md:text-base">
+    <ul className="mt-8 w-full space-y-4 text-left text-sm leading-relaxed text-white/95 md:text-base">
       {BULLETS.map((line) => (
-        <li key={line} className="flex justify-center gap-3 text-left sm:items-start">
+        <li key={line} className="flex items-start gap-3">
           <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/90 text-white shadow-sm">
             <Check className="h-3.5 w-3.5" strokeWidth={3} />
           </span>
-          <span className="max-w-[min(100%,20rem)] text-pretty sm:max-w-none">{line}</span>
+          <span className="text-pretty">{line}</span>
         </li>
       ))}
     </ul>

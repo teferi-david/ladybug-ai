@@ -259,7 +259,10 @@ export async function checkDailyUsage(
     }
   }
   let bonusRemaining = 0
-  if (userId && toolName === 'humanizer') {
+  if (
+    userId &&
+    (toolName === 'humanizer' || toolName === 'paraphraser' || toolName === 'citation')
+  ) {
     bonusRemaining = await getSignupBonusHumanizerRunsRemaining(userId)
   }
   const underIpLimit = currentUses < FREE_TIER_DAILY_HUMANIZER_LIMIT
@@ -354,7 +357,10 @@ export async function incrementDailyUsage(
     return true
   }
 
-  if (toolName !== 'humanizer' || !userId) {
+  if (
+    !userId ||
+    (toolName !== 'humanizer' && toolName !== 'paraphraser' && toolName !== 'citation')
+  ) {
     return false
   }
 

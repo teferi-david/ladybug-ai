@@ -18,7 +18,7 @@ export function SeoJsonLd() {
       },
       {
         '@type': 'WebSite',
-        name: 'Ladybug AI — AI Humanizer',
+        name: 'Undetectable AI Humanizer: Ladybug AI',
         url: base,
         description:
           'Humanizer AI for students and writers: paste AI text and get a natural, human-style rewrite.',

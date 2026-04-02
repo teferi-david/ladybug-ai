@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
+import { PREMIUM_MAX_WORDS_PER_REQUEST, FREE_TIER_MAX_WORDS_PER_RUN } from '@/lib/premium-config'
 import { Button } from '@/components/ui/button'
 import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,10 +13,28 @@ import { Label } from '@/components/ui/label'
 import { LoadingSpinner } from '@/components/loading-spinner'
 import { Quote, Copy } from 'lucide-react'
 
+type FreeUsage = {
+  usedToday: number
+  usesRemaining: number
+  limit: number
+}
+
+function countWordsFromForm(d: Record<string, string>): number {
+  let n = 0
+  for (const v of Object.values(d)) {
+    if (typeof v === 'string' && v.trim()) {
+      n += v.trim().split(/\s+/).filter((w) => w.length > 0).length
+    }
+  }
+  return n
+}
+
 export default function CitationPage() {
-  const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const [signedIn, setSignedIn] = useState<boolean | null>(null)
   const [premium, setPremium] = useState(false)
+  const [planLoaded, setPlanLoaded] = useState(false)
+  const [freeUsage, setFreeUsage] = useState<FreeUsage | null>(null)
   const [citationType, setCitationType] = useState<'apa' | 'mla'>('apa')
   const [formData, setFormData] = useState({
     author: '',
@@ -29,25 +47,63 @@ export default function CitationPage() {
   const [output, setOutput] = useState('')
   const [processing, setProcessing] = useState(false)
 
+  const wordCount = useMemo(() => countWordsFromForm(formData), [formData])
+  const maxWords = premium ? PREMIUM_MAX_WORDS_PER_REQUEST : FREE_TIER_MAX_WORDS_PER_RUN
+  const atDailyLimit =
+    !premium && planLoaded && freeUsage !== null && freeUsage.usesRemaining === 0
+  const overWordLimit = !premium && wordCount > FREE_TIER_MAX_WORDS_PER_RUN
+
   const load = useCallback(async () => {
     const {
       data: { session },
     } = await supabase.auth.getSession()
     if (!session) {
-      router.push('/login')
+      setSignedIn(false)
+      setLoading(false)
       return
     }
+    setSignedIn(true)
     const { data: row } = await supabase
       .from('users')
       .select('current_plan, plan_expiry, subscription_status, uses_left')
       .eq('id', session.user.id)
       .single()
     setPremium(hasProHumanizeAccess(row))
+    setPlanLoaded(true)
+
+    try {
+      const { apiClient } = await import('@/lib/axios-client')
+      const data = await apiClient.getCitationUsage(session.access_token)
+      if (data.premium) {
+        setFreeUsage(null)
+      } else if (
+        typeof data.limit === 'number' &&
+        typeof data.usedToday === 'number' &&
+        typeof data.usesRemaining === 'number'
+      ) {
+        setFreeUsage({
+          limit: data.limit,
+          usedToday: data.usedToday,
+          usesRemaining: data.usesRemaining,
+        })
+      } else {
+        setFreeUsage(null)
+      }
+    } catch {
+      setFreeUsage(null)
+    }
+
     setLoading(false)
-  }, [router])
+  }, [])
 
   useEffect(() => {
-    load()
+    void load()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      void load()
+    })
+    return () => subscription.unsubscribe()
   }, [load])
 
   const handleGenerate = async () => {
@@ -77,10 +133,24 @@ export default function CitationPage() {
 
       if (!response.ok) {
         alert(data.message || data.error || 'Error')
+        if (data.freeUsage) {
+          setFreeUsage({
+            usedToday: data.freeUsage.usedToday,
+            usesRemaining: data.freeUsage.usesRemaining,
+            limit: data.freeUsage.limit,
+          })
+        }
         return
       }
 
       setOutput(data.result)
+      if (data.freeUsage) {
+        setFreeUsage({
+          usedToday: data.freeUsage.usedToday,
+          usesRemaining: data.freeUsage.usesRemaining,
+          limit: data.freeUsage.limit,
+        })
+      }
     } catch {
       alert('Request failed')
     } finally {
@@ -92,37 +162,58 @@ export default function CitationPage() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  if (loading) {
+  if (loading || signedIn === null) {
     return <LoadingSpinner />
   }
 
-  if (!premium) {
+  if (!signedIn) {
     return (
-      <div className="container mx-auto px-4 py-16 max-w-lg text-center">
-        <h1 className="text-2xl font-bold mb-2 tracking-tight">Citation generator</h1>
-        <p className="text-gray-600 mb-8 leading-relaxed">
-          APA &amp; MLA — included with Pro. Try free for 1 day with unlimited humanizer and all tools.
+      <div className="container mx-auto max-w-lg px-4 py-16 text-center">
+        <div className="mb-6 flex justify-center">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+            <Quote className="h-5 w-5 text-primary" />
+          </div>
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight">Citation tool</h1>
+        <p className="mx-auto mt-4 max-w-md leading-relaxed text-gray-600">
+          Sign up or log in to generate APA &amp; MLA citations on the free tier — fair daily limits and the
+          same signup bonus rules as the AI Humanizer. Pro unlocks higher field limits and unlimited use.
         </p>
-        <div className="flex justify-center pt-2">
-          <ProUpgradeButton asChild size="lg" className="min-w-[min(100%,280px)] px-8">
-            <Link href="/pricing">Start for free</Link>
+        <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
+          <ProUpgradeButton asChild className="min-h-11 min-w-[200px]">
+            <Link href="/register">Sign up</Link>
           </ProUpgradeButton>
+          <Button variant="outline" asChild className="min-h-11 min-w-[200px]">
+            <Link href="/login">Log in</Link>
+          </Button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-xl">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-11 h-11 bg-primary/10 rounded-lg flex items-center justify-center">
+    <div className="container mx-auto max-w-xl px-4 py-8">
+      <div className="mb-6 flex items-center gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
           <Quote className="h-5 w-5 text-primary" />
         </div>
         <div>
           <h1 className="text-2xl font-bold">Citations</h1>
-          <p className="text-sm text-gray-600">APA or MLA — copy into your paper</p>
+          <p className="text-sm text-gray-600">
+            {premium
+              ? `APA or MLA · up to ${PREMIUM_MAX_WORDS_PER_REQUEST} words in fields per run`
+              : `Free tier · up to ${FREE_TIER_MAX_WORDS_PER_RUN} words in your fields per run · fair daily limits`}
+          </p>
         </div>
       </div>
+
+      {!premium && freeUsage !== null && (
+        <p className="mb-4 text-sm text-gray-600">
+          Citation runs remaining today:{' '}
+          <span className="font-medium tabular-nums text-gray-900">{freeUsage.usesRemaining}</span>
+          <span className="text-gray-500"> (daily cap + signup bonus, same rules as Humanizer)</span>
+        </p>
+      )}
 
       <Card className="mb-6">
         <CardHeader>
@@ -208,9 +299,42 @@ export default function CitationPage() {
             />
           </div>
 
-          <Button onClick={handleGenerate} disabled={processing} className="w-full">
-            {processing ? 'Generating…' : 'Generate citation'}
+          <p className="text-xs text-gray-500">
+            Words in fields: {wordCount} / {maxWords}
+            {!premium && overWordLimit && (
+              <span className="text-red-600"> — shorten fields for free tier</span>
+            )}
+          </p>
+
+          <Button
+            onClick={handleGenerate}
+            disabled={
+              processing || atDailyLimit || (!premium && overWordLimit)
+            }
+            className="w-full"
+          >
+            {processing ? 'Generating…' : atDailyLimit ? 'Daily limit reached' : 'Generate citation'}
           </Button>
+
+          {!premium && planLoaded && atDailyLimit && (
+            <p className="text-center text-xs text-amber-800">
+              <Link href="/pricing" className="font-medium underline">
+                Start for free
+              </Link>{' '}
+              for unlimited citations and higher field limits.
+            </p>
+          )}
+
+          {!premium && planLoaded && !atDailyLimit && (
+            <div className="flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="flex-1 text-xs leading-relaxed text-gray-500">
+                Pro unlocks up to {PREMIUM_MAX_WORDS_PER_REQUEST} words in fields per run.
+              </p>
+              <ProUpgradeButton asChild size="sm" className="w-full shrink-0 sm:w-auto">
+                <Link href="/pricing">Start for free</Link>
+              </ProUpgradeButton>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -227,7 +351,7 @@ export default function CitationPage() {
             <CardDescription>Copy the line below</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="p-4 bg-gray-50 rounded-lg border text-sm whitespace-pre-wrap">{output}</div>
+            <div className="rounded-lg border bg-gray-50 p-4 text-sm whitespace-pre-wrap">{output}</div>
             <Button
               variant="outline"
               className="mt-4 gap-2"

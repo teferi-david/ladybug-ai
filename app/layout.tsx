@@ -14,7 +14,7 @@ const siteUrl = getSiteUrl()
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Ladybug AI — AI Humanizer & Humanizer AI',
+    default: 'Undetectable AI Humanizer: Ladybug AI',
     template: '%s | Ladybug AI',
   },
   description:
@@ -55,14 +55,14 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: siteUrl,
     siteName: 'Ladybug AI',
-    title: 'AI Humanizer — Ladybug AI Humanizer & Humanizer AI',
+    title: 'Undetectable AI Humanizer: Ladybug AI',
     description:
       'Ladybug AI humanizer: AI humanizer and humanizer AI tool for natural, student-friendly rewrites. Try free.',
     images: [{ url: '/logo.jpg', width: 512, height: 512, alt: 'Ladybug AI logo' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Ladybug AI — AI Humanizer & Humanizer AI',
+    title: 'Undetectable AI Humanizer: Ladybug AI',
     description:
       'Humanizer AI and Ladybug AI humanizer: make AI text sound natural. Free tier available.',
     images: ['/logo.jpg'],
