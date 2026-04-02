@@ -12,12 +12,7 @@ import {
   incrementBasicWordsUsed,
 } from '@/lib/basic-word-quota'
 import { isBasicPlanKey } from '@/lib/stripe-plans'
-import {
-  HUMANIZE_LEVELS,
-  normalizeHumanizeLevel,
-  isProOnlyHumanizeLevel,
-  type HumanizeLevel,
-} from '@/lib/humanize-levels'
+import { HUMANIZE_LEVELS, normalizeHumanizeLevel, type HumanizeLevel } from '@/lib/humanize-levels'
 import { FREE_TIER_DAILY_HUMANIZER_LIMIT, PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 
 export const dynamic = 'force-dynamic'
@@ -159,21 +154,7 @@ export async function POST(request: NextRequest) {
 
     const wordCount = text.trim().split(/\s+/).filter((word) => word.length > 0).length
 
-    const proLevels = isProOnlyHumanizeLevel(level)
     const paid = user && hasProHumanizeAccess(user)
-
-    if (proLevels && !paid) {
-      return NextResponse.json(
-        {
-          status: 'error',
-          error: 'Upgrade required',
-          message:
-            'Academic (Turnitin) mode is included with a paid plan. Basic and Advanced stay free on the free tier — upgrade to unlock Academic and more.',
-          upgradeRequired: true,
-        },
-        { status: 403 }
-      )
-    }
 
     if (paid) {
       const quota = await checkBasicWordQuota(user!.id, user!, wordCount)

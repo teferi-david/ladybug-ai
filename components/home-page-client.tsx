@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
@@ -19,7 +18,7 @@ import { HumanizerDetectorResults } from '@/components/humanizer-detector-result
 import { JoinStudentsVideoSection } from '@/components/join-students-video-section'
 import { HumanizerMarketing } from '@/components/humanizer-marketing'
 import type { HumanizeLevel } from '@/lib/humanize-levels'
-import { isProOnlyHumanizeLevel } from '@/lib/humanize-levels'
+import { cn } from '@/lib/utils'
 
 type FreeUsage = {
   usedToday: number
@@ -134,12 +133,6 @@ export function HomePageClient() {
   }, [planLoaded, refreshFreeUsage])
 
   useEffect(() => {
-    if (!hasProAccess && isProOnlyHumanizeLevel(humanizeLevel)) {
-      setHumanizeLevel('basic')
-    }
-  }, [hasProAccess, humanizeLevel])
-
-  useEffect(() => {
     return () => {
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
       if (loadingMsgIntervalRef.current) clearInterval(loadingMsgIntervalRef.current)
@@ -158,11 +151,6 @@ export function HomePageClient() {
       clearInterval(loadingMsgIntervalRef.current)
       loadingMsgIntervalRef.current = null
     }
-  }
-
-  const setLevel = (level: HumanizeLevel) => {
-    if (isProOnlyHumanizeLevel(level) && !hasProAccess) return
-    setHumanizeLevel(level)
   }
 
   const handleHumanize = async () => {
@@ -268,57 +256,45 @@ export function HomePageClient() {
                 <CardTitle className="flex items-center gap-2">
                   <span className="text-base font-semibold text-gray-500">Input</span>
                 </CardTitle>
-                <CardDescription>Paste your AI text below, choose a level, then humanize.</CardDescription>
+                <CardDescription>Choose a level, paste your text, then humanize.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 flex-1 flex flex-col">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Humanize level</label>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant={humanizeLevel === 'basic' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setLevel('basic')}
-                      className="flex-1 min-w-[100px]"
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-3">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <label htmlFor="humanize-level" className="block text-sm font-medium">
+                      Humanize level
+                    </label>
+                    <select
+                      id="humanize-level"
+                      value={humanizeLevel}
+                      onChange={(e) => setHumanizeLevel(e.target.value as HumanizeLevel)}
+                      disabled={processing}
+                      className={cn(
+                        'flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                        'disabled:cursor-not-allowed disabled:opacity-50'
+                      )}
                     >
-                      Basic
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={humanizeLevel === 'advanced' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setLevel('advanced')}
-                      className="flex-1 min-w-[100px]"
-                    >
-                      Advanced
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={humanizeLevel === 'academic' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setLevel('academic')}
-                      disabled={!hasProAccess}
-                      className="flex-1 min-w-[100px] relative disabled:opacity-60"
-                    >
-                      <span className="flex items-center justify-center gap-1">
-                        Academic (Turnitin)
-                        {!hasProAccess && <Lock className="h-3.5 w-3.5 shrink-0" />}
-                      </span>
-                    </Button>
+                      <option value="basic">Basic</option>
+                      <option value="advanced">Advanced</option>
+                      <option value="academic">Academic (Turnitin)</option>
+                    </select>
                   </div>
-
-                  {!hasProAccess && planLoaded && (
-                    <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-                      <p className="text-xs text-gray-500 flex-1 leading-relaxed">
-                        Basic and Advanced are free (fair daily limits). Academic (Turnitin) and unlimited
-                        runs are on paid plans. Free tier: up to 200 words per run; paid: up to{' '}
-                        {PREMIUM_MAX_WORDS_PER_REQUEST} words — plus Paraphraser, Citations, and more.
-                      </p>
-                      <ProUpgradeButton asChild size="sm" className="w-full shrink-0 sm:w-auto">
-                        <Link href="/pricing">Start for free</Link>
-                      </ProUpgradeButton>
-                    </div>
-                  )}
+                  <Button
+                    type="button"
+                    onClick={handleHumanize}
+                    disabled={
+                      processing || !input.trim() || wordCount > maxWords || atDailyLimit
+                    }
+                    className="h-11 w-full shrink-0 sm:w-auto sm:min-w-[168px]"
+                    size="lg"
+                  >
+                    {processing
+                      ? 'Working…'
+                      : atDailyLimit
+                        ? 'Limit reached — try a plan for free'
+                        : 'Humanize text'}
+                  </Button>
                 </div>
                 <div className="flex-1 flex flex-col min-h-0">
                   <div className="flex justify-between items-center mb-2">
@@ -340,20 +316,6 @@ export function HomePageClient() {
                     </p>
                   )}
                 </div>
-                <Button
-                  onClick={handleHumanize}
-                  disabled={
-                    processing || !input.trim() || wordCount > maxWords || atDailyLimit
-                  }
-                  className="w-full"
-                  size="lg"
-                >
-                  {processing
-                    ? 'Working…'
-                    : atDailyLimit
-                      ? 'Limit reached — try a plan for free'
-                      : 'Humanize text'}
-                </Button>
                 {atDailyLimit && (
                   <p className="text-xs text-center text-amber-800">
                     <Link href="/pricing" className="underline font-medium">

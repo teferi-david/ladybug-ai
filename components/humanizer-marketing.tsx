@@ -84,9 +84,9 @@ export function HumanizerMarketing() {
 
         <Section title="Modes &amp; writing levels">
           <p>
-            Choose levels that match your needs — Basic and Advanced are free (with fair daily limits);
-            Academic (Turnitin) is included on paid plans. Different modes help you aim for the right balance
-            of simplicity and depth.
+            Choose levels that match your needs — Basic, Advanced, and Academic (Turnitin) are all available on
+            the free tier within fair daily limits and per-run word caps. Different modes help you aim for the
+            right balance of simplicity and depth.
           </p>
           <Subheading>SEO-friendly phrasing</Subheading>
           <p>
@@ -116,7 +116,7 @@ export function HumanizerMarketing() {
           <ol className="list-decimal space-y-3 pl-5">
             <li>Open Ladybug AI in your browser.</li>
             <li>Paste your AI-generated text into the input area.</li>
-            <li>Pick a level: Basic or Advanced (free), or Academic (Turnitin) on a paid plan.</li>
+            <li>Pick a level: Basic, Advanced, or Academic (Turnitin) — all respect free-tier daily limits.</li>
             <li>Click Humanize and wait for processing.</li>
             <li>Review the output, copy, and edit as needed.</li>
             <li>
@@ -141,8 +141,8 @@ export function HumanizerMarketing() {
             <li>Simple interface — paste, choose level, humanize</li>
             <li>Works in modern browsers; responsive layout</li>
             <li>
-              Free tier: Basic &amp; Advanced with fair daily limits; paid plans add Academic (Turnitin),
-              higher word caps, and companion tools
+              Free tier: all humanizer levels with fair daily limits and a 200-word cap per run; paid plans add
+              higher word caps and companion tools
             </li>
             <li>Privacy-minded: treat your text as sensitive; don&apos;t paste secrets you can&apos;t share</li>
           </ul>
