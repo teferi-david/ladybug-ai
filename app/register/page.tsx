@@ -12,6 +12,7 @@ import { AuthEmailDivider } from '@/components/auth-email-divider'
 import { AuthSplitLayout } from '@/components/auth-split-layout'
 import { proUpgradeButtonClassName } from '@/components/pro-upgrade-button'
 import { cn } from '@/lib/utils'
+import { getOAuthRedirectHostname, getOAuthRedirectUrl } from '@/lib/oauth-redirect'
 
 const authPrimaryCtaClass = cn(proUpgradeButtonClassName, 'w-full')
 
@@ -94,7 +95,9 @@ export default function RegisterPage() {
         disabled={loading || googleLoading}
       >
         <GoogleBrandIcon className="shrink-0" />
-        {googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}
+        {googleLoading
+          ? 'Redirecting to Google...'
+          : `Continue to ${getOAuthRedirectHostname()}`}
       </Button>
 
       <AuthEmailDivider />
