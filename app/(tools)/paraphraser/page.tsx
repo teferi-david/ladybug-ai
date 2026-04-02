@@ -95,7 +95,7 @@ export default function ParaphraserPage() {
         </p>
         <div className="flex justify-center pt-2">
           <ProUpgradeButton asChild size="lg" className="min-w-[min(100%,280px)] px-8">
-            <Link href="/pricing">Try for free</Link>
+            <Link href="/pricing">Start for free</Link>
           </ProUpgradeButton>
         </div>
       </div>

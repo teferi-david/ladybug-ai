@@ -254,7 +254,7 @@ export function HomePageClient() {
             transition={{ duration: 0.45 }}
             className="mx-auto mb-10 max-w-3xl text-center"
           >
-            <h1 className="mb-3 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl lg:text-5xl">
+            <h1 className="mb-3 text-center text-base font-bold leading-snug tracking-tight text-gray-900 sm:text-lg md:text-xl lg:text-2xl lg:whitespace-nowrap xl:text-3xl">
               Humanize AI text &amp; bypass AI detectors
             </h1>
             <p className="text-base text-gray-600 md:text-lg">
@@ -316,7 +316,7 @@ export function HomePageClient() {
                         {PREMIUM_MAX_WORDS_PER_REQUEST} words — plus Paraphraser, Citations, and more.
                       </p>
                       <ProUpgradeButton asChild size="sm" className="w-full shrink-0 sm:w-auto">
-                        <Link href="/pricing">Try for free</Link>
+                        <Link href="/pricing">Start for free</Link>
                       </ProUpgradeButton>
                     </div>
                   )}

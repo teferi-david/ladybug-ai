@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import { Analytics } from '@vercel/analytics/next'
-import { Navbar } from '@/components/navbar'
+import { SiteChrome } from '@/components/site-chrome'
 import { SeoJsonLd } from '@/components/seo-json-ld'
 import { getSiteUrl } from '@/lib/site-url'
 
@@ -90,19 +90,7 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
         <SeoJsonLd />
-        <Navbar />
-        <main className="flex min-h-0 flex-1 flex-col">{children}</main>
-        <footer className="border-t border-gray-100 bg-white py-4 text-center">
-          <p className="text-xs text-gray-500">
-            Contact us:{' '}
-            <a
-              href="mailto:teferi.business@gmail.com"
-              className="text-gray-600 underline underline-offset-2 hover:text-gray-900"
-            >
-              teferi.business@gmail.com
-            </a>
-          </p>
-        </footer>
+        <SiteChrome>{children}</SiteChrome>
         <Analytics />
       </body>
     </html>

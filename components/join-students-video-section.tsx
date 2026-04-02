@@ -37,15 +37,10 @@ export function JoinStudentsVideoSection() {
       <div className="container mx-auto max-w-4xl px-4 text-center">
         <h2
           id="join-students-video-heading"
-          className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl"
+          className="mx-auto max-w-5xl text-base font-bold leading-snug tracking-tight text-gray-900 sm:text-lg md:text-xl lg:text-2xl lg:whitespace-nowrap"
         >
           Join 10,000+ students already using the Ladybug AI humanizer tool!
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-gray-600 md:text-lg">
-          From essays to research papers and last-minute drafts, Ladybug AI helps your writing read clearly
-          and naturally. Try it for all your schoolwork and see why students choose Ladybug over generic AI
-          text.
-        </p>
 
         <div className="mx-auto mt-10 max-w-[280px] md:max-w-[320px]">
           <div
@@ -74,6 +69,12 @@ export function JoinStudentsVideoSection() {
             Unmute in the YouTube player if you want audio.
           </p>
         </div>
+
+        <p className="mx-auto mt-8 max-w-2xl text-base leading-relaxed text-gray-600 md:text-lg">
+          From essays to research papers and last-minute drafts, Ladybug AI helps your writing read clearly
+          and naturally. Try it for all your schoolwork and see why students choose Ladybug over generic AI
+          text.
+        </p>
       </div>
     </section>
   )

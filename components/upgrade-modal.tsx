@@ -31,7 +31,7 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
         </DialogHeader>
         <DialogFooter className="flex-col gap-4 sm:flex-row sm:gap-3">
           <ProUpgradeButton asChild className="w-full sm:min-w-[200px]">
-            <Link href="/pricing">Try for free</Link>
+            <Link href="/pricing">Start for free</Link>
           </ProUpgradeButton>
           <Button variant="outline" onClick={onClose} className="w-full min-h-11 rounded-xl sm:w-auto">
             Close

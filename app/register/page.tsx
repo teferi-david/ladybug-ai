@@ -10,9 +10,10 @@ import { Label } from '@/components/ui/label'
 import { GoogleBrandIcon } from '@/components/google-brand-icon'
 import { AuthEmailDivider } from '@/components/auth-email-divider'
 import { AuthSplitLayout } from '@/components/auth-split-layout'
+import { proUpgradeButtonClassName } from '@/components/pro-upgrade-button'
+import { cn } from '@/lib/utils'
 
-const CTA_GRADIENT =
-  'w-full bg-gradient-to-r from-primary to-rose-500 text-white shadow-md hover:from-primary/90 hover:to-rose-500/90'
+const authPrimaryCtaClass = cn(proUpgradeButtonClassName, 'w-full')
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -133,7 +134,7 @@ export default function RegisterPage() {
             minLength={6}
           />
         </div>
-        <Button type="submit" className={CTA_GRADIENT} disabled={loading || googleLoading}>
+        <Button type="submit" className={authPrimaryCtaClass} disabled={loading || googleLoading}>
           {loading ? 'Creating account...' : 'Continue'}
         </Button>
       </form>

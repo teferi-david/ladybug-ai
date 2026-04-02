@@ -66,7 +66,7 @@ export default function AiHumanizerLandingPage() {
                 <Link href="/">Open AI humanizer</Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link href="/pricing">Try for free</Link>
+                <Link href="/pricing">Start for free</Link>
               </Button>
             </div>
           </section>

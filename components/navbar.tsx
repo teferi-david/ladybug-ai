@@ -73,7 +73,7 @@ export function Navbar() {
             <>
               {showPricingCta && (
                 <ProUpgradeButton asChild size="sm" className="min-h-10 px-4">
-                  <Link href="/pricing">Try for free</Link>
+                  <Link href="/pricing">Start for free</Link>
                 </ProUpgradeButton>
               )}
               <Link href="/settings">
@@ -88,16 +88,16 @@ export function Navbar() {
           ) : (
             <>
               <ProUpgradeButton asChild size="sm" className="min-h-10 px-4">
-                <Link href="/pricing">Try for free</Link>
+                <Link href="/pricing">Start for free</Link>
               </ProUpgradeButton>
               <Link href="/login">
                 <Button variant="ghost" size="sm">
                   Login
                 </Button>
               </Link>
-              <Link href="/register">
-                <Button size="sm">Get started</Button>
-              </Link>
+              <ProUpgradeButton asChild size="sm" className="min-h-10 px-4">
+                <Link href="/register">Sign up</Link>
+              </ProUpgradeButton>
             </>
           )}
         </div>

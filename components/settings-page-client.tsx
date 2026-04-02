@@ -267,7 +267,7 @@ export function SettingsPageClient() {
                   </p>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <ProUpgradeButton asChild className="w-full sm:w-auto sm:min-w-[220px]">
-                      <Link href="/pricing">Try for free</Link>
+                      <Link href="/pricing">Start for free</Link>
                     </ProUpgradeButton>
                   </div>
                 </div>
