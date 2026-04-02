@@ -226,16 +226,6 @@ export default function ParaphraserPage() {
             </p>
           )}
 
-          {!premium && planLoaded && !atDailyLimit && (
-            <div className="flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="flex-1 text-xs leading-relaxed text-gray-500">
-                Pro unlocks up to {PREMIUM_MAX_WORDS_PER_REQUEST} words per run and no daily caps.
-              </p>
-              <ProUpgradeButton asChild size="sm" className="w-full shrink-0 sm:w-auto">
-                <Link href="/pricing">Start for free</Link>
-              </ProUpgradeButton>
-            </div>
-          )}
         </CardContent>
       </Card>
 
