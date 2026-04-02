@@ -185,11 +185,7 @@ export default function PricingPage() {
                 className="w-full"
                 size="lg"
               >
-                {loadingId === basicPriceId
-                  ? 'Redirecting to Stripe…'
-                  : user
-                    ? 'Start 1-day free trial — Basic'
-                    : 'Sign up — try Basic free for 1 day'}
+                {loadingId === basicPriceId ? 'Redirecting to Stripe…' : 'Start for free'}
               </ProUpgradeButton>
             </CardFooter>
           </Card>
@@ -234,11 +230,7 @@ export default function PricingPage() {
                 className="w-full"
                 size="lg"
               >
-                {loadingId === unlimitedPriceId
-                  ? 'Redirecting to Stripe…'
-                  : user
-                    ? 'Start 1-day free trial — Unlimited'
-                    : 'Sign up — try Unlimited free for 1 day'}
+                {loadingId === unlimitedPriceId ? 'Redirecting to Stripe…' : 'Start for free'}
               </ProUpgradeButton>
             </CardFooter>
           </Card>
