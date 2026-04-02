@@ -1,7 +1,7 @@
 import { getSiteUrl } from '@/lib/site-url'
 
 /**
- * schema.org JSON-LD for brand + web app — helps search engines understand the product.
+ * schema.org JSON-LD for brand and web app (helps search engines understand the product).
  */
 export function SeoJsonLd() {
   const base = getSiteUrl()
@@ -21,7 +21,7 @@ export function SeoJsonLd() {
         name: 'Undetectable AI Humanizer: Ladybug AI',
         url: base,
         description:
-          'Humanizer AI for students and writers: paste AI text and get a natural, human-style rewrite.',
+          'Humanizer AI for students and writers: paste AI text, get a natural sounding rewrite.',
         publisher: { '@type': 'Organization', name: 'Ladybug AI', url: base },
       },
       {
@@ -37,7 +37,7 @@ export function SeoJsonLd() {
           description: 'Free tier with optional Pro subscription for higher limits.',
         },
         description:
-          'Rewrite AI-generated drafts into natural, human-like wording. Humanizer AI and Ladybug AI humanizer for clearer essays and papers.',
+          'Rewrite AI drafts into natural wording. Humanizer AI and Ladybug AI for clearer essays and papers.',
       },
     ],
   }

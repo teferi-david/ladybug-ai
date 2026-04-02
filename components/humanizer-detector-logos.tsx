@@ -22,8 +22,9 @@ export function HumanizerDetectorLogos() {
         id="humanizer-detector-logos-heading"
         className="mx-auto max-w-4xl text-center text-sm leading-relaxed text-gray-700 md:text-base"
       >
-        Ladybug AI Humanizer is 100% guaranteed to bypass Turnitin, GPTZero, ZeroGPT and ALL major AI
-        detectors, similar to Grubby AI.
+        We built Ladybug to play nice with Turnitin, GPTZero, ZeroGPT, and the usual detector lineup (same
+        ballpark as tools like Grubby AI). Real talk: no app can promise a perfect score every time, but we
+        try hard.
       </p>
       <ul
         className="mx-auto mt-6 flex max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-4 md:mt-7 md:gap-x-10 md:gap-y-5"

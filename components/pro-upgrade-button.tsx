@@ -3,7 +3,7 @@ import { Button, type ButtonProps } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 /**
- * Primary red CTA — matches site brand; Apple-style 44pt min tap target, rounded-xl.
+ * Primary red CTA; matches site brand. Apple style 44pt min tap target, rounded-xl.
  */
 export const proUpgradeButtonClassName = cn(
   'font-semibold',

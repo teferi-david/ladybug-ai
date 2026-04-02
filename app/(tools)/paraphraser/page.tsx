@@ -153,8 +153,8 @@ export default function ParaphraserPage() {
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Paraphraser</h1>
         <p className="mx-auto mt-4 max-w-md leading-relaxed text-gray-600">
-          Sign up or log in to use the paraphraser on the free tier — fair daily limits and the same signup
-          bonus rules as the AI Humanizer. Pro unlocks higher limits and unlimited use.
+          Sign up or log in to use the paraphraser on the free tier. Same fair daily limits and signup bonus
+          rules as the AI Humanizer. Pro unlocks higher limits and unlimited use.
         </p>
         <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
           <ProUpgradeButton asChild className="min-h-11 min-w-[200px]">

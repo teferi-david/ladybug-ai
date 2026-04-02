@@ -10,7 +10,7 @@ import { STRIPE_PRICE_IDS } from '@/lib/stripe-plans'
 import { cn } from '@/lib/utils'
 import { JoinStudentsVideoSection } from '@/components/join-students-video-section'
 
-/** Display math (annual total ÷ 12) — matches Stripe prices. */
+/** Display math (annual total ÷ 12); matches Stripe prices. */
 const BASIC_MONTHLY = 14.99
 const BASIC_ANNUAL_TOTAL = 59.4
 const UNLIMITED_MONTHLY = 24.99
@@ -31,7 +31,7 @@ const emeraldBadgeClass =
 
 const BASIC_FEATURES = [
   '500,000 words per year (all tools combined)',
-  'AI Humanizer — Basic, Advanced, and Academic (Turnitin) modes',
+  'AI Humanizer: Basic, Advanced, and Academic (Turnitin) modes',
   'Paraphraser & citation tools',
   '1-day free trial, then billing continues',
   'Cancel anytime in the Stripe customer portal',
@@ -110,7 +110,7 @@ export default function PricingPage() {
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
       <div className="mx-auto max-w-5xl">
-        {/* No top “Pricing” title — page context is obvious (Grubby-style: jump to value) */}
+        {/* No big Pricing H1; page context is obvious */}
         <div className="mb-10 text-center">
           <p className="mb-2 text-2xl font-bold text-primary md:text-3xl">1 Day free trial</p>
           <p className="mx-auto mb-8 max-w-lg text-sm text-gray-500">
@@ -251,7 +251,7 @@ export default function PricingPage() {
             <h3 className="mb-1 font-semibold">What is the free tier?</h3>
             <p className="text-sm text-gray-600">
               You can use the humanizer on the free tier with fair limits. Paid plans unlock every tool and
-              higher limits — Basic includes 500,000 words per rolling year; Unlimited has no word cap.
+              higher limits. Basic includes 500,000 words per rolling year; Unlimited has no word cap.
             </p>
           </div>
         </div>

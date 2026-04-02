@@ -166,7 +166,7 @@ export function SettingsPageClient() {
           <DialogHeader>
             <DialogTitle>Welcome to Ladybug AI</DialogTitle>
             <DialogDescription className="text-base text-gray-700">
-              You have <strong>{signupBonusWords.toLocaleString()} more words for free</strong> today — two
+              You have <strong>{signupBonusWords.toLocaleString()} more words for free</strong> today, plus two
               bonus runs on top of your daily free uses (shared across Humanizer, Paraphraser, and Citations).
               Open any of those tools to start.
             </DialogDescription>
@@ -184,7 +184,7 @@ export function SettingsPageClient() {
         <div className="mx-auto max-w-4xl">
           <div className="mb-8">
             <h1 className="mb-2 text-3xl font-bold">Settings</h1>
-            <p className="text-gray-600">Account, plan, and billing — {authUser.email}</p>
+            <p className="text-gray-600">Account, plan, and billing ({authUser.email})</p>
           </div>
 
           <Card className="mb-6">
@@ -263,7 +263,7 @@ export function SettingsPageClient() {
                 <div className="mt-2 space-y-6 border-t border-gray-100 pt-8">
                   <p className="max-w-prose text-sm leading-relaxed tracking-tight text-gray-600">
                     Start a 1-day free trial for unlimited AI Humanizer, Paraphraser, Citations, and higher
-                    word limits — then billed annually if you continue.
+                    word limits. After that you are billed annually if you stay subscribed.
                   </p>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <ProUpgradeButton asChild className="w-full sm:w-auto sm:min-w-[220px]">

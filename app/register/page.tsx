@@ -61,7 +61,7 @@ export default function RegisterPage() {
     setError(null)
 
     try {
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent('/pricing')}`
+      const redirectTo = getOAuthRedirectUrl('/pricing')
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo },
@@ -79,7 +79,7 @@ export default function RegisterPage() {
   return (
     <AuthSplitLayout
       title="Sign up for Ladybug AI"
-      subtitle="Try our next-gen undetectable AI humanizer to bypass AI detection effortlessly."
+      subtitle="Create an account and turn robotic drafts into something you would actually hand in."
     >
       {error && (
         <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

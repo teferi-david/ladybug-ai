@@ -19,30 +19,30 @@ export function HumanizerMarketing() {
     <article className="border-t border-gray-200 bg-white">
       <div className="container mx-auto max-w-4xl px-4 py-12 md:py-16">
         <p className="mb-10 text-center text-xs font-medium uppercase tracking-wide text-gray-500">
-          Learn more about the Ladybug AI Humanizer —{' '}
+          Curious about the Ladybug AI humanizer? Peek at the{' '}
           <Link
             href="/ai-humanizer"
             className="font-medium text-primary underline underline-offset-2 hover:text-primary/90"
           >
             AI humanizer landing page
           </Link>
+          .
         </p>
 
-        <Section title="Humanize AI content — natural, undetectable-style output">
+        <Section title="Humanize AI content that actually sounds like you">
           <p>
-            Humanize AI text and bypass Turnitin, GPTZero, and major AI detectors — 100% guaranteed. Ladybug AI
-            rewrites AI-generated drafts into natural, human-like prose that reads clearly and resonates with
-            real readers. Built for searches like how to bypass Turnitin, Turnitin AI detection, GPTZero
-            checker, undetectable AI, AI detector bypass, and beat Turnitin — so your work feels authentic,
-            polished, and ready to pass AI scanning tools.
+            Want AI text that clears Turnitin, GPTZero, and the usual suspects? We built Ladybug AI to rewrite
+            robotic drafts into something you could plausibly have typed at 2 a.m. It should read clear, sound
+            human, and still mean what you meant. People also find us when they search stuff like bypass
+            Turnitin, GPTZero checker, undetectable AI, or beat Turnitin. Fair warning: no tool is magic, but
+            this one tries hard.
           </p>
           <p>
-            The Ladybug AI humanizer adds a natural human touch to AI-generated text so it resonates with
-            readers and reads less like a machine. Our AI-to-human text flow keeps your meaning while
-            smoothing robotic phrasing — ideal for essays, posts, and professional drafts.
+            The humanizer nudges ChatGPT-ish lines toward real sentences. Same ideas, less &quot;beep boop.&quot;
+            Handy for essays, posts, emails, or anything that needs to not sound like a template.
           </p>
           <p>
-            For context on <strong>Turnitin</strong>, AI detection, and responsible use, see our{' '}
+            For a straight talk on Turnitin, AI detection, and not getting yourself in trouble, read our{' '}
             <Link
               href="/bypass-turnitin"
               className="font-medium text-primary underline underline-offset-2 hover:text-primary/90"
@@ -52,203 +52,200 @@ export function HumanizerMarketing() {
             .
           </p>
           <p>
-            Humanize drafts produced by ChatGPT, Gemini, Claude, and other assistants. Output stays
-            consistent in tone and structure, with the goal of passing common AI-detector checks when used
-            responsibly and in line with your institution&apos;s policies.
+            Works with output from ChatGPT, Gemini, Claude, and friends. Tone stays steadier, structure stays
+            sensible, and you still have to follow your school&apos;s rules (we are not your dean).
           </p>
         </Section>
 
-        <Section title="Best AI humanizer — authentic, human-like content">
-          <Subheading>Designed for strong detector compatibility</Subheading>
+        <Section title="Why people pick this humanizer">
+          <Subheading>Detector scores (the messy reality)</Subheading>
           <p>
-            Our humanizer is tuned to work alongside workflows that care about detector scores — including
-            tools like ZeroGPT, GPTZero, Copyleaks, Quillbot, Turnitin-style checks, and similar services
-            (results vary by detector and update cycle).
+            Lots of folks care about ZeroGPT, GPTZero, Copyleaks, Quillbot, Turnitin-style scans, and whatever
+            gets invented next month. We tune for that world. Scores move around when vendors update stuff, so
+            treat numbers as a hint, not a promise.
           </p>
-          <Subheading>Original &amp; authentic tone</Subheading>
+          <Subheading>Sound like a person, not a brochure</Subheading>
           <p>
-            Get human-like content that reads original to your voice. The tool focuses on clarity and
-            natural word choice so your ideas stay front and center — not generic filler.
+            The goal is simple: your ideas in front, filler in the back. Less &quot;furthermore,&quot; more
+            sentences a human would actually say out loud.
           </p>
-          <Subheading>Instant synonym &amp; refinement choices</Subheading>
+          <Subheading>Swap words without losing the plot</Subheading>
           <p>
-            Level up word choice with smarter alternatives that fit your context. Polish phrasing while
-            keeping your meaning — great for tightening sentences before you submit or publish.
+            Pick alternatives that fit the paragraph, tighten lines that ramble, then hit submit with slightly
+            less dread.
           </p>
-          <Subheading>Rephrase — refine — shine</Subheading>
+          <Subheading>Rephrase, polish, done</Subheading>
           <p>
-            Rewrite sections that still feel &quot;AI-ish&quot; into a more natural, polished version.
-            Adjust tone from casual to professional while preserving relevance and structure.
-          </p>
-        </Section>
-
-        <Section title="Modes &amp; writing levels">
-          <p>
-            Choose levels that match your needs — Basic, Advanced, and Academic (Turnitin) are all available on
-            the free tier within fair daily limits and per-run word caps. Different modes help you aim for the
-            right balance of simplicity and depth.
-          </p>
-          <Subheading>SEO-friendly phrasing</Subheading>
-          <p>
-            Important keywords can be retained while the surrounding text reads more naturally — helpful
-            when you need discoverable content that still sounds human.
-          </p>
-          <Subheading>Error-aware output</Subheading>
-          <p>
-            Our pipeline emphasizes clear vocabulary and cleaner grammar so your humanized text reads
-            professionally and is easier to trust at a glance.
+            Still sounds a bit AI-ish? Run it again. Slide from casual to formal without inventing facts you
+            did not put in.
           </p>
         </Section>
 
-        <Section title="What is &quot;Humanize AI&quot;?">
+        <Section title="Modes and writing levels">
           <p>
-            Humanize AI means rewriting machine-generated text so it sounds more human: conversational where
-            appropriate, clear, and relatable — without a stiff robotic tone. Ladybug AI is built as a focused
-            humanizer / AI-to-human converter for students, creators, and professionals.
+            Basic, Advanced, and Academic (Turnitin) are all on the free tier, inside the daily limits and the
+            per-run word cap. Pick the vibe you need: quick cleanup, sharper voice, or paper mode.
           </p>
+          <Subheading>Keywords without sounding like SEO spam</Subheading>
           <p>
-            We use modern language models and heuristics to preserve meaning, context, and structure while
-            improving flow — always review output for accuracy and policy compliance.
+            Keep the phrases you need for search; wrap them in sentences people want to read.
+          </p>
+          <Subheading>Cleaner grammar, fewer winces</Subheading>
+          <p>
+            We lean toward clear wording and fewer obvious mistakes so the page does not look thrown together.
           </p>
         </Section>
 
-        <Section title="How to humanize text (quick steps)">
+        <Section title='What people mean by &quot;humanize AI&quot;'>
+          <p>
+            Basically: make machine text feel like a person wrote it. Conversational when it fits, clear when
+            it matters, and not like a stiff FAQ. Ladybug is basically your &quot;make this readable&quot;
+            button for students, creators, and anyone who lives in Google Docs.
+          </p>
+          <p>
+            Under the hood we use modern models plus a pile of little checks to keep meaning and structure
+            intact. You still proofread. We are not submitting your paper for you.
+          </p>
+        </Section>
+
+        <Section title="How to humanize text (no drama version)">
           <ol className="list-decimal space-y-3 pl-5">
-            <li>Open Ladybug AI in your browser.</li>
-            <li>Paste your AI-generated text into the input area.</li>
-            <li>Pick a level: Basic, Advanced, or Academic (Turnitin) — all respect free-tier daily limits.</li>
-            <li>Click Humanize and wait for processing.</li>
-            <li>Review the output, copy, and edit as needed.</li>
+            <li>Open Ladybug in the browser.</li>
+            <li>Paste the AI draft.</li>
+            <li>Choose Basic, Advanced, or Academic (Turnitin). Free tier keeps the same daily rules.</li>
+            <li>Hit Humanize and wait.</li>
+            <li>Read it, tweak it, copy it.</li>
             <li>
-              Run again until you&apos;re happy — free tier has daily limits; a 1-day Pro trial removes the
-              cap on the humanizer and opens Paraphraser, Citations, and other tools.
+              Repeat until it feels right. Free tier has daily caps; Pro bumps limits and unlocks Paraphraser,
+              Citations, and the rest of the toolbox.
             </li>
           </ol>
         </Section>
 
         <Section title="Benefits">
           <ul className="list-disc space-y-2 pl-5">
-            <li>More natural tone for AI-assisted drafts</li>
-            <li>Helps reduce repetitive &quot;AI voice&quot; patterns</li>
-            <li>Strong fit for school and professional workflows (where permitted)</li>
-            <li>Saves editing time vs. rewriting everything by hand</li>
-            <li>Consistent structure — meaning preserved where possible</li>
+            <li>Less &quot;AI voice,&quot; more you</li>
+            <li>Fewer repetitive robot phrases</li>
+            <li>Works for school or work when your rules allow it</li>
+            <li>Faster than rewriting every sentence from scratch</li>
+            <li>Keeps structure steady so your argument stays intact</li>
           </ul>
         </Section>
 
         <Section title="Features">
           <ul className="list-disc space-y-2 pl-5">
-            <li>Simple interface — paste, choose level, humanize</li>
-            <li>Works in modern browsers; responsive layout</li>
+            <li>Paste, pick a level, click. That is the whole vibe.</li>
+            <li>Runs in normal browsers; phone and desktop</li>
             <li>
-              Free tier: all humanizer levels with fair daily limits and a 200-word cap per run; paid plans add
-              higher word caps and companion tools
+              Free tier: all humanizer levels, fair daily limits, 200 words per run. Paid plans add bigger caps
+              and extra tools
             </li>
-            <li>Privacy-minded: treat your text as sensitive; don&apos;t paste secrets you can&apos;t share</li>
+            <li>Do not paste passwords or state secrets. Obviously.</li>
           </ul>
         </Section>
 
-        <Section title="Why humanize AI text?">
+        <Section title="Why bother humanizing?">
           <p>
-            Readers engage more with content that feels personal and clear. Humanizing can also help address
-            awkward phrasing, cultural tone, and overly uniform AI rhythm — when combined with your own
-            review and citations.
+            People stick around when writing feels personal. Humanizing also smooths weird phrasing and that
+            same-y AI rhythm, especially next to your own edits and real citations.
           </p>
         </Section>
 
-        <Section title="Who it&apos;s for">
-          <p className="mb-3">Students, writers, marketers, developers, researchers, educators, and anyone polishing AI drafts.</p>
+        <Section title="Who uses this">
+          <p className="mb-3">
+            Students, writers, marketers, devs, researchers, teachers, and anyone who pasted from ChatGPT and
+            immediately regretted the tone.
+          </p>
           <ul className="list-disc space-y-2 pl-5">
-            <li>Content creators &amp; bloggers</li>
-            <li>Students &amp; researchers</li>
-            <li>Business &amp; email communication</li>
-            <li>Social &amp; community managers</li>
-            <li>Freelancers &amp; agencies</li>
+            <li>Bloggers and journalists</li>
+            <li>Anyone turning in homework (where it is allowed)</li>
+            <li>Email and Slack power users</li>
+            <li>Social teams who need copy yesterday</li>
+            <li>Freelancers and small agencies</li>
           </ul>
         </Section>
 
-        <Section title="Privacy &amp; support">
+        <Section title="Privacy and support">
           <p>
-            Your drafts are processed to generate output — follow your school or workplace rules on using
-            AI tools. For billing and account questions, use Settings after you sign in.
+            Drafts get processed so we can give you output. Follow your school or job policy on AI. Billing
+            questions? Settings, after you log in.
           </p>
         </Section>
 
-        <Section title="Diverse modes and writing styles">
+        <Section title="Modes and voice">
           <p>
-            Pick a level that fits your assignment or audience. Higher levels (Pro) aim for more nuanced
-            vocabulary and structure — always review against your course or workplace guidelines.
+            Match the level to the assignment. Pro tiers can go heavier on nuance; you still check it against
+            the syllabus or your boss.
           </p>
           <p>
-            Whether you need straightforward clarity or a more advanced academic tone, Ladybug AI helps you
-            steer the output before you finalize and cite sources yourself.
-          </p>
-        </Section>
-
-        <Section title="Why humanizing matters for readers &amp; search">
-          <p>
-            Natural language tends to engage readers longer. Search engines also favor helpful,
-            people-first content — humanizing can complement (not replace) solid research and original
-            insight.
+            Need plain English or a more academic feel? Steer it here, then add sources and citations on your
+            side.
           </p>
         </Section>
 
-        <Section title="Potential users — almost everyone with text">
+        <Section title="Readers, Google, and the rest">
+          <p>
+            Natural copy keeps eyeballs on the page. Search engines like helpful content too. Humanizing helps;
+            it does not replace research or original thinking.
+          </p>
+        </Section>
+
+        <Section title="Pretty much anyone with text">
           <ul className="list-disc space-y-2 pl-5">
-            <li>Content creators, bloggers, and journalists</li>
-            <li>Marketing and growth teams polishing campaign copy</li>
-            <li>Students balancing clarity with academic rules</li>
-            <li>Developers and designers improving UX copy and in-product text</li>
-            <li>PR, social media, e-commerce, HR, legal (with professional review), and more</li>
+            <li>Creators, bloggers, reporters</li>
+            <li>Growth and marketing teams</li>
+            <li>Students trying to sound like themselves</li>
+            <li>Product and design folks fixing microcopy</li>
+            <li>Shops, HR, social, ecomm, and the occasional lawyer (with a real lawyer double-checking)</li>
           </ul>
         </Section>
 
-        <Section title="Experience humanized AI content">
+        <Section title="Before you go">
           <p>
-            We take privacy seriously: avoid pasting highly sensitive secrets. For billing and accounts, use
-            Settings when signed in. Need help? Reach out via the contact email in the site footer.
+            Skip pasting nuclear launch codes. For invoices and passwords, use Settings when you are signed in.
+            Stuck? Email us from the footer.
           </p>
         </Section>
 
-        <Section title="Frequently asked questions">
+        <Section title="FAQ">
           <div className="space-y-6">
             <div>
               <h4 className="font-semibold text-gray-900">What does humanize AI text mean?</h4>
               <p className="mt-2">
-                It means rewriting AI output to sound more natural and human — clearer flow, fewer robotic
-                tells, same core ideas.
+                You take AI output and rewrite it so it sounds like a person wrote it: better flow, fewer weird
+                tells, same ideas.
               </p>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900">Is Ladybug AI free?</h4>
               <p className="mt-2">
-                Yes — a free tier is available with daily limits. Pro adds higher limits, extra levels, and
-                more tools.
+                Yep, there is a free tier with daily limits. Pro adds more room, more tools, and fewer
+                headaches on long projects.
               </p>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900">How fast is humanization?</h4>
               <p className="mt-2">
-                Longer passages can take more time. Stay on the page until processing finishes; very long
-                inputs may time out — try a shorter excerpt.
+                Long chunks take longer. Stay on the page until it finishes. If it times out, try a shorter
+                chunk. Rome was not humanized in one pass.
               </p>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900">Do AI detectors always work?</h4>
               <p className="mt-2">
-                Detectors change over time and can be imperfect. Always follow academic integrity rules and
-                disclose AI use where required.
+                Nope. They update, they misfire, and your professor still has common sense. Follow integrity
+                rules and disclose AI when you have to.
               </p>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900">Can I use this on mobile?</h4>
-              <p className="mt-2">Yes — the site is responsive and works on phones and tablets.</p>
+              <p className="mt-2">Sure. The layout stretches for phones and tablets.</p>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900">Do I need an account for the free tier?</h4>
               <p className="mt-2">
-                You can try the humanizer without signing in within fair daily limits; signing in helps sync
-                usage consistently across sessions.
+                You can poke around within limits without an account. Signing in keeps your usage from
+                wandering off between sessions.
               </p>
             </div>
           </div>
@@ -257,7 +254,7 @@ export function HumanizerMarketing() {
         <div className="mt-12 rounded-2xl border border-gray-200 bg-gray-50/80 px-6 py-8 text-center">
           <p className="text-sm font-semibold text-gray-900">Ladybug AI™</p>
           <p className="mt-2 text-sm text-gray-600">
-            Your AI writing companion — Humanizer, Paraphraser, Citations, and more in one place.
+            Humanizer, Paraphraser, Citations, and friends. One spot. Less tab chaos.
           </p>
         </div>
       </div>

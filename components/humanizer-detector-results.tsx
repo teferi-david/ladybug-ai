@@ -39,10 +39,10 @@ export function HumanizerDetectorResults() {
             id="detector-results-heading"
             className="text-xl font-bold tracking-tight text-gray-900 md:text-2xl"
           >
-            Ladybug AI bypassing major AI detectors
+            What scans can look like after humanizing
           </h2>
           <p className="mt-2 text-sm text-gray-600 md:text-base">
-            Tap a detector to see real scan-style results from humanized samples.
+            Pick a detector. These are sample style screenshots from humanized text (your mileage may vary).
           </p>
         </div>
 

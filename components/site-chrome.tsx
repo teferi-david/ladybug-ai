@@ -12,7 +12,7 @@ function isMinimalAuthChrome(pathname: string): boolean {
 }
 
 /**
- * Hides top nav and footer on auth flows for a focused, full-screen experience (Apple-style sign-in).
+ * Hides top nav and footer on auth flows for a simple full screen sign in.
  */
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? ''

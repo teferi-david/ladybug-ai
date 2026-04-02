@@ -4,19 +4,19 @@ import Link from 'next/link'
 import { Check } from 'lucide-react'
 
 const BULLETS = [
-  'Humanize AI text in 3 seconds or less',
-  'Bypass GPT zero, Turnitin & all AI detectors - guaranteed!',
-  '24/7 customer support',
-  'Trusted by 100,000+ users!',
+  'Humanize AI text in a few seconds (we timed it on decent WiFi)',
+  'Built for GPTZero, Turnitin vibes, and the rest of the detector circus',
+  'Support when you need a human, not another bot',
+  'A big crowd of students already swear by it',
 ] as const
 
 const marketingBlock = (
   <div className="mx-auto w-full max-w-lg text-left">
     <p className="text-balance text-2xl font-semibold leading-snug tracking-tight text-white drop-shadow-sm xl:text-[1.65rem]">
-      Humanize AI Texts and Bypass Content Detectors
+      Make AI text sound human (without the cringe)
     </p>
     <p className="mt-4 text-base font-medium text-white drop-shadow-sm md:text-lg">
-      Sign up now to get <span className="font-semibold text-rose-200">150 FREE words</span>
+      New accounts get <span className="font-semibold text-rose-200">150 bonus words</span> to play with
     </p>
     <ul className="mt-8 w-full space-y-4 text-left text-sm leading-relaxed text-white/95 md:text-base">
       {BULLETS.map((line) => (

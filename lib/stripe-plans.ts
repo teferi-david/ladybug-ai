@@ -1,4 +1,4 @@
-/** Stripe Price IDs — Basic & Unlimited, monthly & annual (env overrides). */
+/** Stripe Price IDs: Basic and Unlimited, monthly and annual (env overrides). */
 export const STRIPE_PRICE_IDS = {
   basicMonthly: process.env.STRIPE_PRICE_BASIC_MONTHLY ?? 'price_1THQqDDds2fevCulVdKNDgkM',
   basicAnnual: process.env.STRIPE_PRICE_BASIC_ANNUAL ?? 'price_1THQcQDds2fevCulkQZFFItb',
@@ -45,17 +45,17 @@ export function isUnlimitedPlanKey(plan: string): boolean {
 export function getPlanDisplayName(plan: string | null | undefined): string {
   switch (plan) {
     case 'basic_monthly':
-      return 'Basic — Monthly'
+      return 'Basic (monthly)'
     case 'basic_annual':
-      return 'Basic — Annual'
+      return 'Basic (annual)'
     case 'unlimited_monthly':
-      return 'Unlimited — Monthly'
+      return 'Unlimited (monthly)'
     case 'unlimited_annual':
-      return 'Unlimited — Annual'
+      return 'Unlimited (annual)'
     case 'annual':
-      return 'Pro — Annual (legacy)'
+      return 'Pro annual (legacy)'
     case 'monthly':
-      return 'Pro — Monthly (legacy)'
+      return 'Pro monthly (legacy)'
     case 'trial':
       return 'Trial'
     default:

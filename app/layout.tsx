@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: '%s | Ladybug AI',
   },
   description:
-    'Ladybug AI humanizer: turn AI drafts into natural, human-like text. Humanizer AI for students — paste AI text, get a clearer rewrite. Free tier available.',
+    'Ladybug AI humanizer turns stiff AI drafts into text that sounds human. Paste your draft, get a cleaner rewrite. Free tier included.',
   applicationName: 'Ladybug AI',
   keywords: [
     'ai humanizer',

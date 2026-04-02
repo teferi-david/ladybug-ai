@@ -16,7 +16,7 @@ function safeNextPath(next: string | null): string {
 
 /**
  * OAuth (Google) redirect target. Supabase validates redirectTo against the project's
- * "Redirect URLs" list — add:
+ * "Redirect URLs" list. Add:
  *   https://YOUR_DOMAIN/auth/callback
  *   https://YOUR_DOMAIN/auth/callback?next=%2Fpricing (if using post-signup next=)
  *   http://localhost:3000/auth/callback (dev)

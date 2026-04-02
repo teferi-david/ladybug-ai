@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   /** Avoids root `template: '%s | Ladybug AI'` doubling the brand name. */
   title: { absolute: 'Undetectable AI Humanizer: Ladybug AI' },
   description:
-    'Ladybug AI humanizer: humanizer AI that rewrites AI text to sound natural. Free AI humanizer for students — paste text, get human-like output.',
+    'Ladybug AI humanizer rewrites AI text so it sounds natural. Free tier for students: paste a draft, get human sounding output.',
   verification: {
     google: 'qvADDwV66FQYyjM9peClKgzJiRefSJ-3I-7-hFJ_EnI',
   },

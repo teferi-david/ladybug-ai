@@ -6,14 +6,14 @@ import { Button } from '@/components/ui/button'
 const siteUrl = getSiteUrl()
 
 export const metadata: Metadata = {
-  title: 'AI Humanizer — Natural Text for Turnitin & AI Detection Concerns',
+  title: 'AI Humanizer | Natural Text for Turnitin & AI Detection Concerns',
   description:
     'AI humanizer for students and writers: rewrite AI drafts into clearer, more human-like text. Learn how humanizing relates to Turnitin-style checks and academic integrity.',
   alternates: {
     canonical: `${siteUrl}/bypass-turnitin`,
   },
   openGraph: {
-    title: 'Ladybug AI — AI Humanizer & Human-Like Rewrites',
+    title: 'Ladybug AI | AI Humanizer & Human-Like Rewrites',
     description:
       'Humanize AI text for natural tone. Understand Turnitin, originality, and responsible use.',
     url: `${siteUrl}/bypass-turnitin`,
@@ -40,8 +40,8 @@ export default function BypassTurnitinLandingPage() {
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-gray-600">
           Ladybug AI is an <strong>AI humanizer</strong>: it helps you rewrite AI-assisted drafts so they
-          read more naturally and clearly. Below is how that relates to{' '}
-          <strong>Turnitin</strong> and similar tools — and how to stay on the right side of your
+          read more naturally and clearly. Here is how that connects to{' '}
+          <strong>Turnitin</strong> and similar tools, plus how to stay on the right side of your
           school&apos;s rules.
         </p>
 
@@ -61,7 +61,7 @@ export default function BypassTurnitinLandingPage() {
               Turnitin and similar tools check for <strong>similarity</strong> to other sources and, in many
               setups, signals that may indicate AI-generated text. Results depend on your institution&apos;s
               settings and how you use sources. Searching for ways to &quot;<strong>bypass Turnitin</strong>
-              &quot; usually means wanting text that passes those checks — but the only durable approach is{' '}
+              &quot; usually means wanting text that passes those checks, but the only durable approach is{' '}
               <strong>original thinking, proper citation, and following your school&apos;s AI policy</strong>
               .
             </p>
@@ -70,7 +70,7 @@ export default function BypassTurnitinLandingPage() {
           <section>
             <h2 className="text-xl font-bold text-gray-900">How Ladybug AI fits</h2>
             <p className="mt-3 leading-relaxed">
-              Our <strong>humanizer</strong> focuses on readability and natural phrasing — not on evading
+              Our <strong>humanizer</strong> focuses on readability and natural phrasing, not on sneaking past
               academic integrity rules. If your course allows AI assistance, use it transparently; if not,
               don&apos;t. We encourage you to cite sources, write your own analysis, and submit work that
               reflects your learning.

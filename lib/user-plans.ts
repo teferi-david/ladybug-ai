@@ -27,7 +27,7 @@ export const USER_PLANS: Record<string, UserPlan> = {
     planType: 'annual',
     wordLimit: 1000,
     periodDays: 365,
-    description: 'Pro — all tools, up to 1,000 words per request, no daily caps'
+    description: 'Pro: all tools, up to 1,000 words per request, no daily caps'
   },
   singleUse: {
     id: 'singleUse',

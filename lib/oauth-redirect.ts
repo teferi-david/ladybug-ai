@@ -3,7 +3,7 @@
  *
  * Always use a full https origin + /auth/callback so Supabase never treats the redirect as a path
  * fragment (e.g. …supabase.co/ladybugai.us). Set NEXT_PUBLIC_APP_URL in production to your canonical
- * site, e.g. https://ladybugai.us — must match entries under Supabase → Authentication → URL
+ * site, e.g. https://ladybugai.us. Must match entries under Supabase Authentication URL configuration.
  * configuration → Redirect URLs:
  *   https://ladybugai.us/auth/callback
  *   https://ladybugai.us/auth/callback?next=%2Fpricing

@@ -73,7 +73,7 @@ export default function LoginPage() {
   return (
     <AuthSplitLayout
       title="Welcome back"
-      subtitle="Sign in to Ladybug AI — humanize AI text and bypass detectors in seconds."
+      subtitle="Sign in to Ladybug AI. Humanize AI text and clean up drafts without the drama."
     >
       {error && (
         <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

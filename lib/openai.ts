@@ -76,7 +76,7 @@ export async function paraphraseText(text: string): Promise<string> {
           role: 'system',
           content:
             'You paraphrase text for students. Keep the same meaning and facts. Use clear, natural English. ' +
-            'Vary wording and sentence structure. Output only the paraphrased text—no quotes or preamble.',
+            'Vary wording and sentence structure. Output only the paraphrased text. No quotes or preamble.',
         },
         {
           role: 'user',

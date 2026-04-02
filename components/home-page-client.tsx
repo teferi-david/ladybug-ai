@@ -245,8 +245,8 @@ export function HomePageClient() {
               Humanize AI text &amp; bypass AI detectors
             </h1>
             <p className="text-base text-gray-600 md:text-lg">
-              The fastest, most affordable, and least detectable AI humanizer, guaranteed to outperform any
-              competitor.
+              Fast, priced like a coffee subscription, and built to make AI drafts sound less like a robot
+              wrote them at 3 a.m.
             </p>
           </motion.div>
 
@@ -256,7 +256,7 @@ export function HomePageClient() {
                 <CardTitle className="flex items-center gap-2">
                   <span className="text-base font-semibold text-gray-500">Input</span>
                 </CardTitle>
-                <CardDescription>Choose a level, paste your text, then humanize.</CardDescription>
+                <CardDescription>Pick a level, drop in your text, hit humanize.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 flex-1 flex flex-col">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-3">
@@ -292,7 +292,7 @@ export function HomePageClient() {
                     {processing
                       ? 'Working…'
                       : atDailyLimit
-                        ? 'Limit reached — try a plan for free'
+                        ? 'Limit reached, try a plan for free'
                         : 'Humanize text'}
                   </Button>
                 </div>
@@ -302,7 +302,7 @@ export function HomePageClient() {
                     <span className="text-sm text-gray-500">{wordCount} words</span>
                   </div>
                   <Textarea
-                    placeholder="Paste your AI-generated text here..."
+                    placeholder="Paste the AI text you want to fix..."
                     className="min-h-[280px] flex-1 resize-y"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -330,7 +330,7 @@ export function HomePageClient() {
             <Card className="border-2 border-gray-200 shadow-sm flex flex-col min-h-[420px]">
               <CardHeader>
                 <CardTitle className="text-base font-semibold text-gray-500">Human-like output</CardTitle>
-                <CardDescription>Review and copy when ready.</CardDescription>
+                <CardDescription>Read it, tweak it, copy when you are happy.</CardDescription>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col gap-4">
                 {processing && (
@@ -352,7 +352,7 @@ export function HomePageClient() {
 
                 {!processing && !output && (
                   <div className="flex-1 flex items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50/80 px-6 py-12 text-center text-gray-500 text-sm">
-                    Humanized text will show here after you run the tool.
+                    Your humanized text lands here after you run the tool.
                   </div>
                 )}
 

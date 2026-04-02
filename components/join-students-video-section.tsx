@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-/** Ladybug AI promo short — loads and plays when scrolled into view (muted autoplay for browser policy). */
+/** Ladybug AI promo short: loads when scrolled into view (muted autoplay for browser policy). */
 const YOUTUBE_SHORT_ID = 'EyVwMoqsyQo'
 
 export function JoinStudentsVideoSection() {
@@ -39,7 +39,7 @@ export function JoinStudentsVideoSection() {
           id="join-students-video-heading"
           className="mx-auto max-w-5xl text-base font-bold leading-snug tracking-tight text-gray-900 sm:text-lg md:text-xl lg:text-2xl lg:whitespace-nowrap"
         >
-          Join 10,000+ students already using the Ladybug AI humanizer tool!
+          Join 10,000+ students who already roped Ladybug into their late night drafts
         </h2>
 
         <div className="mx-auto mt-10 max-w-[280px] md:max-w-[320px]">
@@ -71,9 +71,9 @@ export function JoinStudentsVideoSection() {
         </div>
 
         <p className="mx-auto mt-8 max-w-2xl text-base leading-relaxed text-gray-600 md:text-lg">
-          From essays to research papers and last-minute drafts, Ladybug AI helps your writing read clearly
-          and naturally. Try it for all your schoolwork and see why students choose Ladybug over generic AI
-          text.
+          Essays, research papers, panic drafts at midnight. Ladybug nudges your writing so it reads clear and
+          human instead of copy pasted from a chatbot. See why people pick it over yet another generic AI
+          wall of text.
         </p>
       </div>
     </section>

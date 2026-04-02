@@ -4,7 +4,7 @@ import { getSiteUrl } from '@/lib/site-url'
 const base = getSiteUrl()
 
 export const metadata: Metadata = {
-  title: 'Pricing — AI Humanizer Pro | Ladybug AI',
+  title: 'Pricing | AI Humanizer Pro | Ladybug AI',
   description:
     'Ladybug AI Pro: unlimited AI humanizer, all levels, higher word limits. Compare plans for the best AI humanizer for students.',
   keywords: [
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     canonical: `${base}/pricing`,
   },
   openGraph: {
-    title: 'Pricing — Ladybug AI Humanizer',
+    title: 'Pricing | Ladybug AI Humanizer',
     description: 'Pro plans for unlimited AI humanizing and advanced writing tools.',
     url: `${base}/pricing`,
   },

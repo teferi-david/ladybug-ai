@@ -176,8 +176,8 @@ export default function CitationPage() {
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Citation tool</h1>
         <p className="mx-auto mt-4 max-w-md leading-relaxed text-gray-600">
-          Sign up or log in to generate APA &amp; MLA citations on the free tier — fair daily limits and the
-          same signup bonus rules as the AI Humanizer. Pro unlocks higher field limits and unlimited use.
+          Sign up or log in to build APA and MLA citations on the free tier. You get the same fair daily limits
+          and signup bonus rules as the AI Humanizer. Pro adds bigger field limits and unlimited use.
         </p>
         <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
           <ProUpgradeButton asChild className="min-h-11 min-w-[200px]">
@@ -218,7 +218,7 @@ export default function CitationPage() {
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Format</CardTitle>
-          <CardDescription>Fill what you know — leave blanks if unsure</CardDescription>
+          <CardDescription>Fill what you know. Blank fields are fine if you are not sure.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -302,7 +302,7 @@ export default function CitationPage() {
           <p className="text-xs text-gray-500">
             Words in fields: {wordCount} / {maxWords}
             {!premium && overWordLimit && (
-              <span className="text-red-600"> — shorten fields for free tier</span>
+              <span className="text-red-600">. Shorten fields to stay inside the free tier cap.</span>
             )}
           </p>
 
