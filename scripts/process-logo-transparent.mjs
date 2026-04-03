@@ -1,9 +1,11 @@
 /**
- * Remove solid black background without stripping bug blacks that connect to the edge.
+ * OPTIONAL — only for raw exports with a solid black background you need removed automatically.
  *
- * 1) Edge flood-fill removes black connected to image edges (same as before).
- * 2) Restore black pixels that belong to the art: near red/white seeds (distance cap),
- *    or any black pixel 8-adjacent to white (head markings next to black outline).
+ * If your logo is already final, copy it to public/logo.jpg (or .png with real alpha) as-is,
+ * then: node scripts/generate-favicons.mjs
+ *
+ * This script: (1) edge flood-fill on black from edges, (2) restore blacks near red/white art.
+ * That heuristics pass can add extra black or alter edges — prefer a clean export + direct copy.
  *
  * Reads public/logo-source.png → writes public/logo.png
  * Run: node scripts/process-logo-transparent.mjs

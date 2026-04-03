@@ -3,7 +3,7 @@ import { ArrowRight, Sparkles } from 'lucide-react'
 import { LogoMark } from '@/components/logo-mark'
 
 /**
- * Ryne-style hero: badge, floating transparent logo (shadow only), split headline, CTAs, trust metrics.
+ * Ryne-style hero: badge, floating logo (shadow only), split headline, CTAs, trust metrics.
  * Stats use honest positioning (no fabricated “2.3M” or “99.9%” unless you have data).
  */
 export function LandingHero() {
@@ -16,7 +16,7 @@ export function LandingHero() {
           <span>#1 Ranked AI Humanizer</span>
         </div>
 
-        {/* Floating logo (transparent asset + drop shadow only — no ring or glass circle) */}
+        {/* Floating logo (site asset + drop shadow only — no ring or glass circle) */}
         <div className="relative mx-auto mb-8 flex justify-center px-2">
           <LogoMark
             size={220}
