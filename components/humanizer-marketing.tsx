@@ -16,7 +16,7 @@ function Subheading({ children }: { children: ReactNode }) {
 
 export function HumanizerMarketing() {
   return (
-    <article className="border-t border-gray-200 bg-white">
+    <article className="border-t border-white/30 bg-white/40 backdrop-blur-sm">
       <div className="container mx-auto max-w-4xl px-4 py-12 md:py-16">
         <p className="mb-10 text-center text-xs font-medium uppercase tracking-wide text-gray-500">
           Curious about the Ladybug AI humanizer? Peek at the{' '}

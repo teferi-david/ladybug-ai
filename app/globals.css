@@ -67,5 +67,32 @@
       0 1px 0 rgba(255, 255, 255, 0.9) inset,
       0 12px 40px rgba(0, 0, 0, 0.06);
   }
+
+  /* Slow drift for ambient red / rose orbs (very subtle “liquid” motion) */
+  .ambient-orb {
+    will-change: transform;
+    animation: ambient-drift 75s ease-in-out infinite;
+  }
+  .ambient-orb-2 {
+    animation-duration: 95s;
+    animation-delay: -20s;
+  }
+  .ambient-orb-3 {
+    animation-duration: 110s;
+    animation-delay: -40s;
+  }
+
+  @keyframes ambient-drift {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(4%, -3%) scale(1.04);
+    }
+    66% {
+      transform: translate(-3%, 5%) scale(1.02);
+    }
+  }
 }
 

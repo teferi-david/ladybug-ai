@@ -30,8 +30,9 @@ export function JoinStudentsVideoSection() {
 
   return (
     <section
+      id="demo"
       ref={sectionRef}
-      className="border-t border-gray-200 bg-gradient-to-b from-white to-gray-50/90 py-12 md:py-16"
+      className="border-t border-white/30 bg-white/30 py-12 backdrop-blur-sm md:py-16"
       aria-labelledby="join-students-video-heading"
     >
       <div className="container mx-auto max-w-4xl px-4 text-center">

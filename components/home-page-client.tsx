@@ -12,7 +12,8 @@ import { supabase } from '@/lib/supabase/client'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
 import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 import { UpgradeModal } from '@/components/upgrade-modal'
-import { HumanizerHero } from '@/components/humanizer-hero'
+import { LandingHero } from '@/components/landing-hero'
+import { PricingTeaser } from '@/components/pricing-teaser'
 import { HumanizerDetectorLogos } from '@/components/humanizer-detector-logos'
 import { HumanizerDetectorResults } from '@/components/humanizer-detector-results'
 import { JoinStudentsVideoSection } from '@/components/join-students-video-section'
@@ -226,32 +227,31 @@ export function HomePageClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50/90 via-white to-gray-50/90">
-      <HumanizerHero />
+    <div className="min-h-screen">
+      <LandingHero />
       <UpgradeModal
         open={upgradeModalOpen}
         onClose={() => setUpgradeModalOpen(false)}
         message={upgradeMessage}
       />
-      <section className="py-10 md:py-14">
+      <section id="humanizer-tool" className="py-8 md:py-12">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
-            className="mx-auto mb-10 max-w-3xl text-center"
+            className="mx-auto mb-8 max-w-2xl text-center"
           >
-            <h1 className="mb-3 text-center text-base font-bold leading-snug tracking-tight text-gray-900 sm:text-lg md:text-xl lg:text-2xl lg:whitespace-nowrap xl:text-3xl">
-              Humanize AI text &amp; bypass AI detectors
-            </h1>
-            <p className="text-base text-gray-600 md:text-lg">
-              Fast, priced like a coffee subscription, and built to make AI drafts sound less like a robot
-              wrote them at 3 a.m.
+            <h2 className="text-lg font-bold tracking-tight text-gray-900 md:text-xl">
+              Humanize your text
+            </h2>
+            <p className="mt-2 text-sm text-gray-600 md:text-base">
+              Paste a draft, pick a mode, and run the humanizer. Free tier includes daily limits.
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-2 gap-6 max-w-6xl mx-auto items-stretch">
-            <Card className="border-2 border-primary/20 shadow-sm flex flex-col">
+          <div className="mx-auto grid max-w-6xl items-stretch gap-6 lg:grid-cols-2">
+            <Card className="liquid-glass-bubble flex flex-col border-2 border-primary/25 shadow-lg shadow-rose-950/10">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <span className="text-base font-semibold text-gray-500">Input</span>
@@ -327,7 +327,7 @@ export function HomePageClient() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-gray-200 shadow-sm flex flex-col min-h-[420px]">
+            <Card className="liquid-glass-bubble flex min-h-[420px] flex-col border-2 border-white/50 shadow-lg shadow-rose-950/10">
               <CardHeader>
                 <CardTitle className="text-base font-semibold text-gray-500">Human-like output</CardTitle>
                 <CardDescription>Read it, tweak it, copy when you are happy.</CardDescription>
@@ -386,8 +386,9 @@ export function HomePageClient() {
           </div>
         </div>
       </section>
+      <PricingTeaser />
       <JoinStudentsVideoSection />
-      <div className="border-b border-amber-200/70 bg-gradient-to-r from-amber-50/90 via-white to-rose-50/80">
+      <div className="border-b border-white/30 bg-white/25 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-8 md:py-10">
           <HumanizerDetectorLogos />
         </div>
