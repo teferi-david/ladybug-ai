@@ -40,7 +40,7 @@ export function JoinStudentsVideoSection() {
           id="join-students-video-heading"
           className="mx-auto max-w-5xl text-base font-bold leading-snug tracking-tight text-gray-900 sm:text-lg md:text-xl lg:text-2xl lg:whitespace-nowrap"
         >
-          Join 10,000+ students who use Ladybug to humanize their Essays
+          Join thousands of students who use Ladybug to humanize essays
         </h2>
 
         <div className="mx-auto mt-10 max-w-[280px] md:max-w-[320px]">

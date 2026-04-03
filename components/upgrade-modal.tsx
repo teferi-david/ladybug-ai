@@ -26,7 +26,7 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
           <DialogTitle>Try Pro free</DialogTitle>
           <DialogDescription>
             {message ||
-              "You have used your free humanizer runs for today. Grab a 1-day free trial for unlimited AI Humanizer, Paraphraser, Citations, and the rest of Pro. If you still like us after that, annual billing kicks in."}
+              'You have used your free humanizer runs for today. Start a 1-day free trial for unlimited AI Humanizer, Paraphraser, Citations, and the rest of Pro. After the trial, billing continues on the plan you select.'}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col gap-4 sm:flex-row sm:gap-3">

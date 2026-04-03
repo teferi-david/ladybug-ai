@@ -28,9 +28,9 @@ type FreeUsage = {
 }
 
 const HUMANIZE_LOADING_MESSAGES = [
-  'Bypassing Turnitin',
-  'Bypassing GPTZero',
-  'Bypassing All AI Detectors',
+  'Refining phrasing and tone',
+  'Improving natural flow',
+  'Preparing your humanized text',
 ] as const
 
 export function HomePageClient() {
@@ -207,7 +207,7 @@ export function HomePageClient() {
         setUpgradeModalOpen(true)
         void refreshFreeUsage()
       } else {
-        alert(`❌ ${e.message || 'Something went wrong'}`)
+        alert(e.message || 'Something went wrong. Please try again.')
       }
     } finally {
       clearProgressAnimation()
@@ -256,7 +256,7 @@ export function HomePageClient() {
                 <CardTitle className="flex items-center gap-2">
                   <span className="text-base font-semibold text-gray-500">Input</span>
                 </CardTitle>
-                <CardDescription>Pick a level, drop in your text, hit humanize.</CardDescription>
+                <CardDescription>Choose a level, paste your text, then run Humanize.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 flex-1 flex flex-col">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-3">
@@ -302,7 +302,7 @@ export function HomePageClient() {
                     <span className="text-sm text-gray-500">{wordCount} words</span>
                   </div>
                   <Textarea
-                    placeholder="Paste the AI text you want to fix..."
+                    placeholder="Paste the AI text you want to humanize..."
                     className="min-h-[280px] flex-1 resize-y"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}

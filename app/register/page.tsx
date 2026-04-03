@@ -80,7 +80,7 @@ export default function RegisterPage() {
   return (
     <AuthSplitLayout
       title="Sign up for Ladybug AI"
-      subtitle="Create an account and turn robotic drafts into something you would actually hand in."
+      subtitle="Create an account to turn AI drafts into natural, polished writing you can submit with confidence."
     >
       {error && (
         <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -88,23 +88,20 @@ export default function RegisterPage() {
         </div>
       )}
 
-      <div className="flex justify-center">
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="h-12 w-12 shrink-0 rounded-full border-gray-300 bg-white hover:bg-gray-50"
-          onClick={handleGoogleSignIn}
-          disabled={loading || googleLoading}
-          aria-label={googleLoading ? 'Connecting with Google' : 'Continue with Google'}
-        >
-          {googleLoading ? (
-            <Loader2 className="h-6 w-6 animate-spin text-gray-700" aria-hidden />
-          ) : (
-            <GoogleBrandIcon className="h-6 w-6" />
-          )}
-        </Button>
-      </div>
+      <Button
+        type="button"
+        variant="outline"
+        className="flex h-12 w-full items-center justify-center gap-3 rounded-lg border-gray-300 bg-white px-4 font-medium text-gray-800 hover:bg-gray-50"
+        onClick={handleGoogleSignIn}
+        disabled={loading || googleLoading}
+      >
+        {googleLoading ? (
+          <Loader2 className="h-5 w-5 shrink-0 animate-spin text-gray-700" aria-hidden />
+        ) : (
+          <GoogleBrandIcon className="h-5 w-5 shrink-0" />
+        )}
+        <span>{googleLoading ? 'Connecting…' : 'Continue with Google'}</span>
+      </Button>
 
       <AuthEmailDivider />
 

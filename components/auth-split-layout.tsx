@@ -5,19 +5,19 @@ import { LogoMark } from '@/components/logo-mark'
 import { Check } from 'lucide-react'
 
 const BULLETS = [
-  'Humanize AI text in a few seconds (we timed it on decent WiFi)',
-  'Built for GPTZero, Turnitin vibes, and the rest of the detector circus',
-  'Support when you need a human, not another bot',
-  'A big crowd of students already swear by it',
+  'Humanize drafts in seconds with clear, natural sounding output',
+  'Tuned for GPTZero, Turnitin, and other widely used AI detectors',
+  'Real support from our team when you need it',
+  'Trusted by a large community of students and writers',
 ] as const
 
 const marketingBlock = (
   <div className="mx-auto w-full max-w-lg text-left">
     <p className="text-balance text-2xl font-semibold leading-snug tracking-tight text-white drop-shadow-sm xl:text-[1.65rem]">
-      Make AI text sound human (without the cringe)
+      Make AI text read clearly and sound human
     </p>
     <p className="mt-4 text-base font-medium text-white drop-shadow-sm md:text-lg">
-      New accounts get <span className="font-semibold text-rose-200">150 bonus words</span> to play with
+      New accounts include <span className="font-semibold text-rose-200">150 bonus words</span> to get started
     </p>
     <ul className="mt-8 w-full space-y-4 text-left text-sm leading-relaxed text-white/95 md:text-base">
       {BULLETS.map((line) => (

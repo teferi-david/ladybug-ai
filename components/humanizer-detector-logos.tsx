@@ -22,9 +22,9 @@ export function HumanizerDetectorLogos() {
         id="humanizer-detector-logos-heading"
         className="mx-auto max-w-4xl text-center text-sm leading-relaxed text-gray-700 md:text-base"
       >
-        We built Ladybug to play nice with Turnitin, GPTZero, ZeroGPT, and the usual detector lineup (same
-        ballpark as tools like Grubby AI). Real talk: no app can promise a perfect score every time, but we
-        try hard.
+        Ladybug is built to align with how Turnitin, GPTZero, ZeroGPT, and similar systems evaluate text
+        (in the same category as tools like Grubby AI). No product can guarantee a fixed score on every run,
+        but we focus on strong, natural rewrites you can review with confidence.
       </p>
       <ul
         className="mx-auto mt-6 flex max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-4 md:mt-7 md:gap-x-10 md:gap-y-5"

@@ -20,7 +20,7 @@ export default function AboutPage() {
       <article className="container mx-auto max-w-3xl px-4 py-14 md:py-20">
         <p className="text-center text-sm font-semibold uppercase tracking-wide text-primary">About</p>
         <h1 className="mt-3 text-center text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
-          Writing tools that feel human
+          Writing tools built for natural, confident results
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-center text-lg leading-relaxed text-gray-600">
           Ladybug AI started as a simple idea: AI can help you draft, but the words still need to sound like

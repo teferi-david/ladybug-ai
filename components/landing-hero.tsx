@@ -16,7 +16,7 @@ export function LandingHero() {
           <span>#1 Ranked AI Humanizer</span>
         </div>
 
-        {/* Floating logo (site asset + drop shadow only — no ring or glass circle) */}
+        {/* Floating logo (site asset + drop shadow only; no ring or glass circle) */}
         <div className="relative mx-auto mb-8 flex justify-center px-2">
           <LogoMark
             size={220}
