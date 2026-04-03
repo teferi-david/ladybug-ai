@@ -3,18 +3,15 @@ import { humanizeText } from '@/lib/openai'
 import {
   getAuthUserIdFromRequest,
   getUserRowById,
-  checkDailyUsage,
-  incrementDailyUsage,
+  ensurePublicUserRowForAuth,
 } from '@/lib/auth-helpers'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
-import {
-  checkBasicWordQuota,
-  incrementBasicWordsUsed,
-} from '@/lib/basic-word-quota'
+import { checkBasicWordQuota, incrementBasicWordsUsed } from '@/lib/basic-word-quota'
 import { isBasicPlanKey } from '@/lib/stripe-plans'
 import { HUMANIZE_LEVELS, normalizeHumanizeLevel, type HumanizeLevel } from '@/lib/humanize-levels'
 import { HUMANIZE_PRIORITIES, type HumanizePriority } from '@/lib/humanizer-priority'
-import { FREE_TIER_DAILY_HUMANIZER_LIMIT, PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
+import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
+import { tryDeductCoins, refundCoins, insufficientCoinsMessage } from '@/lib/coins'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -23,91 +20,104 @@ export const maxDuration = 300
 
 // Handle GET requests
 export async function GET() {
-  return new NextResponse(JSON.stringify({
-    status: 'error',
-    error: 'Method Not Allowed',
-    message: 'This endpoint only accepts POST requests',
-    allowedMethods: ['POST']
-  }), { 
-    status: 405,
-    headers: {
-      'Content-Type': 'application/json',
-      'Allow': 'POST'
+  return new NextResponse(
+    JSON.stringify({
+      status: 'error',
+      error: 'Method Not Allowed',
+      message: 'This endpoint only accepts POST requests',
+      allowedMethods: ['POST'],
+    }),
+    {
+      status: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        Allow: 'POST',
+      },
     }
-  })
+  )
 }
 
 // Handle PUT requests
 export async function PUT() {
-  return new NextResponse(JSON.stringify({
-    status: 'error',
-    error: 'Method Not Allowed',
-    message: 'This endpoint only accepts POST requests',
-    allowedMethods: ['POST']
-  }), { 
-    status: 405,
-    headers: {
-      'Content-Type': 'application/json',
-      'Allow': 'POST'
+  return new NextResponse(
+    JSON.stringify({
+      status: 'error',
+      error: 'Method Not Allowed',
+      message: 'This endpoint only accepts POST requests',
+      allowedMethods: ['POST'],
+    }),
+    {
+      status: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        Allow: 'POST',
+      },
     }
-  })
+  )
 }
 
 // Handle DELETE requests
 export async function DELETE() {
-  return new NextResponse(JSON.stringify({
-    status: 'error',
-    error: 'Method Not Allowed',
-    message: 'This endpoint only accepts POST requests',
-    allowedMethods: ['POST']
-  }), { 
-    status: 405,
-    headers: {
-      'Content-Type': 'application/json',
-      'Allow': 'POST'
+  return new NextResponse(
+    JSON.stringify({
+      status: 'error',
+      error: 'Method Not Allowed',
+      message: 'This endpoint only accepts POST requests',
+      allowedMethods: ['POST'],
+    }),
+    {
+      status: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        Allow: 'POST',
+      },
     }
-  })
+  )
 }
 
 // Handle PATCH requests
 export async function PATCH() {
-  return new NextResponse(JSON.stringify({
-    status: 'error',
-    error: 'Method Not Allowed',
-    message: 'This endpoint only accepts POST requests',
-    allowedMethods: ['POST']
-  }), { 
-    status: 405,
-    headers: {
-      'Content-Type': 'application/json',
-      'Allow': 'POST'
+  return new NextResponse(
+    JSON.stringify({
+      status: 'error',
+      error: 'Method Not Allowed',
+      message: 'This endpoint only accepts POST requests',
+      allowedMethods: ['POST'],
+    }),
+    {
+      status: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        Allow: 'POST',
+      },
     }
-  })
+  )
 }
 
 export async function POST(request: NextRequest) {
   console.log('Humanize API called with POST method')
-  
-  // Verify the request method
+
   if (request.method !== 'POST') {
-    return new NextResponse(JSON.stringify({
-      status: 'error',
-      error: 'Method Not Allowed',
-      message: 'This endpoint only accepts POST requests',
-      receivedMethod: request.method,
-      allowedMethods: ['POST']
-    }), { 
-      status: 405,
-      headers: {
-        'Content-Type': 'application/json',
-        'Allow': 'POST'
+    return new NextResponse(
+      JSON.stringify({
+        status: 'error',
+        error: 'Method Not Allowed',
+        message: 'This endpoint only accepts POST requests',
+        receivedMethod: request.method,
+        allowedMethods: ['POST'],
+      }),
+      {
+        status: 405,
+        headers: {
+          'Content-Type': 'application/json',
+          Allow: 'POST',
+        },
       }
-    })
+    )
   }
-  
+
   try {
     const authHeader = request.headers.get('authorization')
-    /** Bearer + request cookies (localStorage-only clients bypassed before createBrowserClient). */
     const authUserId = await getAuthUserIdFromRequest(authHeader, request)
 
     if (!authUserId) {
@@ -121,13 +131,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const user = await getUserRowById(authUserId)
-    const freeTierUserId = authUserId
-
-    const ipAddress =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      '127.0.0.1'
+    let user = await getUserRowById(authUserId)
+    if (!user) {
+      await ensurePublicUserRowForAuth(authUserId)
+      user = await getUserRowById(authUserId)
+    }
+    if (!user) {
+      return NextResponse.json(
+        { status: 'error', error: 'Profile not found', message: 'Could not load your account.' },
+        { status: 500 }
+      )
+    }
 
     let body: {
       text?: string
@@ -139,11 +153,14 @@ export async function POST(request: NextRequest) {
       body = await request.json()
     } catch (parseError) {
       console.error('JSON parse error:', parseError)
-      return NextResponse.json({
-        status: 'error',
-        error: 'Invalid JSON in request body',
-        message: 'Please ensure your request contains valid JSON',
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          status: 'error',
+          error: 'Invalid JSON in request body',
+          message: 'Please ensure your request contains valid JSON',
+        },
+        { status: 400 }
+      )
     }
 
     const { text, level: rawLevel, priority: rawPriority, writingDnaSamples: rawDna } = body
@@ -171,30 +188,36 @@ export async function POST(request: NextRequest) {
     } else {
       const n = normalizeHumanizeLevel(String(rawLevel))
       if (!n) {
-        return NextResponse.json({
-          status: 'error',
-          error: 'Invalid level',
-          message: `Level must be one of: ${HUMANIZE_LEVELS.join(', ')} (legacy: highschool, college, graduate)`,
-        }, { status: 400 })
+        return NextResponse.json(
+          {
+            status: 'error',
+            error: 'Invalid level',
+            message: `Level must be one of: ${HUMANIZE_LEVELS.join(', ')} (legacy: highschool, college, graduate)`,
+          },
+          { status: 400 }
+        )
       }
       level = n
     }
 
     if (!text || typeof text !== 'string') {
-      return NextResponse.json({
-        status: 'error',
-        error: 'Text is required',
-        message: 'Please provide a text field in your request',
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          status: 'error',
+          error: 'Text is required',
+          message: 'Please provide a text field in your request',
+        },
+        { status: 400 }
+      )
     }
 
     const wordCount = text.trim().split(/\s+/).filter((word) => word.length > 0).length
 
-    const paid = user && hasProHumanizeAccess(user)
+    const paid = hasProHumanizeAccess(user)
 
     if (paid) {
-      const quota = await checkBasicWordQuota(user!.id, user!, wordCount)
-      if (!quota.ok) {
+      const quota = await checkBasicWordQuota(user.id, user, wordCount)
+      if (quota.ok === false) {
         return NextResponse.json(
           {
             status: 'error',
@@ -214,110 +237,107 @@ export async function POST(request: NextRequest) {
         }, { status: 403 })
       }
     } else {
-      const { allowed, usesRemaining, limit, usedToday } = await checkDailyUsage(
-        freeTierUserId,
-        ipAddress,
-        'humanizer'
-      )
-      if (!allowed) {
-        return NextResponse.json({
-          status: 'error',
-          error: 'Daily limit reached',
-          message: `You’ve reached today’s limit on the free humanizer. Try a plan for free to keep going with unlimited access to all tools.`,
-          upgradeRequired: true,
-          usesRemaining: 0,
-          limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
-          freeUsage: {
-            usedToday,
-            usesRemaining: 0,
-            limit,
-          },
-        }, { status: 403 })
-      }
-      if (wordCount > 200) {
+      if (wordCount > PREMIUM_MAX_WORDS_PER_REQUEST) {
         return NextResponse.json({
           status: 'error',
           error: 'Word limit exceeded',
-          message: `Free tier is limited to 200 words. This text has ${wordCount} words. Start a 1-day free trial for higher per-run limits.`,
-          upgradeRequired: true,
+          message: `Each run is limited to ${PREMIUM_MAX_WORDS_PER_REQUEST} words. Shorten your text or split it into parts.`,
+          upgradeRequired: false,
         }, { status: 403 })
       }
-      const reserved = await incrementDailyUsage(freeTierUserId, ipAddress, 'humanizer')
-      if (!reserved) {
+    }
+
+    let coinsDeducted = 0
+    let coinsAfter: number | undefined
+
+    if (!paid) {
+      const deduct = await tryDeductCoins(authUserId, wordCount)
+      if (deduct.ok === false) {
+        if (deduct.reason === 'insufficient') {
+          return NextResponse.json(
+            {
+              status: 'error',
+              error: 'Insufficient coins',
+              message: insufficientCoinsMessage(deduct.balance, wordCount),
+              upgradeRequired: true,
+              coinsRemaining: deduct.balance,
+            },
+            { status: 403 }
+          )
+        }
         return NextResponse.json(
           {
             status: 'error',
-            error: 'Usage tracking unavailable',
-            message:
-              'We could not record your free-tier use. Please try again in a moment. If this keeps happening, contact support.',
+            error: 'Billing unavailable',
+            message: 'Could not update your coin balance. Please try again.',
           },
           { status: 503 }
         )
       }
+      coinsDeducted = wordCount
+      coinsAfter = deduct.balanceAfter
     }
 
     console.log('Processing text:', text.substring(0, 100) + '...', 'Level:', level)
-    
-    // Call OpenAI to humanize the text with error handling
-    let result
+
+    let result: string
     try {
       result = await humanizeText(text, level, { priority, writingDnaSamples })
       console.log('Humanization completed')
-    } catch (openaiError: any) {
+    } catch (openaiError: unknown) {
+      if (coinsDeducted > 0) {
+        await refundCoins(authUserId, coinsDeducted)
+      }
+      const msg = openaiError instanceof Error ? openaiError.message : 'Failed to process text with OpenAI'
       console.error('OpenAI error:', openaiError)
-      return NextResponse.json({
-        status: 'error',
-        error: 'OpenAI processing failed',
-        message: openaiError.message || 'Failed to process text with OpenAI',
-        details: process.env.NODE_ENV === 'development' ? openaiError.message : undefined
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          status: 'error',
+          error: 'OpenAI processing failed',
+          message: msg,
+          details: process.env.NODE_ENV === 'development' ? msg : undefined,
+        },
+        { status: 500 }
+      )
     }
-    
-    let freeUsagePayload: {
-      usedToday: number
-      usesRemaining: number
-      limit: number
-    } | undefined
 
-    if (!paid) {
-      const after = await checkDailyUsage(freeTierUserId, ipAddress, 'humanizer')
-      freeUsagePayload = {
-        usedToday: after.usedToday,
-        usesRemaining: after.usesRemaining,
-        limit: after.limit,
+    if (paid) {
+      if (isBasicPlanKey(user.current_plan)) {
+        await incrementBasicWordsUsed(user.id, wordCount)
       }
-      console.log(`Free tier humanize use (id: ${freeTierUserId ?? 'anon-ip'})`)
+      console.log(`Paid user ${user.id} used ${wordCount} words for humanization`)
     } else {
-      if (isBasicPlanKey(user!.current_plan)) {
-        await incrementBasicWordsUsed(user!.id, wordCount)
-      }
-      console.log(`Paid user ${user!.id} used ${wordCount} words for humanization`)
+      console.log(`Coin humanize user ${user.id}, words ${wordCount}, coins left ~${coinsAfter}`)
     }
 
     return NextResponse.json({
       status: 'success',
-      result: result,
+      result,
       wordsUsed: wordCount,
-      ...(freeUsagePayload ? { freeUsage: freeUsagePayload } : {}),
-      timestamp: new Date().toISOString()
-    }, { 
+      ...(paid
+        ? {}
+        : { coinsRemaining: coinsAfter }),
+      timestamp: new Date().toISOString(),
+    }, {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Allow': 'POST'
-      }
+        Allow: 'POST',
+      },
     })
-    
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Unexpected error in humanize API:', error)
-    console.error('Error stack:', error?.stack)
-    
-    // Always return a valid JSON response
-    return NextResponse.json({
-      status: 'error',
-      error: 'Internal server error',
-      message: error?.message || 'An unexpected error occurred',
-      timestamp: new Date().toISOString()
-    }, { status: 500 })
+    const err = error instanceof Error ? error : new Error(String(error))
+    console.error('Error stack:', err?.stack)
+
+    return NextResponse.json(
+      {
+        status: 'error',
+        error: 'Internal server error',
+        message: err.message || 'An unexpected error occurred',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    )
   }
 }

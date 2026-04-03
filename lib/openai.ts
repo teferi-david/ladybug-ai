@@ -21,15 +21,11 @@ function stripEmDashPunctuation(text: string): string {
 
 function priorityInstruction(priority: HumanizePriority | undefined): string {
   switch (priority) {
-    case 'detector_ready':
-      return 'USER PRIORITY: Favor careful academic tone, explicit structure, and conservative word choices suitable for school submissions.'
-    case 'natural_voice':
-      return 'USER PRIORITY: Favor warm, conversational rhythm and varied sentence openings while staying on topic.'
-    case 'clear_concise':
-      return 'USER PRIORITY: Favor short sentences, plain wording, and tight paragraphs without losing meaning.'
+    case 'stealth':
+      return 'USER PRIORITY (STEALTH): Maximize human-like variation—mix short and long sentences, avoid repetitive openers and template phrases, prefer concrete verbs, and reduce patterns typical of AI-generated text while preserving meaning and factual accuracy.'
     case 'balanced':
     default:
-      return 'USER PRIORITY: Balance natural voice with clear structure.'
+      return 'USER PRIORITY (BALANCED): Balance natural voice with clear structure and readable flow.'
   }
 }
 

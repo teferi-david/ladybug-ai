@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
-import { PREMIUM_MAX_WORDS_PER_REQUEST, FREE_TIER_MAX_WORDS_PER_RUN } from '@/lib/premium-config'
+import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 import { Button } from '@/components/ui/button'
 import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,27 +12,26 @@ import { Textarea } from '@/components/ui/textarea'
 import { LoadingSpinner } from '@/components/loading-spinner'
 import { RefreshCw, Copy } from 'lucide-react'
 
-type FreeUsage = {
-  usedToday: number
-  usesRemaining: number
-  limit: number
-}
-
 export default function ParaphraserPage() {
   const [loading, setLoading] = useState(true)
   /** null = still checking session */
   const [signedIn, setSignedIn] = useState<boolean | null>(null)
   const [premium, setPremium] = useState(false)
   const [planLoaded, setPlanLoaded] = useState(false)
-  const [freeUsage, setFreeUsage] = useState<FreeUsage | null>(null)
+  const [coinsRemaining, setCoinsRemaining] = useState<number | null>(null)
   const [input, setInput] = useState('')
   const [output, setOutput] = useState('')
   const [processing, setProcessing] = useState(false)
 
   const wordCount = input.trim().split(/\s+/).filter((w) => w.length > 0).length
-  const maxWords = premium ? PREMIUM_MAX_WORDS_PER_REQUEST : FREE_TIER_MAX_WORDS_PER_RUN
-  const atDailyLimit =
-    !premium && planLoaded && freeUsage !== null && freeUsage.usesRemaining === 0
+  const maxWords = premium
+    ? PREMIUM_MAX_WORDS_PER_REQUEST
+    : coinsRemaining === null
+      ? PREMIUM_MAX_WORDS_PER_REQUEST
+      : Math.min(PREMIUM_MAX_WORDS_PER_REQUEST, coinsRemaining)
+
+  const coinsInsufficient =
+    !premium && planLoaded && coinsRemaining !== null && wordCount > coinsRemaining
 
   const load = useCallback(async () => {
     const {
@@ -57,22 +56,14 @@ export default function ParaphraserPage() {
       const { apiClient } = await import('@/lib/axios-client')
       const data = await apiClient.getParaphraseUsage(session.access_token)
       if (data.premium) {
-        setFreeUsage(null)
-      } else if (
-        typeof data.limit === 'number' &&
-        typeof data.usedToday === 'number' &&
-        typeof data.usesRemaining === 'number'
-      ) {
-        setFreeUsage({
-          limit: data.limit,
-          usedToday: data.usedToday,
-          usesRemaining: data.usesRemaining,
-        })
+        setCoinsRemaining(null)
+      } else if (typeof data.coinsRemaining === 'number') {
+        setCoinsRemaining(data.coinsRemaining)
       } else {
-        setFreeUsage(null)
+        setCoinsRemaining(null)
       }
     } catch {
-      setFreeUsage(null)
+      setCoinsRemaining(null)
     }
 
     setLoading(false)
@@ -114,23 +105,15 @@ export default function ParaphraserPage() {
 
       if (!response.ok) {
         alert(data.message || data.error || 'Something went wrong')
-        if (data.freeUsage) {
-          setFreeUsage({
-            usedToday: data.freeUsage.usedToday,
-            usesRemaining: data.freeUsage.usesRemaining,
-            limit: data.freeUsage.limit,
-          })
+        if (typeof data.coinsRemaining === 'number') {
+          setCoinsRemaining(data.coinsRemaining)
         }
         return
       }
 
       setOutput(data.result)
-      if (data.freeUsage) {
-        setFreeUsage({
-          usedToday: data.freeUsage.usedToday,
-          usesRemaining: data.freeUsage.usesRemaining,
-          limit: data.freeUsage.limit,
-        })
+      if (typeof data.coinsRemaining === 'number') {
+        setCoinsRemaining(data.coinsRemaining)
       }
     } catch {
       alert('Request failed. Try again.')
@@ -152,24 +135,24 @@ export default function ParaphraserPage() {
               <RefreshCw className="h-5 w-5 text-primary" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Paraphraser</h1>
-          <p className="mx-auto mt-3 max-w-xl text-gray-600">
-            Example below. Sign up or log in to paraphrase your own text on the free tier (same fair limits as
-            the Humanizer).
+          <h1 className="text-2xl font-bold tracking-tight dark:text-zinc-100">Paraphraser</h1>
+          <p className="mx-auto mt-3 max-w-xl text-gray-600 dark:text-zinc-400">
+            Example below. Sign up or log in to paraphrase your own text. Free accounts share one coin balance (1
+            coin = 1 word) across tools.
           </p>
         </div>
 
-        <div className="mb-10 grid gap-4 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/80 to-white p-4 md:grid-cols-2 md:p-6">
-          <div className="rounded-xl border border-gray-200 bg-white/90 p-4 text-left">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Original</p>
-            <p className="mt-2 text-sm leading-relaxed text-gray-800">
+        <div className="mb-10 grid gap-4 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/80 to-white p-4 dark:border-violet-900/40 dark:from-violet-950/40 dark:to-zinc-950 md:grid-cols-2 md:p-6">
+          <div className="rounded-xl border border-gray-200 bg-white/90 p-4 text-left dark:border-zinc-700 dark:bg-zinc-900/80">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-zinc-500">Original</p>
+            <p className="mt-2 text-sm leading-relaxed text-gray-800 dark:text-zinc-200">
               The implementation of the proposed methodology would necessitate a comprehensive evaluation of the
               underlying variables in order to ascertain optimal outcomes.
             </p>
           </div>
-          <div className="rounded-xl border border-emerald-100 bg-white/90 p-4 text-left">
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Paraphrased</p>
-            <p className="mt-2 text-sm leading-relaxed text-gray-800">
+          <div className="rounded-xl border border-emerald-100 bg-white/90 p-4 text-left dark:border-emerald-900/40 dark:bg-zinc-900/80">
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">Paraphrased</p>
+            <p className="mt-2 text-sm leading-relaxed text-gray-800 dark:text-zinc-200">
               Putting this approach into practice means we need to look closely at the main factors involved so we
               can get the best results.
             </p>
@@ -195,57 +178,55 @@ export default function ParaphraserPage() {
           <RefreshCw className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">Paraphraser</h1>
-          <p className="text-sm text-gray-600">
+          <h1 className="text-2xl font-bold dark:text-zinc-100">Paraphraser</h1>
+          <p className="text-sm text-gray-600 dark:text-zinc-400">
             {premium
               ? `Paste text · up to ${PREMIUM_MAX_WORDS_PER_REQUEST} words per run`
-              : `Free tier · up to ${FREE_TIER_MAX_WORDS_PER_RUN} words per run · fair daily limits (same as Humanizer)`}
+              : `Free · 1 coin per word · shared balance with Humanizer & Citations`}
           </p>
         </div>
       </div>
 
-      {!premium && freeUsage !== null && (
-        <p className="mb-4 text-sm text-gray-600">
-          Paraphrase runs remaining today:{' '}
-          <span className="font-medium tabular-nums text-gray-900">{freeUsage.usesRemaining}</span>
-          <span className="text-gray-500"> (daily cap + signup bonus, same rules as Humanizer)</span>
+      {!premium && coinsRemaining !== null && (
+        <p className="mb-4 text-sm text-gray-600 dark:text-zinc-400">
+          Coins remaining:{' '}
+          <span className="font-medium tabular-nums text-gray-900 dark:text-zinc-100">{coinsRemaining}</span>
         </p>
       )}
 
-      <Card>
+      <Card className="dark:border-zinc-800 dark:bg-zinc-950/40">
         <CardHeader>
-          <CardTitle>Your text</CardTitle>
-          <CardDescription>We will rephrase it while keeping your meaning.</CardDescription>
+          <CardTitle className="dark:text-zinc-100">Your text</CardTitle>
+          <CardDescription className="dark:text-zinc-500">We will rephrase it while keeping your meaning.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Textarea
             placeholder="Paste here…"
-            className="min-h-[200px]"
+            className="min-h-[200px] dark:border-zinc-700 dark:bg-zinc-950"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={processing}
           />
-          <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-500 dark:text-zinc-500">
             <span>
               {wordCount} / {maxWords} words
             </span>
             <Button
               onClick={handleParaphrase}
-              disabled={processing || !input.trim() || wordCount > maxWords || atDailyLimit}
+              disabled={processing || !input.trim() || wordCount > maxWords || coinsInsufficient}
             >
-              {processing ? 'Working…' : atDailyLimit ? 'Daily limit reached' : 'Paraphrase'}
+              {processing ? 'Working…' : coinsInsufficient ? 'Not enough coins' : 'Paraphrase'}
             </Button>
           </div>
 
-          {!premium && planLoaded && atDailyLimit && (
-            <p className="text-center text-xs text-amber-800">
+          {!premium && planLoaded && coinsInsufficient && (
+            <p className="text-center text-xs text-amber-800 dark:text-amber-200/90">
               <Link href="/pricing" className="font-medium underline">
-                Start for free
+                Upgrade to Pro
               </Link>{' '}
-              for unlimited paraphrasing and higher per-run limits.
+              for unlimited words, or shorten your text.
             </p>
           )}
-
         </CardContent>
       </Card>
 
@@ -256,15 +237,17 @@ export default function ParaphraserPage() {
       )}
 
       {output && !processing && (
-        <Card className="mt-6">
+        <Card className="mt-6 dark:border-zinc-800 dark:bg-zinc-950/40">
           <CardHeader>
-            <CardTitle>Result</CardTitle>
+            <CardTitle className="dark:text-zinc-100">Result</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="rounded-lg border bg-gray-50 p-4 text-sm whitespace-pre-wrap">{output}</div>
+            <div className="rounded-lg border bg-gray-50 p-4 text-sm whitespace-pre-wrap dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-100">
+              {output}
+            </div>
             <Button
               variant="outline"
-              className="mt-4 gap-2"
+              className="mt-4 gap-2 dark:border-zinc-600"
               onClick={() => {
                 void navigator.clipboard.writeText(output)
               }}

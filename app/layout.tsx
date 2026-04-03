@@ -5,6 +5,7 @@ import './globals.css'
 import { Analytics } from '@vercel/analytics/next'
 import { SiteChrome } from '@/components/site-chrome'
 import { SeoJsonLd } from '@/components/seo-json-ld'
+import { ThemeProvider } from '@/components/theme-provider'
 import { getSiteUrl } from '@/lib/site-url'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -80,8 +81,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} flex min-h-screen flex-col`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} flex min-h-screen flex-col bg-background text-foreground`}>
         {/* Google AdSense: loads in document head (beforeInteractive). Site-wide via root layout. */}
         <Script
           id="google-adsense"
@@ -90,8 +91,10 @@ export default function RootLayout({
           crossOrigin="anonymous"
           strategy="beforeInteractive"
         />
-        <SeoJsonLd />
-        <SiteChrome>{children}</SiteChrome>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <SeoJsonLd />
+          <SiteChrome>{children}</SiteChrome>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

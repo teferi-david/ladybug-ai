@@ -8,6 +8,10 @@ import { LoadingSpinner } from '@/components/loading-spinner'
 import { BookOpen, Quote, RefreshCw, Sparkles, Wand2 } from 'lucide-react'
 import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { cn } from '@/lib/utils'
+import { hasProHumanizeAccess } from '@/lib/plan-access'
+import type { Database } from '@/types/database.types'
+
+type UserRow = Database['public']['Tables']['users']['Row']
 
 const tools = [
   {
@@ -50,6 +54,8 @@ export function DashboardPageClient() {
   const router = useRouter()
   const [ready, setReady] = useState(false)
   const [email, setEmail] = useState<string | null>(null)
+  const [coins, setCoins] = useState<number | null>(null)
+  const [premium, setPremium] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -63,6 +69,19 @@ export function DashboardPageClient() {
         return
       }
       setEmail(session.user.email ?? null)
+      const { data: row } = await supabase
+        .from('users')
+        .select('current_plan, plan_expiry, subscription_status, uses_left, coin_balance')
+        .eq('id', session.user.id)
+        .single()
+      const profile = row as UserRow | null
+      const isPro = profile ? hasProHumanizeAccess(profile) : false
+      setPremium(isPro)
+      if (!isPro && profile && typeof profile.coin_balance === 'number') {
+        setCoins(profile.coin_balance)
+      } else {
+        setCoins(null)
+      }
       setReady(true)
     })()
     const {
@@ -87,12 +106,17 @@ export function DashboardPageClient() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl dark:text-zinc-100">
               Let&apos;s make today productive!
             </h1>
             {email && (
-              <p className="mt-1 text-sm text-gray-500">
-                Signed in as <span className="text-gray-700">{email}</span>
+              <p className="mt-1 text-sm text-gray-500 dark:text-zinc-500">
+                Signed in as <span className="text-gray-700 dark:text-zinc-300">{email}</span>
+              </p>
+            )}
+            {!premium && coins !== null && (
+              <p className="mt-2 text-sm font-medium text-violet-800 dark:text-violet-300">
+                Coins: {coins.toLocaleString()} <span className="font-normal text-gray-600 dark:text-zinc-500">(1 per word)</span>
               </p>
             )}
           </div>
@@ -110,11 +134,11 @@ export function DashboardPageClient() {
                 href={t.href}
                 className={cn(
                   'group relative flex flex-col rounded-2xl border border-violet-100/80 bg-gradient-to-br from-white to-violet-50/40 p-5 shadow-sm transition',
-                  'hover:border-violet-200 hover:shadow-md'
+                  'hover:border-violet-200 hover:shadow-md dark:border-zinc-800 dark:from-zinc-950 dark:to-violet-950/30 dark:hover:border-violet-800'
                 )}
               >
                 <div className="mb-4 flex items-start justify-between gap-2">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-300">
                     <Icon className="h-6 w-6" aria-hidden />
                   </span>
                   {'badge' in t && t.badge && (
@@ -135,8 +159,8 @@ export function DashboardPageClient() {
           })}
         </div>
 
-        <div className="mt-12 rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 p-8 text-center text-sm text-gray-500">
-          <p className="font-medium text-gray-700">Recents</p>
+        <div className="mt-12 rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 p-8 text-center text-sm text-gray-500 dark:border-zinc-800 dark:bg-zinc-950/40 dark:text-zinc-500">
+          <p className="font-medium text-gray-700 dark:text-zinc-300">Recents</p>
           <p className="mt-2">Your recent work will appear here in a future update.</p>
         </div>
       </div>

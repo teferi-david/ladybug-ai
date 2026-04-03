@@ -1,7 +1,7 @@
 /**
  * User-chosen humanizer focus (stored client-side; sent with each humanize request).
  */
-export type HumanizePriority = 'detector_ready' | 'natural_voice' | 'clear_concise' | 'balanced'
+export type HumanizePriority = 'balanced' | 'stealth'
 
 export const HUMANIZE_PRIORITIES: readonly {
   id: HumanizePriority
@@ -9,27 +9,22 @@ export const HUMANIZE_PRIORITIES: readonly {
   description: string
 }[] = [
   {
-    id: 'detector_ready',
-    title: 'Academic and detector aware',
-    description:
-      'Prioritize clarity, formal structure, and phrasing that reads like careful student work.',
-  },
-  {
-    id: 'natural_voice',
-    title: 'Natural, conversational voice',
-    description: 'Prioritize warmth and flow so the text sounds like someone explaining ideas in person.',
-  },
-  {
-    id: 'clear_concise',
-    title: 'Clear and concise',
-    description: 'Prioritize short sentences, direct wording, and easy scanning.',
-  },
-  {
     id: 'balanced',
     title: 'Balanced',
-    description: 'Blend academic tone with natural rhythm. A solid default for most drafts.',
+    description: 'Natural rhythm with clear structure—good default for most drafts.',
+  },
+  {
+    id: 'stealth',
+    title: 'Stealth',
+    description: 'Stronger emphasis on varied phrasing and lower “AI-like” patterns for detector-style checks.',
   },
 ] as const
+
+const LEGACY_IDS = new Set([
+  'detector_ready',
+  'natural_voice',
+  'clear_concise',
+])
 
 export const PRIORITY_STORAGE_KEY = 'ladybug-humanizer-priority'
 export const PRIORITY_SET_KEY = 'ladybug-humanizer-priority-ack'
@@ -39,8 +34,9 @@ export function getStoredPriority(): HumanizePriority | null {
   if (typeof window === 'undefined') return null
   const raw = localStorage.getItem(PRIORITY_STORAGE_KEY)
   if (!raw) return null
-  const ok = HUMANIZE_PRIORITIES.some((p) => p.id === raw)
-  return ok ? (raw as HumanizePriority) : null
+  if (raw === 'balanced' || raw === 'stealth') return raw
+  if (LEGACY_IDS.has(raw)) return 'balanced'
+  return null
 }
 
 export function getStoredWritingDna(): string[] {

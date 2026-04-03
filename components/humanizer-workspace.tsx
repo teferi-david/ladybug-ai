@@ -23,12 +23,6 @@ import {
 } from '@/lib/humanizer-priority'
 import { WritingDnaModal } from '@/components/writing-dna-modal'
 
-type FreeUsage = {
-  usedToday: number
-  usesRemaining: number
-  limit: number
-}
-
 const HUMANIZE_LOADING_MESSAGES = [
   'Refining phrasing and tone',
   'Improving natural flow',
@@ -47,7 +41,7 @@ export function HumanizerWorkspace() {
   const [dnaOpen, setDnaOpen] = useState(false)
   const [hasProAccess, setHasProAccess] = useState(false)
   const [planLoaded, setPlanLoaded] = useState(false)
-  const [freeUsage, setFreeUsage] = useState<FreeUsage | null>(null)
+  const [coinsRemaining, setCoinsRemaining] = useState<number | null>(null)
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState<string | undefined>(undefined)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -74,9 +68,15 @@ export function HumanizerWorkspace() {
   }, [])
 
   const wordCount = input.trim().split(/\s+/).filter((w) => w.length > 0).length
-  const maxWords = hasProAccess ? PREMIUM_MAX_WORDS_PER_REQUEST : 200
-  const atDailyLimit =
-    !hasProAccess && planLoaded && freeUsage !== null && freeUsage.usesRemaining === 0
+
+  const maxWords = hasProAccess
+    ? PREMIUM_MAX_WORDS_PER_REQUEST
+    : coinsRemaining === null
+      ? PREMIUM_MAX_WORDS_PER_REQUEST
+      : Math.min(PREMIUM_MAX_WORDS_PER_REQUEST, coinsRemaining)
+
+  const coinsInsufficient =
+    !hasProAccess && planLoaded && coinsRemaining !== null && wordCount > coinsRemaining
 
   const refreshPlanAccess = useCallback(async () => {
     const {
@@ -96,32 +96,24 @@ export function HumanizerWorkspace() {
     setPlanLoaded(true)
   }, [])
 
-  const refreshFreeUsage = useCallback(async () => {
+  const refreshCoins = useCallback(async () => {
     try {
       const { apiClient } = await import('@/lib/axios-client')
       const token = await getAccessTokenForApi()
       const data = await apiClient.getHumanizeUsage(token)
       if (data.premium) {
         setHasProAccess(true)
-        setFreeUsage(null)
+        setCoinsRemaining(null)
         return
       }
       setHasProAccess(false)
-      if (
-        typeof data.limit === 'number' &&
-        typeof data.usedToday === 'number' &&
-        typeof data.usesRemaining === 'number'
-      ) {
-        setFreeUsage({
-          limit: data.limit,
-          usedToday: data.usedToday,
-          usesRemaining: data.usesRemaining,
-        })
+      if (typeof data.coinsRemaining === 'number') {
+        setCoinsRemaining(data.coinsRemaining)
       } else {
-        setFreeUsage(null)
+        setCoinsRemaining(null)
       }
     } catch {
-      setFreeUsage(null)
+      setCoinsRemaining(null)
     }
   }, [getAccessTokenForApi])
 
@@ -131,16 +123,16 @@ export function HumanizerWorkspace() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
       void refreshPlanAccess().then(() => {
-        void refreshFreeUsage()
+        void refreshCoins()
       })
     })
     return () => subscription.unsubscribe()
-  }, [refreshPlanAccess, refreshFreeUsage])
+  }, [refreshPlanAccess, refreshCoins])
 
   useEffect(() => {
     if (!planLoaded) return
-    void refreshFreeUsage()
-  }, [planLoaded, refreshFreeUsage])
+    void refreshCoins()
+  }, [planLoaded, refreshCoins])
 
   useEffect(() => {
     return () => {
@@ -199,7 +191,7 @@ export function HumanizerWorkspace() {
         priority,
         ...(dnaSamples.length >= 3 ? { writingDnaSamples: dnaSamples } : {}),
       }
-      const { result, freeUsage: usageAfter } = await apiClient.humanizeText(
+      const { result, coinsRemaining: afterCoins } = await apiClient.humanizeText(
         input,
         humanizeLevel,
         token,
@@ -213,25 +205,25 @@ export function HumanizerWorkspace() {
 
       setProgress(100)
       setOutput(result)
-      if (usageAfter) {
-        setFreeUsage(usageAfter)
+      if (typeof afterCoins === 'number') {
+        setCoinsRemaining(afterCoins)
         setHasProAccess(false)
       }
-      void refreshFreeUsage()
+      void refreshCoins()
     } catch (error) {
       console.error(error)
       const e = error as Error & {
         upgradeRequired?: boolean
-        freeUsage?: FreeUsage
+        coinsRemaining?: number
         status?: number
       }
-      if (e.freeUsage) {
-        setFreeUsage(e.freeUsage)
+      if (typeof e.coinsRemaining === 'number') {
+        setCoinsRemaining(e.coinsRemaining)
       }
       if (e.upgradeRequired || e.status === 403) {
         setUpgradeMessage(e.message)
         setUpgradeModalOpen(true)
-        void refreshFreeUsage()
+        void refreshCoins()
       } else {
         alert(e.message || 'Something went wrong. Please try again.')
       }
@@ -274,28 +266,34 @@ export function HumanizerWorkspace() {
             transition={{ duration: 0.45 }}
             className="mx-auto mb-8 max-w-2xl text-center"
           >
-            <h2 className="text-lg font-bold tracking-tight text-gray-900 md:text-xl">
+            <h2 className="text-lg font-bold tracking-tight text-gray-900 md:text-xl dark:text-zinc-100">
               Humanize your text
             </h2>
-            <p className="mt-2 text-sm text-gray-600 md:text-base">
-              Choose mode, priority, and optional Writing DNA. Then paste your draft and run.
+            <p className="mt-2 text-sm text-gray-600 md:text-base dark:text-zinc-400">
+              Choose mode, priority (Balanced or Stealth), and optional Mimic. Each word costs 1 coin on the free
+              plan.
             </p>
+            {!hasProAccess && coinsRemaining !== null && (
+              <p className="mt-2 text-sm font-medium text-violet-800 dark:text-violet-300">
+                Coins: {coinsRemaining.toLocaleString()}
+              </p>
+            )}
           </motion.div>
 
           <div className="mx-auto grid max-w-6xl items-stretch gap-6 lg:grid-cols-2">
-            <Card className="liquid-glass-bubble flex flex-col border-2 border-primary/25 shadow-lg shadow-rose-950/10">
+            <Card className="liquid-glass-bubble flex flex-col border-2 border-primary/25 shadow-lg shadow-rose-950/10 dark:border-primary/30 dark:shadow-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span className="text-base font-semibold text-gray-500">Input</span>
+                  <span className="text-base font-semibold text-gray-500 dark:text-zinc-400">Input</span>
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="dark:text-zinc-500">
                   Toolbar: level, priority, and Mimic (writing samples) when you want your voice in the output.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 flex-1 flex flex-col">
-                <div className="flex flex-col gap-3 rounded-xl border border-gray-200/80 bg-white/50 p-3 sm:flex-row sm:flex-wrap sm:items-end">
+                <div className="flex flex-col gap-3 rounded-xl border border-gray-200/80 bg-white/50 p-3 sm:flex-row sm:flex-wrap sm:items-end dark:border-zinc-700 dark:bg-zinc-900/50">
                   <div className="min-w-0 flex-1 space-y-1.5 sm:min-w-[140px]">
-                    <label htmlFor="humanize-level" className="block text-xs font-medium text-gray-600">
+                    <label htmlFor="humanize-level" className="block text-xs font-medium text-gray-600 dark:text-zinc-400">
                       Humanize level
                     </label>
                     <select
@@ -306,7 +304,7 @@ export function HumanizerWorkspace() {
                       className={cn(
                         'flex h-10 w-full rounded-md border border-input bg-background px-2 py-2 text-sm ring-offset-background',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                        'disabled:cursor-not-allowed disabled:opacity-50'
+                        'disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950'
                       )}
                     >
                       <option value="basic">Basic</option>
@@ -315,7 +313,7 @@ export function HumanizerWorkspace() {
                     </select>
                   </div>
                   <div className="min-w-0 flex-1 space-y-1.5 sm:min-w-[160px]">
-                    <label htmlFor="humanize-priority" className="block text-xs font-medium text-gray-600">
+                    <label htmlFor="humanize-priority" className="block text-xs font-medium text-gray-600 dark:text-zinc-400">
                       Priority
                     </label>
                     <select
@@ -326,7 +324,7 @@ export function HumanizerWorkspace() {
                       className={cn(
                         'flex h-10 w-full rounded-md border border-input bg-background px-2 py-2 text-sm ring-offset-background',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                        'disabled:cursor-not-allowed disabled:opacity-50'
+                        'disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950'
                       )}
                     >
                       {HUMANIZE_PRIORITIES.map((p) => (
@@ -339,7 +337,7 @@ export function HumanizerWorkspace() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-10 shrink-0 gap-1.5 border-violet-200 bg-violet-50/80 text-violet-900 hover:bg-violet-100"
+                    className="h-10 shrink-0 gap-1.5 border-violet-200 bg-violet-50/80 text-violet-900 hover:bg-violet-100 dark:border-violet-500/40 dark:bg-violet-950/50 dark:text-violet-200 dark:hover:bg-violet-900/50"
                     onClick={() => setDnaOpen(true)}
                     disabled={processing}
                   >
@@ -353,27 +351,34 @@ export function HumanizerWorkspace() {
                     type="button"
                     onClick={handleHumanize}
                     disabled={
-                      processing || !input.trim() || wordCount > maxWords || atDailyLimit
+                      processing || !input.trim() || wordCount > maxWords || coinsInsufficient
                     }
                     className="h-11 w-full shrink-0 sm:ml-auto sm:w-auto sm:min-w-[168px]"
                     size="lg"
                   >
                     {processing
                       ? 'Working…'
-                      : atDailyLimit
-                        ? 'Limit reached, try a plan for free'
+                      : coinsInsufficient
+                        ? 'Not enough coins'
                         : 'Humanize text'}
                   </Button>
                 </div>
 
                 <div className="flex-1 flex flex-col min-h-0">
                   <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm font-medium">AI text</label>
-                    <span className="text-sm text-gray-500">{wordCount} words</span>
+                    <label className="text-sm font-medium dark:text-zinc-200">AI text</label>
+                    <span className="text-sm text-gray-500 dark:text-zinc-400">
+                      {wordCount} words
+                      {!hasProAccess && coinsRemaining !== null && (
+                        <span className="ml-2 text-violet-700 dark:text-violet-300">
+                          · {wordCount} coins
+                        </span>
+                      )}
+                    </span>
                   </div>
                   <Textarea
                     placeholder="Paste the AI text you want to humanize..."
-                    className="min-h-[280px] flex-1 resize-y"
+                    className="min-h-[280px] flex-1 resize-y dark:border-zinc-600 dark:bg-zinc-950"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     disabled={processing}
@@ -382,63 +387,63 @@ export function HumanizerWorkspace() {
                     <p className="text-sm text-red-500 mt-2">
                       {hasProAccess
                         ? `Pro allows up to ${PREMIUM_MAX_WORDS_PER_REQUEST} words per run. Shorten your text.`
-                        : 'Free tier is limited to 200 words. Shorten your text or start a 1-day free trial for higher limits.'}
+                        : `This run needs ${wordCount} coins but you can use at most ${maxWords} words with your current balance. Shorten your text or upgrade.`}
                     </p>
                   )}
                 </div>
                 {dnaSamples.length >= 3 && (
-                  <p className="text-xs text-violet-800">
+                  <p className="text-xs text-violet-800 dark:text-violet-300">
                     Mimic active: {dnaSamples.length} writing samples will steer tone and rhythm.
                   </p>
                 )}
-                {atDailyLimit && (
-                  <p className="text-xs text-center text-amber-800">
+                {coinsInsufficient && (
+                  <p className="text-xs text-center text-amber-800 dark:text-amber-200/90">
                     <Link href="/pricing" className="underline font-medium">
-                      Try a plan for free
+                      Upgrade to Pro
                     </Link>{' '}
-                    to keep using the humanizer and all tools.
+                    for unlimited words, or shorten your text to fit your coins.
                   </p>
                 )}
               </CardContent>
             </Card>
 
-            <Card className="liquid-glass-bubble flex min-h-[420px] flex-col border-2 border-white/50 shadow-lg shadow-rose-950/10">
+            <Card className="liquid-glass-bubble flex min-h-[420px] flex-col border-2 border-white/50 shadow-lg shadow-rose-950/10 dark:border-zinc-700 dark:shadow-none">
               <CardHeader>
-                <CardTitle className="text-base font-semibold text-gray-500">Human-like output</CardTitle>
-                <CardDescription>Read it, tweak it, copy when you are happy.</CardDescription>
+                <CardTitle className="text-base font-semibold text-gray-500 dark:text-zinc-400">Human-like output</CardTitle>
+                <CardDescription className="dark:text-zinc-500">Read it, tweak it, copy when you are happy.</CardDescription>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col gap-4">
                 {processing && (
                   <div className="space-y-4 py-2">
                     <p
                       key={loadingPhase}
-                      className="text-sm font-semibold text-center text-gray-900 min-h-[1.35rem]"
+                      className="text-sm font-semibold text-center text-gray-900 min-h-[1.35rem] dark:text-zinc-100"
                     >
                       {HUMANIZE_LOADING_MESSAGES[loadingPhase]}
                     </p>
-                    <div className="rounded-full p-[3px] animate-[pulse_1.4s_ease-in-out_infinite] shadow-[0_0_22px_rgba(59,130,246,0.55)] ring-2 ring-primary/35 bg-gradient-to-r from-primary/25 via-amber-300/20 to-primary/25">
+                    <div className="rounded-full p-[3px] animate-[pulse_1.4s_ease-in-out_infinite] shadow-[0_0_22px_rgba(59,130,246,0.55)] ring-2 ring-primary/35 bg-gradient-to-r from-primary/25 via-amber-300/20 to-primary/25 dark:opacity-90">
                       <Progress value={progress} className="h-3 rounded-full bg-secondary/90" />
                     </div>
-                    <p className="text-xs text-center text-gray-500">Refining tone and phrasing…</p>
+                    <p className="text-xs text-center text-gray-500 dark:text-zinc-500">Refining tone and phrasing…</p>
                   </div>
                 )}
 
                 {!processing && !output && (
-                  <div className="flex-1 flex items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50/80 px-6 py-12 text-center text-gray-500 text-sm">
+                  <div className="flex-1 flex items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50/80 px-6 py-12 text-center text-gray-500 text-sm dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
                     Your humanized text lands here after you run the tool.
                   </div>
                 )}
 
                 {!processing && output && (
                   <>
-                    <div className="flex-1 min-h-[200px] p-4 bg-gray-50 rounded-lg border text-sm whitespace-pre-wrap overflow-y-auto max-h-[min(420px,50vh)]">
+                    <div className="flex-1 min-h-[200px] p-4 bg-gray-50 rounded-lg border text-sm whitespace-pre-wrap overflow-y-auto max-h-[min(420px,50vh)] dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-100">
                       {output}
                     </div>
                     <Button
                       type="button"
                       onClick={copyToClipboard}
                       variant="outline"
-                      className="w-full gap-2"
+                      className="w-full gap-2 dark:border-zinc-600"
                     >
                       {copied ? (
                         <>

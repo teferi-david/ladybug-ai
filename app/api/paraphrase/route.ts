@@ -3,17 +3,13 @@ import { paraphraseText } from '@/lib/openai'
 import {
   getAuthUserIdFromRequest,
   getUserRowById,
-  checkDailyUsage,
-  incrementDailyUsage,
+  ensurePublicUserRowForAuth,
 } from '@/lib/auth-helpers'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
 import { checkBasicWordQuota, incrementBasicWordsUsed } from '@/lib/basic-word-quota'
 import { isBasicPlanKey } from '@/lib/stripe-plans'
-import {
-  FREE_TIER_DAILY_HUMANIZER_LIMIT,
-  FREE_TIER_MAX_WORDS_PER_RUN,
-  PREMIUM_MAX_WORDS_PER_REQUEST,
-} from '@/lib/premium-config'
+import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
+import { tryDeductCoins, refundCoins, insufficientCoinsMessage } from '@/lib/coins'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -120,13 +116,27 @@ export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
     const authUserId = await getAuthUserIdFromRequest(authHeader, request)
-    const user = authUserId ? await getUserRowById(authUserId) : null
-    const paid = Boolean(user && hasProHumanizeAccess(user))
 
-    const ipAddress =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      '127.0.0.1'
+    if (!authUserId) {
+      return NextResponse.json(
+        {
+          error: 'Unauthorized',
+          message: 'Sign in or create an account to use the paraphraser.',
+        },
+        { status: 401 }
+      )
+    }
+
+    let user = await getUserRowById(authUserId)
+    if (!user) {
+      await ensurePublicUserRowForAuth(authUserId)
+      user = await getUserRowById(authUserId)
+    }
+    if (!user) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 500 })
+    }
+
+    const paid = Boolean(hasProHumanizeAccess(user))
 
     const body = await request.json()
     const { text } = body
@@ -147,8 +157,8 @@ export async function POST(request: NextRequest) {
       .filter((w: string) => w.length > 0).length
 
     if (paid) {
-      const quota = await checkBasicWordQuota(user!.id, user!, wordCount)
-      if (!quota.ok) {
+      const quota = await checkBasicWordQuota(user.id, user, wordCount)
+      if (quota.ok === false) {
         return NextResponse.json(
           {
             error: 'Yearly word limit reached',
@@ -173,8 +183,8 @@ export async function POST(request: NextRequest) {
 
       const result = await paraphraseText(text)
 
-      if (isBasicPlanKey(user!.current_plan)) {
-        await incrementBasicWordsUsed(user!.id, wordCount)
+      if (isBasicPlanKey(user.current_plan)) {
+        await incrementBasicWordsUsed(user.id, wordCount)
       }
 
       console.log('Paraphrasing completed')
@@ -186,78 +196,57 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    if (!authUserId) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'Sign in or create an account to use the paraphraser on the free tier.',
-        },
-        { status: 401 }
-      )
-    }
-
-    const { allowed, usesRemaining, limit, usedToday } = await checkDailyUsage(
-      authUserId,
-      ipAddress,
-      'paraphraser'
-    )
-    if (!allowed) {
-      return NextResponse.json(
-        {
-          error: 'Daily limit reached',
-          message: `You've reached today's limit on the free paraphraser. Upgrade for unlimited use.`,
-          upgradeRequired: true,
-          usesRemaining: 0,
-          limit: FREE_TIER_DAILY_HUMANIZER_LIMIT,
-          freeUsage: {
-            usedToday,
-            usesRemaining: 0,
-            limit,
-          },
-        },
-        { status: 403 }
-      )
-    }
-
-    if (wordCount > FREE_TIER_MAX_WORDS_PER_RUN) {
+    if (wordCount > PREMIUM_MAX_WORDS_PER_REQUEST) {
       return NextResponse.json(
         {
           error: 'Word limit exceeded',
-          message: `Free tier is limited to ${FREE_TIER_MAX_WORDS_PER_RUN} words per run. Upgrade for higher limits.`,
-          upgradeRequired: true,
+          message: `Each run is limited to ${PREMIUM_MAX_WORDS_PER_REQUEST} words.`,
+          upgradeRequired: false,
         },
         { status: 403 }
       )
     }
 
-    const reserved = await incrementDailyUsage(authUserId, ipAddress, 'paraphraser')
-    if (!reserved) {
+    const deduct = await tryDeductCoins(authUserId, wordCount)
+    if (deduct.ok === false) {
+      if (deduct.reason === 'insufficient') {
+        return NextResponse.json(
+          {
+            error: 'Insufficient coins',
+            message: insufficientCoinsMessage(deduct.balance, wordCount),
+            upgradeRequired: true,
+            coinsRemaining: deduct.balance,
+          },
+          { status: 403 }
+        )
+      }
       return NextResponse.json(
         {
-          error: 'Usage tracking unavailable',
-          message:
-            'We could not record your free-tier use. Please try again in a moment. If this keeps happening, contact support.',
+          error: 'Billing unavailable',
+          message: 'Could not update your coin balance. Please try again.',
         },
         { status: 503 }
       )
     }
 
+    const coinsAfter = deduct.balanceAfter
+
     console.log('Processing text:', text.substring(0, 100) + '...')
 
-    const result = await paraphraseText(text)
+    let result: string
+    try {
+      result = await paraphraseText(text)
+    } catch (e) {
+      await refundCoins(authUserId, wordCount)
+      throw e
+    }
 
-    const after = await checkDailyUsage(authUserId, ipAddress, 'paraphraser')
-
-    console.log('Paraphrasing completed (free tier)')
+    console.log('Paraphrasing completed (coins)')
 
     return NextResponse.json({
       status: 'success',
       result,
-      freeUsage: {
-        usedToday: after.usedToday,
-        usesRemaining: after.usesRemaining,
-        limit: after.limit,
-      },
+      coinsRemaining: coinsAfter,
       timestamp: new Date().toISOString(),
     })
   } catch (error: unknown) {

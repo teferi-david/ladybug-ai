@@ -13,3 +13,6 @@ export const FREE_TIER_MAX_WORDS_PER_RUN = 200
 /** Signup bonus messaging: extra runs × max words per free run. */
 export const SIGNUP_BONUS_FREE_WORDS =
   SIGNUP_BONUS_HUMANIZER_RUNS * FREE_TIER_MAX_WORDS_PER_RUN
+
+/** Word credits granted on new `public.users` row (1 coin = 1 word across tools for non‑Pro users). */
+export const SIGNUP_COINS = 400

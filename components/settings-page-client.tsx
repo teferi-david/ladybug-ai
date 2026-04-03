@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Badge } from '@/components/ui/badge'
-import { Zap, ExternalLink } from 'lucide-react'
+import { Zap, ExternalLink, LogOut } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -110,6 +110,11 @@ export function SettingsPageClient() {
     }
   }, [loadProfile])
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/')
+  }
+
   const openBillingPortal = async () => {
     setPortalLoading(true)
     try {
@@ -165,10 +170,9 @@ export function SettingsPageClient() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Welcome to Ladybug AI</DialogTitle>
-            <DialogDescription className="text-base text-gray-700">
-              You have <strong>{signupBonusWords.toLocaleString()} more words for free</strong> today, plus two
-              bonus runs on top of your daily free uses (shared across Humanizer, Paraphraser, and Citations).
-              Open any of those tools to start.
+            <DialogDescription className="text-base text-gray-700 dark:text-zinc-300">
+              You have <strong>400 coins</strong> to start (1 coin = 1 word across Humanizer, Paraphraser, and
+              Citations). Open any tool to begin.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -179,17 +183,28 @@ export function SettingsPageClient() {
         </DialogContent>
       </Dialog>
 
-      <div className="min-h-full bg-gray-50">
+      <div className="min-h-full bg-gray-50 dark:bg-black">
       <div className="container mx-auto px-4 py-8">
         <div className="mx-auto max-w-4xl">
-          <div className="mb-8">
-            <h1 className="mb-2 text-3xl font-bold">Settings</h1>
-            <p className="text-gray-600">Account, plan, and billing ({authUser.email})</p>
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="mb-2 text-3xl font-bold dark:text-zinc-100">Settings</h1>
+              <p className="text-gray-600 dark:text-zinc-400">Account, plan, and billing ({authUser.email})</p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0 gap-2 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-900"
+              onClick={() => void handleSignOut()}
+            >
+              <LogOut className="h-4 w-4" aria-hidden />
+              Sign out
+            </Button>
           </div>
 
-          <Card className="mb-6">
+          <Card className="mb-6 dark:border-zinc-800 dark:bg-zinc-950/40">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 dark:text-zinc-100">
                 <Zap className="h-5 w-5" />
                 Current plan
               </CardTitle>
@@ -197,9 +212,18 @@ export function SettingsPageClient() {
             <CardContent className="space-y-4">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-xl font-semibold">
+                  <h3 className="text-xl font-semibold dark:text-zinc-100">
                     {isPremium ? getPlanDisplayName(profile?.current_plan) : 'Free'}
                   </h3>
+                  {!isPremium && profile && typeof profile.coin_balance === 'number' && (
+                    <p className="mt-2 text-sm text-gray-600 dark:text-zinc-400">
+                      Coins remaining:{' '}
+                      <span className="font-semibold tabular-nums text-gray-900 dark:text-zinc-100">
+                        {profile.coin_balance.toLocaleString()}
+                      </span>{' '}
+                      <span className="text-gray-500 dark:text-zinc-500">(1 coin = 1 word)</span>
+                    </p>
+                  )}
                   {isPremium && profile && isBasicPlanKey(profile.current_plan) && (
                     <p className="mt-2 text-sm text-gray-600">
                       Words used this year:{' '}

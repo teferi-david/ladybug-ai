@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { supabase } from '@/lib/supabase/client'
@@ -17,6 +18,10 @@ import { hasProHumanizeAccess } from '@/lib/plan-access'
 import { ArrowRight, BookOpen, ChevronDown, Menu, Quote, RefreshCw, Sparkles, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoMark } from '@/components/logo-mark'
+import { ThemeToggle } from '@/components/theme-toggle'
+import type { Database } from '@/types/database.types'
+
+type UserRow = Database['public']['Tables']['users']['Row']
 
 const toolsItems = [
   { href: '/humanizer', label: 'AI Humanizer', description: 'Humanize AI text', icon: Sparkles },
@@ -40,8 +45,8 @@ function NavLink({
     <Link
       href={href}
       className={cn(
-        'text-xs font-medium text-gray-700 transition-colors hover:text-gray-900 lg:text-sm',
-        active && 'text-primary',
+        'text-xs font-medium text-gray-700 transition-colors hover:text-gray-900 dark:text-zinc-300 dark:hover:text-white lg:text-sm',
+        active && 'text-primary dark:text-primary',
         className
       )}
     >
@@ -51,10 +56,10 @@ function NavLink({
 }
 
 export function Navbar() {
-  const router = useRouter()
   const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const [isPremium, setIsPremium] = useState(false)
+  const [coinBalance, setCoinBalance] = useState<number | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
@@ -65,14 +70,17 @@ export function Navbar() {
       setUser(session?.user ?? null)
       if (!session?.user) {
         setIsPremium(false)
+        setCoinBalance(null)
         return
       }
       const { data: row } = await supabase
         .from('users')
-        .select('current_plan, plan_expiry, subscription_status, uses_left')
+        .select('current_plan, plan_expiry, subscription_status, uses_left, coin_balance')
         .eq('id', session.user.id)
         .single()
-      setIsPremium(hasProHumanizeAccess(row))
+      const profile = row as UserRow | null
+      setIsPremium(profile ? hasProHumanizeAccess(profile) : false)
+      setCoinBalance(profile && typeof profile.coin_balance === 'number' ? profile.coin_balance : null)
     }
 
     load()
@@ -90,16 +98,11 @@ export function Navbar() {
     setMobileOpen(false)
   }, [pathname])
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
-
   const showPricingCta = !user || !isPremium
 
   return (
     <header className="sticky top-0 z-50 flex justify-center px-3 pt-3 md:px-4 md:pt-4">
-      <div className="liquid-glass-nav mx-auto flex w-full max-w-[min(40rem,calc(100%-1.5rem))] items-center justify-between gap-2 rounded-full border border-white/55 bg-white/50 px-2.5 py-1.5 shadow-[0_8px_40px_rgba(230,57,70,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl sm:px-4 sm:py-2">
+      <div className="liquid-glass-nav mx-auto flex w-full max-w-[min(40rem,calc(100%-1.5rem))] items-center justify-between gap-2 rounded-full border border-white/55 bg-white/50 px-2.5 py-1.5 shadow-[0_8px_40px_rgba(230,57,70,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/75 dark:shadow-[0_8px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] sm:px-4 sm:py-2">
         <Link
           href="/"
           className="flex shrink-0 items-center rounded-lg p-0.5 ring-offset-2 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
@@ -116,13 +119,13 @@ export function Navbar() {
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
-                'inline-flex items-center gap-0.5 rounded-full px-1.5 py-1 text-xs font-medium text-gray-700 outline-none transition-colors hover:bg-black/[0.04] hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-primary/30 data-[state=open]:bg-black/[0.05] lg:text-sm'
+                'inline-flex items-center gap-0.5 rounded-full px-1.5 py-1 text-xs font-medium text-gray-700 outline-none transition-colors hover:bg-black/[0.04] hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-primary/30 data-[state=open]:bg-black/[0.05] dark:text-zinc-300 dark:hover:bg-white/[0.06] dark:hover:text-white lg:text-sm'
               )}
             >
               Tools
               <ChevronDown className="h-4 w-4 opacity-70" aria-hidden />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="min-w-[14rem]">
+            <DropdownMenuContent align="center" className="min-w-[14rem] dark:border-zinc-800 dark:bg-zinc-950">
               {toolsItems.map(({ href, label, description, icon: Icon }) => (
                 <DropdownMenuItem key={href} asChild>
                   <Link href={href} className="flex cursor-pointer items-start gap-3 py-2.5">
@@ -130,8 +133,8 @@ export function Navbar() {
                       <Icon className="h-4 w-4" />
                     </span>
                     <span className="flex flex-col gap-0.5">
-                      <span className="font-medium text-gray-900">{label}</span>
-                      <span className="text-xs font-normal text-gray-500">{description}</span>
+                      <span className="font-medium text-gray-900 dark:text-zinc-100">{label}</span>
+                      <span className="text-xs font-normal text-gray-500 dark:text-zinc-500">{description}</span>
                     </span>
                   </Link>
                 </DropdownMenuItem>
@@ -143,36 +146,56 @@ export function Navbar() {
           <NavLink href="/ai-humanizer">Blog</NavLink>
 
           {user ? (
-            <div className="ml-1 flex items-center gap-1.5 border-l border-gray-200/80 pl-3 lg:ml-3 lg:gap-2 lg:pl-4">
+            <div className="ml-1 flex items-center gap-1 border-l border-gray-200/80 pl-2 dark:border-zinc-700 lg:ml-2 lg:gap-1.5 lg:pl-3">
               {showPricingCta && (
                 <ProUpgradeButton asChild size="sm" className="min-h-8 rounded-full px-3 text-[11px] shadow-sm lg:min-h-9 lg:px-4 lg:text-xs">
                   <Link href="/pricing">Start for free</Link>
                 </ProUpgradeButton>
               )}
-              <Link href="/settings">
-                <Button variant="ghost" size="sm" className="h-8 rounded-full px-2 text-xs text-gray-700 lg:h-9">
-                  Settings
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 rounded-full border-gray-200/80 px-2 text-xs lg:h-9"
-                onClick={handleSignOut}
-              >
-                Sign out
-              </Button>
+              <ThemeToggle className="h-8 w-8 shrink-0 rounded-full text-gray-700 dark:text-zinc-200" />
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className={cn(
+                    'inline-flex h-8 min-w-[4.5rem] items-center justify-center gap-1.5 rounded-full border border-white/50 bg-gradient-to-b from-zinc-800/5 to-transparent px-2.5 py-1 text-xs font-semibold tabular-nums text-gray-900 shadow-sm ring-1 ring-black/[0.06] dark:border-white/10 dark:from-white/10 dark:to-transparent dark:text-zinc-100 dark:ring-white/10 lg:h-9 lg:px-3 lg:text-sm'
+                  )}
+                >
+                  {isPremium ? (
+                    <span className="text-[11px] uppercase tracking-wide text-violet-600 dark:text-violet-400">Pro</span>
+                  ) : (
+                    <>
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.7)]" aria-hidden />
+                      <span>{coinBalance ?? '—'}</span>
+                      <ChevronDown className="h-3.5 w-3.5 opacity-70" aria-hidden />
+                    </>
+                  )}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[10rem] dark:border-zinc-800 dark:bg-zinc-950">
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings">Settings</Link>
+                  </DropdownMenuItem>
+                  {!isPremium && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/pricing">Get coins / Upgrade</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator className="dark:bg-zinc-800" />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : (
-            <div className="ml-1 flex items-center gap-1.5 border-l border-gray-200/80 pl-3 lg:ml-3 lg:gap-2 lg:pl-4">
+            <div className="ml-1 flex items-center gap-1.5 border-l border-gray-200/80 pl-3 lg:ml-3 lg:gap-2 lg:pl-4 dark:border-zinc-700">
+              <ThemeToggle className="h-8 w-8 shrink-0 rounded-full" />
               <Link href="/login">
-                <Button variant="ghost" size="sm" className="h-8 rounded-full px-2 text-xs text-gray-700 lg:h-9">
+                <Button variant="ghost" size="sm" className="h-8 rounded-full px-2 text-xs text-gray-700 dark:text-zinc-300 lg:h-9">
                   Login
                 </Button>
               </Link>
               <Link
                 href="/register"
-                className="inline-flex h-8 min-h-0 items-center gap-1 rounded-full border border-white/60 bg-white/70 px-3 text-[11px] font-semibold text-gray-900 shadow-sm backdrop-blur-sm transition hover:bg-white lg:h-9 lg:gap-1.5 lg:px-4 lg:text-xs"
+                className="inline-flex h-8 min-h-0 items-center gap-1 rounded-full border border-white/60 bg-white/70 px-3 text-[11px] font-semibold text-gray-900 shadow-sm backdrop-blur-sm transition hover:bg-white dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800 lg:h-9 lg:gap-1.5 lg:px-4 lg:text-xs"
               >
                 Get started
                 <ArrowRight className="h-3 w-3 lg:h-3.5 lg:w-3.5" aria-hidden />
@@ -182,6 +205,7 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle className="h-9 w-9 shrink-0 rounded-full" />
           {!user && (
             <Link
               href="/register"
@@ -195,7 +219,7 @@ export function Navbar() {
             type="button"
             variant="ghost"
             size="icon"
-            className="rounded-full"
+            className="rounded-full dark:text-zinc-200"
             aria-expanded={mobileOpen}
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             onClick={() => setMobileOpen((o) => !o)}
@@ -206,12 +230,12 @@ export function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="liquid-glass-nav mx-auto mt-2 w-full max-w-[min(40rem,calc(100%-1.5rem))] rounded-2xl border border-white/50 bg-white/70 p-4 shadow-xl backdrop-blur-2xl md:hidden">
+        <div className="liquid-glass-nav mx-auto mt-2 w-full max-w-[min(40rem,calc(100%-1.5rem))] rounded-2xl border border-white/50 bg-white/70 p-4 shadow-xl backdrop-blur-2xl dark:border-zinc-800 dark:bg-zinc-950/95 md:hidden">
           <div className="flex flex-col gap-1">
             {user && (
               <Link
                 href="/dashboard"
-                className="rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-black/[0.04]"
+                className="rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-black/[0.04] dark:text-zinc-200 dark:hover:bg-white/[0.06]"
                 onClick={() => setMobileOpen(false)}
               >
                 Dashboard
@@ -219,17 +243,17 @@ export function Navbar() {
             )}
             <Link
               href="/about"
-              className="rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-black/[0.04]"
+              className="rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-black/[0.04] dark:text-zinc-200 dark:hover:bg-white/[0.06]"
               onClick={() => setMobileOpen(false)}
             >
               About
             </Link>
-            <p className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Tools</p>
+            <p className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-zinc-500">Tools</p>
             {toolsItems.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
-                className="rounded-xl px-3 py-2.5 text-sm text-gray-800 hover:bg-black/[0.04]"
+                className="rounded-xl px-3 py-2.5 text-sm text-gray-800 hover:bg-black/[0.04] dark:text-zinc-200 dark:hover:bg-white/[0.06]"
                 onClick={() => setMobileOpen(false)}
               >
                 {label}
@@ -237,21 +261,26 @@ export function Navbar() {
             ))}
             <Link
               href="/pricing"
-              className="rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-black/[0.04]"
+              className="rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-black/[0.04] dark:text-zinc-200 dark:hover:bg-white/[0.06]"
               onClick={() => setMobileOpen(false)}
             >
               Pricing
             </Link>
             <Link
               href="/ai-humanizer"
-              className="rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-black/[0.04]"
+              className="rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-black/[0.04] dark:text-zinc-200 dark:hover:bg-white/[0.06]"
               onClick={() => setMobileOpen(false)}
             >
               Blog
             </Link>
-            <div className="mt-2 border-t border-gray-200/80 pt-3">
+            <div className="mt-2 border-t border-gray-200/80 pt-3 dark:border-zinc-800">
               {user ? (
                 <>
+                  {user && !isPremium && coinBalance !== null && (
+                    <p className="px-3 py-2 text-sm text-gray-600 dark:text-zinc-400">
+                      Coins: <span className="font-semibold tabular-nums text-gray-900 dark:text-zinc-100">{coinBalance}</span>
+                    </p>
+                  )}
                   {showPricingCta && (
                     <Link
                       href="/pricing"
@@ -263,27 +292,17 @@ export function Navbar() {
                   )}
                   <Link
                     href="/settings"
-                    className="block rounded-xl px-3 py-2.5 text-sm hover:bg-black/[0.04]"
+                    className="block rounded-xl px-3 py-2.5 text-sm hover:bg-black/[0.04] dark:text-zinc-200 dark:hover:bg-white/[0.06]"
                     onClick={() => setMobileOpen(false)}
                   >
                     Settings
                   </Link>
-                  <button
-                    type="button"
-                    className="w-full rounded-xl px-3 py-2.5 text-left text-sm hover:bg-black/[0.04]"
-                    onClick={() => {
-                      setMobileOpen(false)
-                      void handleSignOut()
-                    }}
-                  >
-                    Sign out
-                  </button>
                 </>
               ) : (
                 <>
                   <Link
                     href="/login"
-                    className="block rounded-xl px-3 py-2.5 text-sm hover:bg-black/[0.04]"
+                    className="block rounded-xl px-3 py-2.5 text-sm hover:bg-black/[0.04] dark:text-zinc-200 dark:hover:bg-white/[0.06]"
                     onClick={() => setMobileOpen(false)}
                   >
                     Login

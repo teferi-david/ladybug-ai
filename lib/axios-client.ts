@@ -74,10 +74,7 @@ export const apiClient = {
   /** Free-tier daily humanizer usage (from GET /api/humanize/usage or POST response). */
   async getHumanizeUsage(authToken?: string): Promise<{
     premium: boolean
-    limit: number | null
-    usedToday: number | null
-    usesRemaining: number | null
-    atLimit?: boolean
+    coinsRemaining: number | null
   }> {
     const headers: Record<string, string> = {}
     if (authToken) {
@@ -89,10 +86,7 @@ export const apiClient = {
 
   async getParaphraseUsage(authToken?: string): Promise<{
     premium: boolean
-    limit: number | null
-    usedToday: number | null
-    usesRemaining: number | null
-    atLimit?: boolean
+    coinsRemaining: number | null
   }> {
     const headers: Record<string, string> = {}
     if (authToken) {
@@ -104,10 +98,7 @@ export const apiClient = {
 
   async getCitationUsage(authToken?: string): Promise<{
     premium: boolean
-    limit: number | null
-    usedToday: number | null
-    usesRemaining: number | null
-    atLimit?: boolean
+    coinsRemaining: number | null
   }> {
     const headers: Record<string, string> = {}
     if (authToken) {
@@ -128,7 +119,7 @@ export const apiClient = {
     }
   ): Promise<{
     result: string
-    freeUsage?: { usedToday: number; usesRemaining: number; limit: number }
+    coinsRemaining?: number
   }> {
     try {
       const headers: any = {}
@@ -148,7 +139,7 @@ export const apiClient = {
       })
       return {
         result: response.data.result,
-        freeUsage: response.data.freeUsage,
+        coinsRemaining: response.data.coinsRemaining,
       }
     } catch (error: any) {
       console.error('Humanize API error:', error)
@@ -167,11 +158,11 @@ export const apiClient = {
         error.message
       const err = new Error(msg) as Error & {
         upgradeRequired?: boolean
-        freeUsage?: { usedToday: number; usesRemaining: number; limit: number }
+        coinsRemaining?: number
         status?: number
       }
       err.upgradeRequired = data?.upgradeRequired === true
-      err.freeUsage = data?.freeUsage
+      if (typeof data?.coinsRemaining === 'number') err.coinsRemaining = data.coinsRemaining
       err.status = error.response?.status
       throw err
     }
@@ -181,7 +172,7 @@ export const apiClient = {
   async paraphraseText(
     text: string,
     authToken?: string
-  ): Promise<{ result: string; freeUsage?: { usedToday: number; usesRemaining: number; limit: number } }> {
+  ): Promise<{ result: string; coinsRemaining?: number }> {
     try {
       const headers: Record<string, string> = {}
       if (authToken) {
@@ -195,7 +186,7 @@ export const apiClient = {
       )
       return {
         result: response.data.result,
-        freeUsage: response.data.freeUsage,
+        coinsRemaining: response.data.coinsRemaining,
       }
     } catch (error: unknown) {
       console.error('Paraphrase API error:', error)

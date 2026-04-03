@@ -4,6 +4,7 @@ import { Database } from '@/types/database.types'
 import {
   FREE_TIER_DAILY_HUMANIZER_LIMIT,
   SIGNUP_BONUS_HUMANIZER_RUNS,
+  SIGNUP_COINS,
 } from '@/lib/premium-config'
 import { isExpired } from './utils'
 
@@ -137,6 +138,7 @@ export async function ensurePublicUserRowForAuth(userId: string): Promise<Ensure
     uses_left: 0,
     subscription_status: 'inactive',
     signup_bonus_humanizer_runs_remaining: SIGNUP_BONUS_HUMANIZER_RUNS,
+    coin_balance: SIGNUP_COINS,
   })
 
   if (insertErr && insertErr.code !== '23505') {

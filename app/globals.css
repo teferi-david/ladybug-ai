@@ -25,6 +25,21 @@
     --ring: 354 70% 54%;
     --radius: 0.5rem;
   }
+
+  .dark {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 96%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 0 0% 12%;
+    --accent-foreground: 0 0% 96%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+  }
 }
 
 @layer base {
@@ -58,14 +73,20 @@
 
   /* Apple-style liquid glass (nav + hero bubbles) */
   .liquid-glass-nav {
-    @apply supports-[backdrop-filter]:bg-white/40;
+    @apply supports-[backdrop-filter]:bg-white/40 dark:supports-[backdrop-filter]:bg-zinc-950/75;
   }
 
   .liquid-glass-bubble {
-    @apply border border-white/60 bg-white/45 backdrop-blur-2xl ring-1 ring-white/70;
+    @apply border border-white/60 bg-white/45 backdrop-blur-2xl ring-1 ring-white/70 dark:border-zinc-700/80 dark:bg-zinc-950/55 dark:ring-zinc-800;
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.9) inset,
       0 12px 40px rgba(0, 0, 0, 0.06);
+  }
+
+  .dark .liquid-glass-bubble {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.06) inset,
+      0 12px 40px rgba(0, 0, 0, 0.45);
   }
 
   /* Slow drift for ambient red / rose orbs (very subtle “liquid” motion) */
