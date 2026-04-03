@@ -61,7 +61,7 @@ function NavLink({
     <Link
       href={href}
       className={cn(
-        'inline-flex h-9 items-center text-xs font-medium text-gray-700 transition-colors hover:text-gray-900 dark:text-zinc-300 dark:hover:text-white lg:text-sm',
+        'inline-flex h-8 max-h-8 items-center text-xs font-medium text-gray-700 transition-colors hover:text-gray-900 dark:text-zinc-300 dark:hover:text-white lg:text-sm',
         active && 'text-primary dark:text-primary',
         className
       )}
@@ -152,12 +152,12 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 flex justify-center px-3 pt-3 md:px-4 md:pt-4">
-      <div className="liquid-glass-nav mx-auto flex w-full max-w-[min(40rem,calc(100%-1.5rem))] items-center justify-between gap-2 rounded-full border border-white/55 bg-white/50 px-2.5 py-1.5 shadow-[0_8px_40px_rgba(230,57,70,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/75 dark:shadow-[0_8px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] sm:px-4 sm:py-2">
+      <div className="liquid-glass-nav mx-auto flex w-full max-w-[min(40rem,calc(100%-1.5rem))] items-center justify-between gap-2 rounded-full border border-white/55 bg-white/50 px-2.5 py-1 shadow-[0_8px_40px_rgba(230,57,70,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/75 dark:shadow-[0_8px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] sm:px-4 sm:py-1.5">
         <Link
           href="/"
           className="flex shrink-0 items-center rounded-lg p-0.5 ring-offset-2 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
-          <div className="relative flex h-8 w-8 items-center justify-center sm:h-9 sm:w-9">
+          <div className="relative flex h-8 w-8 items-center justify-center">
             <LogoMark size={40} className="h-full w-full" priority />
           </div>
         </Link>
@@ -169,7 +169,7 @@ export function Navbar() {
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
-                'inline-flex h-9 items-center gap-0.5 rounded-full px-2 text-xs font-medium text-gray-700 outline-none transition-colors hover:bg-black/[0.04] hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-primary/30 data-[state=open]:bg-black/[0.05] dark:text-zinc-300 dark:hover:bg-white/[0.06] dark:hover:text-white lg:px-2.5 lg:text-sm'
+                'inline-flex h-8 max-h-8 items-center gap-0.5 rounded-full px-2 text-xs font-medium text-gray-700 outline-none transition-colors hover:bg-black/[0.04] hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-primary/30 data-[state=open]:bg-black/[0.05] dark:text-zinc-300 dark:hover:bg-white/[0.06] dark:hover:text-white lg:px-2.5 lg:text-sm'
               )}
             >
               Tools
@@ -196,29 +196,29 @@ export function Navbar() {
           <NavLink href="/ai-humanizer">Blog</NavLink>
 
           {user ? (
-            <div className="ml-1 flex h-9 items-center gap-1.5 border-l border-gray-200/80 pl-2 dark:border-zinc-700 lg:ml-2 lg:gap-2 lg:pl-3">
+            <div className="ml-1 flex h-8 max-h-8 items-center gap-1.5 border-l border-gray-200/80 pl-2 dark:border-zinc-700 lg:ml-2 lg:gap-2 lg:pl-3">
               {showPricingCta && (
                 <ProUpgradeButton
                   asChild
-                  className="h-9 shrink-0 rounded-full px-3 text-[11px] shadow-sm lg:px-4 lg:text-xs"
+                  className="h-8 max-h-8 min-h-8 shrink-0 rounded-full px-3 py-0 text-[11px] leading-none lg:px-4 lg:text-xs"
                 >
                   <Link href="/pricing">Start for free</Link>
                 </ProUpgradeButton>
               )}
-              <ThemeToggle className="h-9 w-9 shrink-0 rounded-full text-gray-700 dark:text-zinc-200" />
+              <ThemeToggle className="h-8 w-8 max-h-8 shrink-0 rounded-full text-gray-700 dark:text-zinc-200" />
               <DropdownMenu
                 modal={false}
                 open={userMenu.open}
                 onOpenChange={userMenu.setOpen}
               >
                 <div
-                  className="inline-flex h-9 items-center"
+                  className="inline-flex h-8 max-h-8 items-center"
                   onMouseEnter={userMenu.openMenu}
                   onMouseLeave={userMenu.scheduleClose}
                 >
                   <DropdownMenuTrigger
                     className={cn(
-                      'inline-flex h-9 min-h-9 w-max min-w-[4.25rem] shrink-0 items-center justify-center gap-1.5 rounded-full border border-white/50 bg-gradient-to-b from-zinc-800/5 to-transparent px-3 text-xs font-semibold tabular-nums text-gray-900 shadow-sm ring-1 ring-black/[0.06] outline-none transition-colors hover:bg-black/[0.04] focus-visible:ring-2 focus-visible:ring-primary/30 data-[state=open]:bg-black/[0.06] dark:border-white/10 dark:from-white/10 dark:to-transparent dark:text-zinc-100 dark:ring-white/10 dark:hover:bg-white/[0.08] dark:data-[state=open]:bg-white/[0.12] lg:min-w-[4.5rem] lg:gap-2 lg:px-3.5 lg:text-sm'
+                      'inline-flex h-8 max-h-8 min-h-0 w-max min-w-[3.75rem] shrink-0 items-center justify-center gap-1 rounded-full border border-black/[0.08] bg-white/40 px-2.5 text-xs font-semibold tabular-nums text-gray-900 outline-none transition-colors hover:bg-white/60 focus-visible:ring-2 focus-visible:ring-primary/30 data-[state=open]:bg-white/70 dark:border-white/12 dark:bg-white/[0.08] dark:text-zinc-100 dark:hover:bg-white/[0.12] dark:data-[state=open]:bg-white/[0.15] lg:min-w-[4.25rem] lg:gap-1.5 lg:px-3 lg:text-sm'
                     )}
                     aria-label="Account and coins menu"
                   >
