@@ -43,14 +43,14 @@ type AuthSplitLayoutProps = {
 export function AuthSplitLayout({ children, title, subtitle }: AuthSplitLayoutProps) {
   return (
     <div className="flex min-h-[100dvh] w-full flex-col lg:flex-row">
-      <div className="flex flex-1 flex-col justify-center bg-white px-6 py-10 sm:px-10 lg:px-14 lg:py-16">
+      <div className="flex flex-1 flex-col justify-center bg-background px-6 py-10 sm:px-10 lg:px-14 lg:py-16">
         <div className="mx-auto w-full max-w-md">
           <Link href="/" className="mb-8 inline-flex items-center gap-2">
             <LogoMark size={40} className="h-10 w-10" />
-            <span className="text-lg font-bold tracking-tight text-gray-900">Ladybug AI</span>
+            <span className="text-lg font-bold tracking-tight text-foreground">Ladybug AI</span>
           </Link>
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900 md:text-3xl">{title}</h1>
-          <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">{subtitle}</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">{title}</h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground md:text-base">{subtitle}</p>
           <div className="mt-8">{children}</div>
         </div>
       </div>
@@ -74,7 +74,7 @@ export function AuthSplitLayout({ children, title, subtitle }: AuthSplitLayoutPr
         </div>
       </div>
 
-      <div className="relative min-h-[280px] border-t border-gray-100 lg:hidden">
+      <div className="relative min-h-[280px] border-t border-border lg:hidden">
         <Image
           src="/images/auth/panel-hero.png"
           alt=""

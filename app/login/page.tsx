@@ -80,7 +80,7 @@ function LoginPageInner() {
       subtitle="Sign in to Ladybug AI to humanize text, manage your account, and unlock Pro tools when you upgrade."
     >
       {error && (
-        <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
           {error}
         </div>
       )}
@@ -88,12 +88,12 @@ function LoginPageInner() {
       <Button
         type="button"
         variant="outline"
-        className="flex h-12 w-full items-center justify-center gap-3 rounded-lg border-gray-300 bg-white px-4 font-medium text-gray-800 hover:bg-gray-50"
+        className="flex h-12 w-full items-center justify-center gap-3 rounded-lg border-gray-300 bg-white px-4 font-medium text-gray-800 shadow-sm backdrop-blur-sm transition hover:bg-gray-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
         onClick={handleGoogleSignIn}
         disabled={loading || googleLoading}
       >
         {googleLoading ? (
-          <Loader2 className="h-5 w-5 shrink-0 animate-spin text-gray-700" aria-hidden />
+          <Loader2 className="h-5 w-5 shrink-0 animate-spin text-gray-700 dark:text-zinc-300" aria-hidden />
         ) : (
           <GoogleBrandIcon className="h-5 w-5 shrink-0" />
         )}
@@ -135,11 +135,11 @@ function LoginPageInner() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-xs text-gray-500">
+      <p className="mt-6 text-center text-xs text-muted-foreground">
         By continuing you agree to our Terms of Service and Privacy Policy.
       </p>
 
-      <p className="mt-4 text-center text-sm text-gray-600">
+      <p className="mt-4 text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{' '}
         <Link
           href={`/register?next=${encodeURIComponent(nextPath)}`}
@@ -154,7 +154,7 @@ function LoginPageInner() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[40vh] items-center justify-center text-sm text-gray-500">Loading…</div>}>
+    <Suspense fallback={<div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground">Loading…</div>}>
       <LoginPageInner />
     </Suspense>
   )

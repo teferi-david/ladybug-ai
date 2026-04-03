@@ -10,7 +10,7 @@ export function PricingTeaser() {
     <section className="border-t border-white/30 bg-white/25 py-14 backdrop-blur-sm dark:border-zinc-800/80 dark:bg-zinc-950/60 md:py-20" id="pricing-preview">
       <div className="container mx-auto max-w-5xl px-4">
         <p className="text-center text-xs font-semibold uppercase tracking-widest text-primary">Pricing</p>
-        <h2 className="mt-2 text-center text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
+        <h2 className="mt-2 text-center text-2xl font-bold tracking-tight text-gray-900 dark:text-white md:text-3xl">
           Flexible plans
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-center text-sm text-gray-600 dark:text-zinc-300 md:text-base">
