@@ -52,6 +52,7 @@ function NavLink({
 
 export function Navbar() {
   const router = useRouter()
+  const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const [isPremium, setIsPremium] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
