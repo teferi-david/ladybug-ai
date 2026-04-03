@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button'
 
 export default function BillingReturnPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
-      <Card className="max-w-md w-full">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-background">
+      <Card className="w-full max-w-md dark:border-zinc-800">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Return to LadyBug AI</CardTitle>
           <CardDescription>

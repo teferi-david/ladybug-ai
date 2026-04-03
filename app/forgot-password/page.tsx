@@ -39,8 +39,8 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[calc(100vh-80px)]">
-      <Card className="w-full max-w-md">
+    <div className="container mx-auto flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-16">
+      <Card className="w-full max-w-md dark:border-zinc-800">
         <CardHeader>
           <CardTitle>Reset Password</CardTitle>
           <CardDescription>Enter your email to receive a password reset link</CardDescription>
@@ -48,12 +48,12 @@ export default function ForgotPasswordPage() {
         <form onSubmit={handleResetPassword}>
           <CardContent className="space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
                 {error}
               </div>
             )}
             {success && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+              <div className="rounded border border-green-200 bg-green-50 px-4 py-3 text-green-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
                 Check your email for a password reset link!
               </div>
             )}
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
             <Button type="submit" className="w-full" disabled={loading || success}>
               {loading ? 'Sending...' : 'Send Reset Link'}
             </Button>
-            <p className="text-sm text-center text-gray-600">
+            <p className="text-center text-sm text-muted-foreground">
               Remember your password?{' '}
               <Link href="/login" className="text-primary hover:underline">
                 Sign in

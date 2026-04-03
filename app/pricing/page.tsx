@@ -27,7 +27,7 @@ const unlimitedAnnualSavePct = Math.round(
 )
 
 const emeraldBadgeClass =
-  'rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800'
+  'rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/55 dark:text-emerald-300'
 
 const BASIC_FEATURES = [
   '500,000 words per year (all tools combined)',
@@ -113,19 +113,21 @@ export default function PricingPage() {
         {/* No big Pricing H1; page context is obvious */}
         <div className="mb-10 text-center">
           <p className="mb-2 text-2xl font-bold text-primary md:text-3xl">1 Day free trial</p>
-          <p className="mx-auto mb-8 max-w-lg text-sm text-gray-500">
+          <p className="mx-auto mb-8 max-w-lg text-sm text-gray-500 dark:text-zinc-400">
             Start with a 1-day free trial, then continue on the plan you choose. Annual pricing shows as a
             simple monthly equivalent.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <div className="inline-flex rounded-full border border-gray-200 bg-gray-50 p-1 shadow-sm">
+            <div className="inline-flex rounded-full border border-gray-200 bg-gray-50 p-1 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
               <button
                 type="button"
                 onClick={() => setCycle('annual')}
                 className={cn(
                   'rounded-full px-5 py-2 text-sm font-semibold transition-colors',
-                  cycle === 'annual' ? 'bg-primary text-white shadow' : 'text-gray-600 hover:text-gray-900'
+                  cycle === 'annual'
+                    ? 'bg-primary text-white shadow'
+                    : 'text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100'
                 )}
               >
                 Annual
@@ -135,7 +137,9 @@ export default function PricingPage() {
                 onClick={() => setCycle('monthly')}
                 className={cn(
                   'rounded-full px-5 py-2 text-sm font-semibold transition-colors',
-                  cycle === 'monthly' ? 'bg-primary text-white shadow' : 'text-gray-600 hover:text-gray-900'
+                  cycle === 'monthly'
+                    ? 'bg-primary text-white shadow'
+                    : 'text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100'
                 )}
               >
                 Monthly
@@ -155,15 +159,15 @@ export default function PricingPage() {
                 <div className="mt-4 space-y-2">
                   <div className="flex flex-wrap items-baseline gap-2">
                     <span className="text-4xl font-bold text-primary">${basicAnnualEq.toFixed(2)}</span>
-                    <span className="text-gray-600">/month</span>
+                    <span className="text-gray-600 dark:text-zinc-400">/month</span>
                     <span className={emeraldBadgeClass}>~{basicAnnualSavePct}% off vs monthly</span>
                   </div>
-                  <p className="text-xs text-gray-500">Billed Annually</p>
+                  <p className="text-xs text-gray-500 dark:text-zinc-500">Billed Annually</p>
                 </div>
               ) : (
                 <div className="mt-4">
                   <span className="text-4xl font-bold text-primary">${BASIC_MONTHLY.toFixed(2)}</span>
-                  <span className="text-gray-600"> /month</span>
+                  <span className="text-gray-600 dark:text-zinc-400"> /month</span>
                 </div>
               )}
             </CardHeader>
@@ -200,15 +204,15 @@ export default function PricingPage() {
                 <div className="mt-4 space-y-2">
                   <div className="flex flex-wrap items-baseline gap-2">
                     <span className="text-4xl font-bold text-primary">${unlimitedAnnualEq.toFixed(2)}</span>
-                    <span className="text-gray-600">/month</span>
+                    <span className="text-gray-600 dark:text-zinc-400">/month</span>
                     <span className={emeraldBadgeClass}>~{unlimitedAnnualSavePct}% off vs monthly</span>
                   </div>
-                  <p className="text-xs text-gray-500">Billed Annually</p>
+                  <p className="text-xs text-gray-500 dark:text-zinc-500">Billed Annually</p>
                 </div>
               ) : (
                 <div className="mt-4">
                   <span className="text-4xl font-bold text-primary">${UNLIMITED_MONTHLY.toFixed(2)}</span>
-                  <span className="text-gray-600"> /month</span>
+                  <span className="text-gray-600 dark:text-zinc-400"> /month</span>
                 </div>
               )}
             </CardHeader>
@@ -239,17 +243,17 @@ export default function PricingPage() {
         <JoinStudentsVideoSection />
 
         <div className="mx-auto mt-14 max-w-2xl space-y-6 text-left">
-          <h2 className="text-center text-xl font-bold">FAQ</h2>
+          <h2 className="text-center text-xl font-bold text-foreground">FAQ</h2>
           <div>
-            <h3 className="mb-1 font-semibold">How does billing work?</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="mb-1 font-semibold text-foreground">How does billing work?</h3>
+            <p className="text-sm text-gray-600 dark:text-zinc-300">
               After the 1-day trial, Stripe charges your selected plan. Annual plans are billed once per year.
               Manage or cancel in the Stripe billing portal.
             </p>
           </div>
           <div>
-            <h3 className="mb-1 font-semibold">What is the free tier?</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="mb-1 font-semibold text-foreground">What is the free tier?</h3>
+            <p className="text-sm text-gray-600 dark:text-zinc-300">
               You can use the humanizer on the free tier with fair limits. Paid plans unlock every tool and
               higher limits. Basic includes 500,000 words per rolling year; Unlimited has no word cap.
             </p>

@@ -135,7 +135,7 @@ export default function ParaphraserPage() {
               <RefreshCw className="h-5 w-5 text-primary" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight dark:text-zinc-100">Paraphraser</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-50">Paraphraser</h1>
           <p className="mx-auto mt-3 max-w-xl text-gray-600 dark:text-zinc-400">
             Example below. Sign up or log in to paraphrase your own text. Free accounts share one coin balance (1
             coin = 1 word) across tools.
@@ -178,7 +178,7 @@ export default function ParaphraserPage() {
           <RefreshCw className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold dark:text-zinc-100">Paraphraser</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50">Paraphraser</h1>
           <p className="text-sm text-gray-600 dark:text-zinc-400">
             {premium
               ? `Paste text · up to ${PREMIUM_MAX_WORDS_PER_REQUEST} words per run`

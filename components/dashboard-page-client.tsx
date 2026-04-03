@@ -20,7 +20,7 @@ const tools = [
     description: 'Natural rewrites for AI drafts',
     icon: Sparkles,
     badge: 'Popular',
-    badgeClass: 'bg-violet-100 text-violet-800',
+    badgeClass: 'bg-violet-100 text-violet-800 dark:bg-violet-950/55 dark:text-violet-200',
   },
   {
     href: '/paraphraser',
@@ -152,8 +152,8 @@ export function DashboardPageClient() {
                     </span>
                   )}
                 </div>
-                <p className="text-lg font-semibold text-gray-900">{t.label}</p>
-                <p className="mt-1 text-sm text-gray-600">{t.description}</p>
+                <p className="text-lg font-semibold text-gray-900 dark:text-zinc-50">{t.label}</p>
+                <p className="mt-1 text-sm text-gray-600 dark:text-zinc-300">{t.description}</p>
               </Link>
             )
           })}

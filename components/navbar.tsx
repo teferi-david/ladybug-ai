@@ -8,14 +8,30 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { supabase } from '@/lib/supabase/client'
-import { useEffect, useState } from 'react'
-import { User } from '@supabase/supabase-js'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { User as SupabaseUser } from '@supabase/supabase-js'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
-import { ArrowRight, BookOpen, ChevronDown, Menu, Quote, RefreshCw, Sparkles, X } from 'lucide-react'
+import {
+  ArrowRight,
+  BookOpen,
+  ChevronDown,
+  HelpCircle,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Quote,
+  RefreshCw,
+  Settings,
+  Sparkles,
+  User,
+  X,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoMark } from '@/components/logo-mark'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -45,7 +61,7 @@ function NavLink({
     <Link
       href={href}
       className={cn(
-        'text-xs font-medium text-gray-700 transition-colors hover:text-gray-900 dark:text-zinc-300 dark:hover:text-white lg:text-sm',
+        'inline-flex h-9 items-center text-xs font-medium text-gray-700 transition-colors hover:text-gray-900 dark:text-zinc-300 dark:hover:text-white lg:text-sm',
         active && 'text-primary dark:text-primary',
         className
       )}
@@ -55,12 +71,40 @@ function NavLink({
   )
 }
 
+function useHoverDropdownMenu() {
+  const [open, setOpen] = useState(false)
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
+    }
+  }, [])
+
+  const openMenu = useCallback(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+    setOpen(true)
+  }, [])
+
+  const scheduleClose = useCallback(() => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
+    closeTimerRef.current = setTimeout(() => setOpen(false), 140)
+  }, [])
+
+  return { open, setOpen, openMenu, scheduleClose }
+}
+
 export function Navbar() {
   const pathname = usePathname()
-  const [user, setUser] = useState<User | null>(null)
+  const router = useRouter()
+  const [user, setUser] = useState<SupabaseUser | null>(null)
   const [isPremium, setIsPremium] = useState(false)
   const [coinBalance, setCoinBalance] = useState<number | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const userMenu = useHoverDropdownMenu()
 
   useEffect(() => {
     const load = async () => {
@@ -100,6 +144,12 @@ export function Navbar() {
 
   const showPricingCta = !user || !isPremium
 
+  const displayName =
+    (user?.user_metadata?.full_name as string | undefined) ||
+    (user?.user_metadata?.name as string | undefined) ||
+    user?.email?.split('@')[0] ||
+    'Signed in'
+
   return (
     <header className="sticky top-0 z-50 flex justify-center px-3 pt-3 md:px-4 md:pt-4">
       <div className="liquid-glass-nav mx-auto flex w-full max-w-[min(40rem,calc(100%-1.5rem))] items-center justify-between gap-2 rounded-full border border-white/55 bg-white/50 px-2.5 py-1.5 shadow-[0_8px_40px_rgba(230,57,70,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/75 dark:shadow-[0_8px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] sm:px-4 sm:py-2">
@@ -119,7 +169,7 @@ export function Navbar() {
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
-                'inline-flex items-center gap-0.5 rounded-full px-1.5 py-1 text-xs font-medium text-gray-700 outline-none transition-colors hover:bg-black/[0.04] hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-primary/30 data-[state=open]:bg-black/[0.05] dark:text-zinc-300 dark:hover:bg-white/[0.06] dark:hover:text-white lg:text-sm'
+                'inline-flex h-9 items-center gap-0.5 rounded-full px-2 text-xs font-medium text-gray-700 outline-none transition-colors hover:bg-black/[0.04] hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-primary/30 data-[state=open]:bg-black/[0.05] dark:text-zinc-300 dark:hover:bg-white/[0.06] dark:hover:text-white lg:px-2.5 lg:text-sm'
               )}
             >
               Tools
@@ -146,42 +196,152 @@ export function Navbar() {
           <NavLink href="/ai-humanizer">Blog</NavLink>
 
           {user ? (
-            <div className="ml-1 flex items-center gap-1 border-l border-gray-200/80 pl-2 dark:border-zinc-700 lg:ml-2 lg:gap-1.5 lg:pl-3">
+            <div className="ml-1 flex h-9 items-center gap-1.5 border-l border-gray-200/80 pl-2 dark:border-zinc-700 lg:ml-2 lg:gap-2 lg:pl-3">
               {showPricingCta && (
-                <ProUpgradeButton asChild size="sm" className="min-h-8 rounded-full px-3 text-[11px] shadow-sm lg:min-h-9 lg:px-4 lg:text-xs">
+                <ProUpgradeButton
+                  asChild
+                  className="h-9 shrink-0 rounded-full px-3 text-[11px] shadow-sm lg:px-4 lg:text-xs"
+                >
                   <Link href="/pricing">Start for free</Link>
                 </ProUpgradeButton>
               )}
-              <ThemeToggle className="h-8 w-8 shrink-0 rounded-full text-gray-700 dark:text-zinc-200" />
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  className={cn(
-                    'inline-flex h-8 min-w-[4.5rem] items-center justify-center gap-1.5 rounded-full border border-white/50 bg-gradient-to-b from-zinc-800/5 to-transparent px-2.5 py-1 text-xs font-semibold tabular-nums text-gray-900 shadow-sm ring-1 ring-black/[0.06] dark:border-white/10 dark:from-white/10 dark:to-transparent dark:text-zinc-100 dark:ring-white/10 lg:h-9 lg:px-3 lg:text-sm'
-                  )}
+              <ThemeToggle className="h-9 w-9 shrink-0 rounded-full text-gray-700 dark:text-zinc-200" />
+              <DropdownMenu
+                modal={false}
+                open={userMenu.open}
+                onOpenChange={userMenu.setOpen}
+              >
+                <div
+                  className="inline-flex h-9 items-center"
+                  onMouseEnter={userMenu.openMenu}
+                  onMouseLeave={userMenu.scheduleClose}
                 >
-                  {isPremium ? (
-                    <span className="text-[11px] uppercase tracking-wide text-violet-600 dark:text-violet-400">Pro</span>
-                  ) : (
-                    <>
-                      <span className="h-2 w-2 shrink-0 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.7)]" aria-hidden />
-                      <span>{coinBalance ?? '—'}</span>
-                      <ChevronDown className="h-3.5 w-3.5 opacity-70" aria-hidden />
-                    </>
-                  )}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-[10rem] dark:border-zinc-800 dark:bg-zinc-950">
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings">Settings</Link>
-                  </DropdownMenuItem>
-                  {!isPremium && (
+                  <DropdownMenuTrigger
+                    className={cn(
+                      'inline-flex h-9 min-h-9 w-max min-w-[4.25rem] shrink-0 items-center justify-center gap-1.5 rounded-full border border-white/50 bg-gradient-to-b from-zinc-800/5 to-transparent px-3 text-xs font-semibold tabular-nums text-gray-900 shadow-sm ring-1 ring-black/[0.06] outline-none transition-colors hover:bg-black/[0.04] focus-visible:ring-2 focus-visible:ring-primary/30 data-[state=open]:bg-black/[0.06] dark:border-white/10 dark:from-white/10 dark:to-transparent dark:text-zinc-100 dark:ring-white/10 dark:hover:bg-white/[0.08] dark:data-[state=open]:bg-white/[0.12] lg:min-w-[4.5rem] lg:gap-2 lg:px-3.5 lg:text-sm'
+                    )}
+                    aria-label="Account and coins menu"
+                  >
+                    {isPremium ? (
+                      <>
+                        <span className="text-[11px] uppercase tracking-wide text-violet-600 dark:text-violet-400">
+                          Pro
+                        </span>
+                        <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
+                      </>
+                    ) : (
+                      <>
+                        <span
+                          className="h-2 w-2 shrink-0 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.7)]"
+                          aria-hidden
+                        />
+                        <span>{coinBalance ?? '—'}</span>
+                        <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
+                      </>
+                    )}
+                  </DropdownMenuTrigger>
+                </div>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={6}
+                  className="min-w-[17rem] p-0 dark:border-zinc-800 dark:bg-zinc-950"
+                  onMouseEnter={userMenu.openMenu}
+                  onMouseLeave={userMenu.scheduleClose}
+                  onCloseAutoFocus={(e) => e.preventDefault()}
+                >
+                  <DropdownMenuLabel className="border-b border-border px-3 py-3 font-normal">
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-sm font-semibold text-zinc-700 dark:bg-zinc-700 dark:text-zinc-200"
+                        aria-hidden
+                      >
+                        {(displayName[0] || '?').toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="truncate text-sm font-semibold text-foreground">{displayName}</span>
+                          {!isPremium && coinBalance !== null && (
+                            <span className="inline-flex items-center gap-0.5 rounded-full bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700 dark:text-violet-300">
+                              <span className="h-1.5 w-1.5 rounded-full bg-violet-500" aria-hidden />
+                              {coinBalance}
+                            </span>
+                          )}
+                          {isPremium && (
+                            <span className="rounded-full bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-violet-700 dark:text-violet-300">
+                              Pro
+                            </span>
+                          )}
+                        </div>
+                        {user.email ? (
+                          <p className="mt-0.5 truncate text-xs text-muted-foreground">{user.email}</p>
+                        ) : null}
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+
+                  <div className="p-1.5">
                     <DropdownMenuItem asChild>
-                      <Link href="/pricing">Get coins / Upgrade</Link>
+                      <Link href="/dashboard" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
+                        <LayoutDashboard className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                        Dashboard
+                      </Link>
                     </DropdownMenuItem>
-                  )}
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
+                        <User className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                        Account
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
+                        <Settings className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    {!isPremium && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/pricing" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
+                          <Sparkles className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                          Get coins / Upgrade
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem asChild>
+                      <Link href="/ai-humanizer" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
+                        <BookOpen className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                        Blog
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a
+                        href="mailto:teferi.business@gmail.com"
+                        className="flex cursor-pointer items-center gap-2.5 px-2 py-2"
+                      >
+                        <HelpCircle className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                        Help
+                      </a>
+                    </DropdownMenuItem>
+                  </div>
+
                   <DropdownMenuSeparator className="dark:bg-zinc-800" />
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard">Dashboard</Link>
-                  </DropdownMenuItem>
+
+                  <div className="p-1.5 pt-0">
+                    <DropdownMenuItem
+                      className="flex cursor-pointer items-center gap-2.5 px-2 py-2 text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                      onSelect={(e) => {
+                        e.preventDefault()
+                        void (async () => {
+                          userMenu.setOpen(false)
+                          await supabase.auth.signOut()
+                          router.push('/')
+                          router.refresh()
+                        })()
+                      }}
+                    >
+                      <LogOut className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+                      Log out
+                    </DropdownMenuItem>
+                  </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

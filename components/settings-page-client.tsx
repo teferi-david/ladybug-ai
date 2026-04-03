@@ -225,7 +225,7 @@ export function SettingsPageClient() {
                     </p>
                   )}
                   {isPremium && profile && isBasicPlanKey(profile.current_plan) && (
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-2 text-sm text-gray-600 dark:text-zinc-400">
                       Words used this year:{' '}
                       <span className="font-medium tabular-nums">
                         {(profile.basic_words_yearly_used ?? 0).toLocaleString()} /{' '}
@@ -234,7 +234,7 @@ export function SettingsPageClient() {
                     </p>
                   )}
                   {isPremium && profile?.plan_expiry && (
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
                       Renews / access through: {formatDate(profile.plan_expiry)}
                     </p>
                   )}
@@ -259,7 +259,7 @@ export function SettingsPageClient() {
 
               {isPremium && profile?.stripe_customer_id && (
                 <div className="border-t pt-2">
-                  <p className="mb-2 text-sm text-gray-600">
+                  <p className="mb-2 text-sm text-gray-600 dark:text-zinc-400">
                     Manage payment method, invoices, or cancel.
                   </p>
                   <Button
@@ -277,15 +277,15 @@ export function SettingsPageClient() {
               )}
 
               {isPremium && !profile?.stripe_customer_id && (
-                <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
                   Billing link is not attached yet. If you subscribed recently, refresh in a minute or
                   contact support.
                 </p>
               )}
 
               {!isPremium && (
-                <div className="mt-2 space-y-6 border-t border-gray-100 pt-8">
-                  <p className="max-w-prose text-sm leading-relaxed tracking-tight text-gray-600">
+                <div className="mt-2 space-y-6 border-t border-gray-100 pt-8 dark:border-zinc-800">
+                  <p className="max-w-prose text-sm leading-relaxed tracking-tight text-gray-600 dark:text-zinc-300">
                     Start a 1-day free trial for unlimited AI Humanizer, Paraphraser, Citations, and higher
                     word limits. After that you are billed annually if you stay subscribed.
                   </p>

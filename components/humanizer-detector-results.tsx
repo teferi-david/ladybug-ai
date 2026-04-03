@@ -41,7 +41,7 @@ export function HumanizerDetectorResults() {
           >
             What scans can look like after humanizing
           </h2>
-          <p className="mt-2 text-sm text-gray-600 md:text-base">
+          <p className="mt-2 text-sm text-gray-600 dark:text-zinc-300 md:text-base">
             Pick a detector. These sample screenshots reflect humanized text; results vary by detector version
             and input.
           </p>

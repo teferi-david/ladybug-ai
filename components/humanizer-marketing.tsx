@@ -217,7 +217,7 @@ export function HumanizerMarketing() {
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900">Is Ladybug AI free?</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-zinc-50">Is Ladybug AI free?</h4>
               <p className="mt-2">
                 Yes. A free tier includes daily limits. Pro adds higher caps, more tools, and a smoother workflow
                 on long projects.
@@ -238,7 +238,7 @@ export function HumanizerMarketing() {
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900">Can I use this on mobile?</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-zinc-50">Can I use this on mobile?</h4>
               <p className="mt-2">Yes. The layout works on phones and tablets.</p>
             </div>
             <div>

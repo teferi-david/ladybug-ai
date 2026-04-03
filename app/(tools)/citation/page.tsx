@@ -157,15 +157,17 @@ export default function CitationPage() {
               <Quote className="h-5 w-5 text-primary" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Citation tool</h1>
-          <p className="mx-auto mt-3 max-w-xl text-gray-600">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Citation tool</h1>
+          <p className="mx-auto mt-3 max-w-xl text-gray-600 dark:text-zinc-300">
             Example APA-style line below. Sign up or log in to generate citations from your own source details.
           </p>
         </div>
 
-        <div className="mb-10 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/80 to-white p-6 text-left">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Sample output (APA)</p>
-          <p className="mt-3 font-mono text-sm leading-relaxed text-gray-800">
+        <div className="mb-10 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/80 to-white p-6 text-left dark:border-violet-900/40 dark:from-zinc-900 dark:to-zinc-950">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-zinc-400">
+            Sample output (APA)
+          </p>
+          <p className="mt-3 font-mono text-sm leading-relaxed text-gray-800 dark:text-zinc-200">
             Martinez, L. R. (2023). <em>Writing with clarity: A student guide</em>. Harbor Press.
           </p>
         </div>
@@ -189,7 +191,7 @@ export default function CitationPage() {
           <Quote className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">Citations</h1>
+          <h1 className="text-2xl font-bold text-foreground">Citations</h1>
           <p className="text-sm text-gray-600 dark:text-zinc-400">
             {premium
               ? `APA or MLA · up to ${PREMIUM_MAX_WORDS_PER_REQUEST} words in fields per run`
@@ -289,10 +291,10 @@ export default function CitationPage() {
             />
           </div>
 
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-zinc-400">
             Words in fields: {wordCount} / {maxWords}
             {!premium && overWordLimit && (
-              <span className="text-red-600">. Shorten fields to stay inside the free tier cap.</span>
+              <span className="text-red-600 dark:text-red-400">. Shorten fields to stay inside the free tier cap.</span>
             )}
           </p>
 
@@ -325,13 +327,15 @@ export default function CitationPage() {
       )}
 
       {output && !processing && (
-        <Card>
+        <Card className="dark:border-zinc-800">
           <CardHeader>
             <CardTitle className="uppercase">{citationType}</CardTitle>
             <CardDescription>Copy the line below</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="rounded-lg border bg-gray-50 p-4 text-sm whitespace-pre-wrap">{output}</div>
+            <div className="rounded-lg border border-border bg-gray-50 p-4 text-sm whitespace-pre-wrap text-foreground dark:bg-zinc-900 dark:text-zinc-100">
+              {output}
+            </div>
             <Button
               variant="outline"
               className="mt-4 gap-2"
