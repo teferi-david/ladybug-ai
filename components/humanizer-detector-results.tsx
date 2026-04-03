@@ -32,12 +32,12 @@ const DETECTOR_TABS = [
 
 export function HumanizerDetectorResults() {
   return (
-    <section className="border-b border-gray-100 bg-white" aria-labelledby="detector-results-heading">
+    <section className="border-b border-gray-100 bg-white dark:border-zinc-800 dark:bg-zinc-950" aria-labelledby="detector-results-heading">
       <div className="container mx-auto max-w-5xl px-4 py-10 md:py-14">
         <div className="mb-8 text-center">
           <h2
             id="detector-results-heading"
-            className="text-xl font-bold tracking-tight text-gray-900 md:text-2xl"
+            className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-50 md:text-2xl"
           >
             What scans can look like after humanizing
           </h2>
@@ -65,7 +65,7 @@ export function HumanizerDetectorResults() {
 
           {DETECTOR_TABS.map(({ id, src, alt }) => (
             <TabsContent key={id} value={id} className="mt-6 outline-none">
-              <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50/80 shadow-sm ring-1 ring-black/5">
+              <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50/80 shadow-sm ring-1 ring-black/5 dark:border-zinc-700 dark:bg-zinc-900 dark:ring-white/10">
                 <Image
                   src={src}
                   alt={alt}

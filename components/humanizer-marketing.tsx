@@ -3,22 +3,22 @@ import Link from 'next/link'
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="border-b border-gray-100 py-10 last:border-0">
-      <h2 className="mb-4 text-xl font-bold text-gray-900 md:text-2xl">{title}</h2>
-      <div className="space-y-4 text-sm leading-relaxed text-gray-700 md:text-base">{children}</div>
+    <section className="border-b border-gray-100 py-10 last:border-0 dark:border-zinc-800">
+      <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-zinc-50 md:text-2xl">{title}</h2>
+      <div className="space-y-4 text-sm leading-relaxed text-gray-700 dark:text-zinc-300 md:text-base">{children}</div>
     </section>
   )
 }
 
 function Subheading({ children }: { children: ReactNode }) {
-  return <h3 className="mt-6 text-lg font-semibold text-gray-900">{children}</h3>
+  return <h3 className="mt-6 text-lg font-semibold text-gray-900 dark:text-zinc-50">{children}</h3>
 }
 
 export function HumanizerMarketing() {
   return (
     <article className="border-t border-white/30 bg-white/40 backdrop-blur-sm">
       <div className="container mx-auto max-w-4xl px-4 py-12 md:py-16">
-        <p className="mb-10 text-center text-xs font-medium uppercase tracking-wide text-gray-500">
+        <p className="mb-10 text-center text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-zinc-400">
           Learn more about the Ladybug AI humanizer on the{' '}
           <Link
             href="/ai-humanizer"
@@ -210,7 +210,7 @@ export function HumanizerMarketing() {
         <Section title="FAQ">
           <div className="space-y-6">
             <div>
-              <h4 className="font-semibold text-gray-900">What does humanize AI text mean?</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-zinc-50">What does humanize AI text mean?</h4>
               <p className="mt-2">
                 You take AI output and rewrite it so it sounds like a person wrote it: better flow, fewer weird
                 tells, same ideas.
@@ -224,14 +224,14 @@ export function HumanizerMarketing() {
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900">How fast is humanization?</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-zinc-50">How fast is humanization?</h4>
               <p className="mt-2">
                 Longer passages take more time. Stay on the page until processing finishes. If a run times out,
                 split the text into a shorter chunk and try again.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900">Do AI detectors always work?</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-zinc-50">Do AI detectors always work?</h4>
               <p className="mt-2">
                 No. Models change, false positives happen, and instructors still apply judgment. Follow
                 integrity rules and disclose AI use whenever your institution requires it.
@@ -242,7 +242,7 @@ export function HumanizerMarketing() {
               <p className="mt-2">Yes. The layout works on phones and tablets.</p>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900">Do I need an account for the free tier?</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-zinc-50">Do I need an account for the free tier?</h4>
               <p className="mt-2">
                 You can try the tool within limits before creating an account. Signing in keeps your usage
                 consistent across sessions and devices.
@@ -251,9 +251,9 @@ export function HumanizerMarketing() {
           </div>
         </Section>
 
-        <div className="mt-12 rounded-2xl border border-gray-200 bg-gray-50/80 px-6 py-8 text-center">
-          <p className="text-sm font-semibold text-gray-900">Ladybug AI™</p>
-          <p className="mt-2 text-sm text-gray-600">
+        <div className="mt-12 rounded-2xl border border-gray-200 bg-gray-50/80 px-6 py-8 text-center dark:border-zinc-700 dark:bg-zinc-900/80">
+          <p className="text-sm font-semibold text-gray-900 dark:text-zinc-50">Ladybug AI™</p>
+          <p className="mt-2 text-sm text-gray-600 dark:text-zinc-400">
             Humanizer, Paraphraser, Citations, and more in one place for a focused workflow.
           </p>
         </div>

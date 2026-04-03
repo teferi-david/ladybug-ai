@@ -20,7 +20,7 @@ export function HumanizerDetectorLogos() {
     <div aria-labelledby="humanizer-detector-logos-heading">
       <p
         id="humanizer-detector-logos-heading"
-        className="mx-auto max-w-4xl text-center text-sm leading-relaxed text-gray-700 md:text-base"
+        className="mx-auto max-w-4xl text-center text-sm leading-relaxed text-gray-700 dark:text-zinc-300 md:text-base"
       >
         Ladybug is built to align with how Turnitin, GPTZero, ZeroGPT, and similar systems evaluate text
         (in the same category as tools like Grubby AI). No product can guarantee a fixed score on every run,
@@ -32,7 +32,7 @@ export function HumanizerDetectorLogos() {
       >
         {DETECTOR_BRANDS.map(({ name }) => (
           <li key={name}>
-            <span className="inline-block select-none text-[11px] font-semibold tracking-tight text-gray-600 sm:text-xs md:text-sm">
+            <span className="inline-block select-none text-[11px] font-semibold tracking-tight text-gray-600 dark:text-zinc-400 sm:text-xs md:text-sm">
               {name}
             </span>
           </li>

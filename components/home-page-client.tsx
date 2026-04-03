@@ -31,12 +31,12 @@ export function HomePageClient() {
   }, [router])
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen text-gray-900 dark:text-zinc-100">
       <LandingHero />
       <HumanizerDemoExample />
       <PricingTeaser />
       <JoinStudentsVideoSection />
-      <div className="border-b border-white/30 bg-white/25 backdrop-blur-sm">
+      <div className="border-b border-white/30 bg-white/25 backdrop-blur-sm dark:border-zinc-800/80 dark:bg-zinc-950/50">
         <div className="container mx-auto px-4 py-8 md:py-10">
           <HumanizerDetectorLogos />
         </div>
