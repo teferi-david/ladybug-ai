@@ -100,7 +100,10 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 flex justify-center px-3 pt-3 md:px-4 md:pt-4">
       <div className="liquid-glass-nav mx-auto flex w-full max-w-[min(40rem,calc(100%-1.5rem))] items-center justify-between gap-2 rounded-full border border-white/55 bg-white/50 px-2.5 py-1.5 shadow-[0_8px_40px_rgba(230,57,70,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl sm:px-4 sm:py-2">
-        <Link href="/" className="flex shrink-0 items-center rounded-full p-0.5 ring-offset-2 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+        <Link
+          href="/"
+          className="flex shrink-0 items-center rounded-lg p-0.5 ring-offset-2 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+        >
           <div className="relative flex h-8 w-8 items-center justify-center sm:h-9 sm:w-9">
             <LogoMark size={40} className="h-full w-full" priority />
           </div>

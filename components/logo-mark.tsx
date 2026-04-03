@@ -1,15 +1,14 @@
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
-/** Subtle floating shadow (Apple / Ryne-style — soft, not heavy). */
+/** Soft shadow beneath the mark (Ryne-style “floating” — diffuse, not a hard ring). */
 export const logoFloatingClass =
-  'object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.05)] drop-shadow-[0_8px_28px_rgba(0,0,0,0.12)]'
+  'object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.06)] drop-shadow-[0_18px_42px_rgba(0,0,0,0.14)]'
 
 type LogoMarkProps = {
   size?: number
   className?: string
   priority?: boolean
-  /** Decorative in hero orb — omit for nav / auth. */
   alt?: string
 }
 
