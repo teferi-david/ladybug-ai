@@ -1,5 +1,5 @@
 /**
- * One-shot: build favicons from public/logo.jpg (contained on white — readable at 16–32px in tabs).
+ * One-shot: build favicons from public/logo.png (mark on white — readable at 16–32px in tabs).
  * Run: node scripts/generate-favicons.mjs
  */
 import fs from 'node:fs'
@@ -10,7 +10,7 @@ import toIco from 'to-ico'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, '..')
-const src = path.join(root, 'public', 'logo.jpg')
+const src = path.join(root, 'public', 'logo.png')
 const publicDir = path.join(root, 'public')
 
 const white = { r: 255, g: 255, b: 255, alpha: 1 }

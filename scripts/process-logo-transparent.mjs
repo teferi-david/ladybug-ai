@@ -7,7 +7,8 @@
  * This script: (1) edge flood-fill on black from edges, (2) restore blacks near red/white art.
  * That heuristics pass can add extra black or alter edges — prefer a clean export + direct copy.
  *
- * Reads public/logo-source.png → writes public/logo.png
+ * Input: public/logo-source.jpg or public/logo-source.png (opaque black BG is OK).
+ * Writes: public/logo.png (RGBA), then public/logo.jpg (same art on white, for OG / crawlers).
  * Run: node scripts/process-logo-transparent.mjs
  */
 import fs from 'node:fs'
@@ -17,8 +18,11 @@ import sharp from 'sharp'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, '..')
-const input = path.join(root, 'public', 'logo-source.png')
+const jpgIn = path.join(root, 'public', 'logo-source.jpg')
+const pngIn = path.join(root, 'public', 'logo-source.png')
+const input = fs.existsSync(jpgIn) ? jpgIn : pngIn
 const output = path.join(root, 'public', 'logo.png')
+const outputJpg = path.join(root, 'public', 'logo.jpg')
 
 function isNearBlack(r, g, b, t = 22) {
   return r <= t && g <= t && b <= t
@@ -175,7 +179,12 @@ async function main() {
     .png({ compressionLevel: 9 })
     .toFile(output)
 
-  console.log('Wrote', output, `(maxDist=${maxDist})`)
+  await sharp(output)
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
+    .jpeg({ quality: 92, mozjpeg: true })
+    .toFile(outputJpg)
+
+  console.log('Wrote', output, outputJpg, `(maxDist=${maxDist})`)
 }
 
 main().catch((e) => {

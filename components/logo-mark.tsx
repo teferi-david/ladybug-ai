@@ -15,7 +15,7 @@ type LogoMarkProps = {
 export function LogoMark({ size = 40, className, priority, alt = 'Ladybug AI' }: LogoMarkProps) {
   return (
     <Image
-      src="/logo.jpg"
+      src="/logo.png"
       alt={alt}
       width={size}
       height={size}
