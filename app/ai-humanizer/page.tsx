@@ -63,7 +63,7 @@ export default function AiHumanizerLandingPage() {
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild size="lg">
-                <Link href="/">Open AI humanizer</Link>
+                <Link href="/humanizer">Open AI humanizer</Link>
               </Button>
               <Button asChild variant="outline" size="lg">
                 <Link href="/pricing">Start for free</Link>

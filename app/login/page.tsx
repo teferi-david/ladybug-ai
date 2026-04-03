@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -14,11 +14,14 @@ import { proUpgradeButtonClassName } from '@/components/pro-upgrade-button'
 import { cn } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 import { getOAuthRedirectUrl } from '@/lib/oauth-redirect'
+import { safeNextPath } from '@/lib/safe-next-path'
 
 const authPrimaryCtaClass = cn(proUpgradeButtonClassName, 'w-full')
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextPath = safeNextPath(searchParams.get('next'), '/dashboard')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -42,7 +45,7 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        router.push('/settings')
+        router.push(nextPath)
       }
     } catch {
       setError('An unexpected error occurred')
@@ -56,7 +59,7 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const redirectTo = getOAuthRedirectUrl()
+      const redirectTo = getOAuthRedirectUrl(nextPath)
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo },
@@ -138,10 +141,21 @@ export default function LoginPage() {
 
       <p className="mt-4 text-center text-sm text-gray-600">
         Don&apos;t have an account?{' '}
-        <Link href="/register" className="font-medium text-primary hover:underline">
+        <Link
+          href={`/register?next=${encodeURIComponent(nextPath)}`}
+          className="font-medium text-primary hover:underline"
+        >
           Sign up
         </Link>
       </p>
     </AuthSplitLayout>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[40vh] items-center justify-center text-sm text-gray-500">Loading…</div>}>
+      <LoginPageInner />
+    </Suspense>
   )
 }

@@ -44,7 +44,7 @@ export function LandingHero() {
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
           <Link
-            href="/register"
+            href="/register?next=%2Fdashboard"
             className="group relative inline-flex min-h-12 items-center justify-center gap-2 overflow-hidden rounded-full border border-white/60 bg-white/80 px-8 py-3 text-sm font-semibold text-gray-900 shadow-[0_12px_40px_rgba(230,57,70,0.25)] backdrop-blur-xl transition hover:bg-white"
           >
             <span
@@ -55,7 +55,7 @@ export function LandingHero() {
             <ArrowRight className="relative h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
           </Link>
           <a
-            href="#demo"
+            href="#humanizer-tool"
             className="inline-flex min-h-12 items-center justify-center rounded-full border border-gray-800/90 bg-gray-900 px-8 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-gray-800"
           >
             View demo

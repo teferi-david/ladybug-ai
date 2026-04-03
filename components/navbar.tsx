@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils'
 import { LogoMark } from '@/components/logo-mark'
 
 const toolsItems = [
-  { href: '/', label: 'AI Humanizer', description: 'Humanize AI text', icon: Sparkles },
+  { href: '/humanizer', label: 'AI Humanizer', description: 'Humanize AI text', icon: Sparkles },
   { href: '/paraphraser', label: 'Paraphraser', description: 'Rephrase with clarity', icon: RefreshCw },
   { href: '/citation', label: 'Citations', description: 'APA & MLA', icon: Quote },
   { href: '/bypass-turnitin', label: 'Turnitin guide', description: 'Detection & integrity', icon: BookOpen },
@@ -110,6 +110,7 @@ export function Navbar() {
         </Link>
 
         <nav className="hidden items-center gap-0.5 md:flex md:gap-1 lg:gap-4" aria-label="Main">
+          {user && <NavLink href="/dashboard">Dashboard</NavLink>}
           <NavLink href="/about">About</NavLink>
 
           <DropdownMenu>
@@ -207,6 +208,15 @@ export function Navbar() {
       {mobileOpen && (
         <div className="liquid-glass-nav mx-auto mt-2 w-full max-w-[min(40rem,calc(100%-1.5rem))] rounded-2xl border border-white/50 bg-white/70 p-4 shadow-xl backdrop-blur-2xl md:hidden">
           <div className="flex flex-col gap-1">
+            {user && (
+              <Link
+                href="/dashboard"
+                className="rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-black/[0.04]"
+                onClick={() => setMobileOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
             <Link
               href="/about"
               className="rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-black/[0.04]"

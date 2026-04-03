@@ -13,6 +13,7 @@ import {
 } from '@/lib/basic-word-quota'
 import { isBasicPlanKey } from '@/lib/stripe-plans'
 import { HUMANIZE_LEVELS, normalizeHumanizeLevel, type HumanizeLevel } from '@/lib/humanize-levels'
+import { HUMANIZE_PRIORITIES, type HumanizePriority } from '@/lib/humanizer-priority'
 import { FREE_TIER_DAILY_HUMANIZER_LIMIT, PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
 
 export const dynamic = 'force-dynamic'
@@ -108,7 +109,19 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get('authorization')
     /** Bearer + request cookies (localStorage-only clients bypassed before createBrowserClient). */
     const authUserId = await getAuthUserIdFromRequest(authHeader, request)
-    const user = authUserId ? await getUserRowById(authUserId) : null
+
+    if (!authUserId) {
+      return NextResponse.json(
+        {
+          status: 'error',
+          error: 'Unauthorized',
+          message: 'Sign in to use the humanizer.',
+        },
+        { status: 401 }
+      )
+    }
+
+    const user = await getUserRowById(authUserId)
     const freeTierUserId = authUserId
 
     const ipAddress =
@@ -116,7 +129,12 @@ export async function POST(request: NextRequest) {
       request.headers.get('x-real-ip') ||
       '127.0.0.1'
 
-    let body: { text?: string; level?: string }
+    let body: {
+      text?: string
+      level?: string
+      priority?: string
+      writingDnaSamples?: unknown
+    }
     try {
       body = await request.json()
     } catch (parseError) {
@@ -128,7 +146,25 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const { text, level: rawLevel } = body
+    const { text, level: rawLevel, priority: rawPriority, writingDnaSamples: rawDna } = body
+
+    let priority: HumanizePriority | undefined
+    if (rawPriority !== undefined && rawPriority !== null && rawPriority !== '') {
+      const p = String(rawPriority)
+      if (HUMANIZE_PRIORITIES.some((x) => x.id === p)) {
+        priority = p as HumanizePriority
+      }
+    }
+
+    let writingDnaSamples: string[] | undefined
+    if (Array.isArray(rawDna)) {
+      const parts = rawDna
+        .filter((x): x is string => typeof x === 'string' && x.trim().length > 0)
+        .map((s) => s.trim())
+      if (parts.length > 0) {
+        writingDnaSamples = parts.slice(0, 8)
+      }
+    }
     let level: HumanizeLevel
     if (rawLevel === undefined || rawLevel === '') {
       level = 'basic'
@@ -225,7 +261,7 @@ export async function POST(request: NextRequest) {
     // Call OpenAI to humanize the text with error handling
     let result
     try {
-      result = await humanizeText(text, level)
+      result = await humanizeText(text, level, { priority, writingDnaSamples })
       console.log('Humanization completed')
     } catch (openaiError: any) {
       console.error('OpenAI error:', openaiError)

@@ -145,23 +145,43 @@ export default function ParaphraserPage() {
 
   if (!signedIn) {
     return (
-      <div className="container mx-auto max-w-lg px-4 py-16 text-center">
-        <div className="mb-6 flex justify-center">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
-            <RefreshCw className="h-5 w-5 text-primary" />
+      <div className="container mx-auto max-w-4xl px-4 py-12 md:py-16">
+        <div className="mb-8 text-center">
+          <div className="mb-4 flex justify-center">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+              <RefreshCw className="h-5 w-5 text-primary" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">Paraphraser</h1>
+          <p className="mx-auto mt-3 max-w-xl text-gray-600">
+            Example below. Sign up or log in to paraphrase your own text on the free tier (same fair limits as
+            the Humanizer).
+          </p>
+        </div>
+
+        <div className="mb-10 grid gap-4 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/80 to-white p-4 md:grid-cols-2 md:p-6">
+          <div className="rounded-xl border border-gray-200 bg-white/90 p-4 text-left">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Original</p>
+            <p className="mt-2 text-sm leading-relaxed text-gray-800">
+              The implementation of the proposed methodology would necessitate a comprehensive evaluation of the
+              underlying variables in order to ascertain optimal outcomes.
+            </p>
+          </div>
+          <div className="rounded-xl border border-emerald-100 bg-white/90 p-4 text-left">
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Paraphrased</p>
+            <p className="mt-2 text-sm leading-relaxed text-gray-800">
+              Putting this approach into practice means we need to look closely at the main factors involved so we
+              can get the best results.
+            </p>
           </div>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">Paraphraser</h1>
-        <p className="mx-auto mt-4 max-w-md leading-relaxed text-gray-600">
-          Sign up or log in to use the paraphraser on the free tier. Same fair daily limits and signup bonus
-          rules as the AI Humanizer. Pro unlocks higher limits and unlimited use.
-        </p>
-        <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
+
+        <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row">
           <ProUpgradeButton asChild className="min-h-11 min-w-[200px]">
-            <Link href="/register">Sign up</Link>
+            <Link href="/register?next=%2Fparaphraser">Sign up to use</Link>
           </ProUpgradeButton>
           <Button variant="outline" asChild className="min-h-11 min-w-[200px]">
-            <Link href="/login">Log in</Link>
+            <Link href="/login?next=%2Fparaphraser">Log in</Link>
           </Button>
         </div>
       </div>

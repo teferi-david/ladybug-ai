@@ -86,7 +86,7 @@ export default function BypassTurnitinLandingPage() {
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild size="lg">
-                <Link href="/">Open AI Humanizer</Link>
+                <Link href="/humanizer">Open AI Humanizer</Link>
               </Button>
               <Button asChild variant="outline" size="lg">
                 <Link href="/pricing">Start for free</Link>

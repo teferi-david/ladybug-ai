@@ -29,7 +29,7 @@ export default function AboutPage() {
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           <Button asChild size="lg" className="rounded-full">
-            <Link href="/">Try the humanizer</Link>
+            <Link href="/humanizer">Try the humanizer</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="rounded-full border-gray-200/80 bg-white/60 backdrop-blur-sm">
             <Link href="/pricing">View pricing</Link>

@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 import type { HumanizeLevel } from '@/lib/humanize-levels'
+import type { HumanizePriority } from '@/lib/humanizer-priority'
 import { HUMANIZE_STUDENT_SYSTEM_PROMPT, LEVEL_VOICE_HINTS } from '@/lib/prompts/humanize-student-system'
 
 // Initialize OpenAI client (set OPENAI_API_KEY in env — never commit keys)
@@ -18,10 +19,48 @@ function stripEmDashPunctuation(text: string): string {
   return text.replace(/\s*\u2014\s*/g, ', ').replace(/,\s*,+/g, ', ')
 }
 
+function priorityInstruction(priority: HumanizePriority | undefined): string {
+  switch (priority) {
+    case 'detector_ready':
+      return 'USER PRIORITY: Favor careful academic tone, explicit structure, and conservative word choices suitable for school submissions.'
+    case 'natural_voice':
+      return 'USER PRIORITY: Favor warm, conversational rhythm and varied sentence openings while staying on topic.'
+    case 'clear_concise':
+      return 'USER PRIORITY: Favor short sentences, plain wording, and tight paragraphs without losing meaning.'
+    case 'balanced':
+    default:
+      return 'USER PRIORITY: Balance natural voice with clear structure.'
+  }
+}
+
+function writingDnaBlock(samples: string[] | undefined): string {
+  if (!samples?.length) return ''
+  const joined = samples
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join('\n\n---\n\n')
+  const capped = joined.length > 12000 ? `${joined.slice(0, 12000)}\n\n[Samples truncated for length]` : joined
+  return `
+
+The user provided writing samples below. Study rhythm, vocabulary level, and typical sentence length. Imitate that voice in your rewrite. Do not copy sentences verbatim. Do not invent facts from the samples.
+
+USER_WRITING_SAMPLES:
+${capped}`
+}
+
+export type HumanizeOptions = {
+  priority?: HumanizePriority
+  writingDnaSamples?: string[]
+}
+
 /**
  * Humanize text using OpenAI (default: gpt-5.4-nano) and the student-voice system prompt.
  */
-export async function humanizeText(text: string, level: HumanizeLevel = 'basic'): Promise<string> {
+export async function humanizeText(
+  text: string,
+  level: HumanizeLevel = 'basic',
+  options?: HumanizeOptions
+): Promise<string> {
   try {
     if (!process.env.OPENAI_API_KEY?.trim()) {
       throw new Error('OPENAI_API_KEY is not configured')
@@ -33,7 +72,12 @@ export async function humanizeText(text: string, level: HumanizeLevel = 'basic')
     console.log('Cleaned text (paragraphs preserved):', cleanedText.substring(0, 100) + '...')
 
     const voiceHint = LEVEL_VOICE_HINTS[level]
+    const priorityLine = priorityInstruction(options?.priority)
+    const dna = writingDnaBlock(options?.writingDnaSamples)
     const userContent = `${voiceHint}
+
+${priorityLine}
+${dna}
 
 Rewrite the following AI-generated text according to all system instructions.
 

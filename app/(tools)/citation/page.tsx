@@ -168,23 +168,32 @@ export default function CitationPage() {
 
   if (!signedIn) {
     return (
-      <div className="container mx-auto max-w-lg px-4 py-16 text-center">
-        <div className="mb-6 flex justify-center">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
-            <Quote className="h-5 w-5 text-primary" />
+      <div className="container mx-auto max-w-2xl px-4 py-12 md:py-16">
+        <div className="mb-8 text-center">
+          <div className="mb-4 flex justify-center">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+              <Quote className="h-5 w-5 text-primary" />
+            </div>
           </div>
+          <h1 className="text-2xl font-bold tracking-tight">Citation tool</h1>
+          <p className="mx-auto mt-3 max-w-xl text-gray-600">
+            Example APA-style line below. Sign up or log in to generate citations from your own source details.
+          </p>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">Citation tool</h1>
-        <p className="mx-auto mt-4 max-w-md leading-relaxed text-gray-600">
-          Sign up or log in to build APA and MLA citations on the free tier. You get the same fair daily limits
-          and signup bonus rules as the AI Humanizer. Pro adds bigger field limits and unlimited use.
-        </p>
-        <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
+
+        <div className="mb-10 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/80 to-white p-6 text-left">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Sample output (APA)</p>
+          <p className="mt-3 font-mono text-sm leading-relaxed text-gray-800">
+            Martinez, L. R. (2023). <em>Writing with clarity: A student guide</em>. Harbor Press.
+          </p>
+        </div>
+
+        <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row">
           <ProUpgradeButton asChild className="min-h-11 min-w-[200px]">
-            <Link href="/register">Sign up</Link>
+            <Link href="/register?next=%2Fcitation">Sign up to use</Link>
           </ProUpgradeButton>
           <Button variant="outline" asChild className="min-h-11 min-w-[200px]">
-            <Link href="/login">Log in</Link>
+            <Link href="/login?next=%2Fcitation">Log in</Link>
           </Button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import type { HumanizeLevel } from '@/lib/humanize-levels'
+import type { HumanizePriority } from '@/lib/humanizer-priority'
 
 /** Long-running LLM routes (humanize, paraphrase) need more than default browser/axios limits. */
 const LONG_REQUEST_TIMEOUT_MS = 180_000 // 3 minutes
@@ -120,7 +121,11 @@ export const apiClient = {
   async humanizeText(
     text: string,
     level: HumanizeLevel = 'basic',
-    authToken?: string
+    authToken?: string,
+    extras?: {
+      priority?: HumanizePriority
+      writingDnaSamples?: string[]
+    }
   ): Promise<{
     result: string
     freeUsage?: { usedToday: number; usesRemaining: number; limit: number }
@@ -130,12 +135,17 @@ export const apiClient = {
       if (authToken) {
         headers['Authorization'] = `Bearer ${authToken}`
       }
-      
-      const response = await axiosClient.post(
-        '/api/humanize',
-        { text, level },
-        { headers, timeout: LONG_REQUEST_TIMEOUT_MS }
-      )
+
+      const payload: Record<string, unknown> = { text, level }
+      if (extras?.priority) payload.priority = extras.priority
+      if (extras?.writingDnaSamples?.length) {
+        payload.writingDnaSamples = extras.writingDnaSamples
+      }
+
+      const response = await axiosClient.post('/api/humanize', payload, {
+        headers,
+        timeout: LONG_REQUEST_TIMEOUT_MS,
+      })
       return {
         result: response.data.result,
         freeUsage: response.data.freeUsage,
