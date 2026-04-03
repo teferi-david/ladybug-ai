@@ -1,14 +1,11 @@
 /**
- * OPTIONAL — only for raw exports with a solid black background you need removed automatically.
+ * Remove a solid / near-white background only (edge flood — no color heuristics on the bug).
  *
- * If your logo is already final, copy it to public/logo.jpg (or .png with real alpha) as-is,
- * then: node scripts/generate-favicons.mjs
+ * Floods from image edges through near-white pixels only. Red, black, and white markings
+ * inside the bug stay intact (they are not reachable from the edge through white alone).
  *
- * This script: (1) edge flood-fill on black from edges, (2) restore blacks near red/white art.
- * That heuristics pass can add extra black or alter edges — prefer a clean export + direct copy.
- *
- * Input: public/logo-source.jpg or public/logo-source.png (opaque black BG is OK).
- * Writes: public/logo.png (RGBA), then public/logo.jpg (same art on white, for OG / crawlers).
+ * Input: public/logo-source.jpg or public/logo-source.png
+ * Writes: public/logo.png (RGBA), public/logo.jpg (flattened on white for OG / crawlers)
  * Run: node scripts/process-logo-transparent.mjs
  */
 import fs from 'node:fs'
@@ -24,31 +21,18 @@ const input = fs.existsSync(jpgIn) ? jpgIn : pngIn
 const output = path.join(root, 'public', 'logo.png')
 const outputJpg = path.join(root, 'public', 'logo.jpg')
 
-function isNearBlack(r, g, b, t = 22) {
-  return r <= t && g <= t && b <= t
-}
-
-/** Coral / red wing — tuned for flat illustration reds */
-function isRed(r, g, b) {
-  return r >= 85 && r > g + 10 && r > b + 10
-}
-
-function isWhite(r, g, b) {
-  return r >= 228 && g >= 228 && b >= 228
+/** Background white (tweak 235–248 if fringe remains or edges eat into art) */
+function isNearWhite(r, g, b) {
+  return r >= 240 && g >= 240 && b >= 240
 }
 
 function idx(x, y, w) {
   return y * w + x
 }
 
-function at(pixels, x, y, w) {
-  const i = (y * w + x) * 4
-  return [pixels[i], pixels[i + 1], pixels[i + 2], pixels[i + 3]]
-}
-
 async function main() {
-  if (!fs.existsSync(input)) {
-    console.error('Missing', input)
+  if (!fs.existsSync(jpgIn) && !fs.existsSync(pngIn)) {
+    console.error('Missing', jpgIn, 'or', pngIn)
     process.exit(1)
   }
 
@@ -58,14 +42,13 @@ async function main() {
   const orig = new Uint8ClampedArray(data)
   const pixels = new Uint8ClampedArray(orig)
 
-  // --- 1) Edge flood: remove black connected to edges (4-neighbor) ---
   const visited = new Uint8Array(w * h)
   const q = []
   const pushEdge = (x, y) => {
     const i = idx(x, y, w)
     if (visited[i]) return
     const p = (y * w + x) * 4
-    if (!isNearBlack(orig[p], orig[p + 1], orig[p + 2])) return
+    if (!isNearWhite(orig[p], orig[p + 1], orig[p + 2])) return
     visited[i] = 1
     q.push([x, y])
   }
@@ -95,81 +78,9 @@ async function main() {
       const vi = idx(nx, ny, w)
       if (visited[vi]) continue
       const np = (ny * w + nx) * 4
-      if (!isNearBlack(orig[np], orig[np + 1], orig[np + 2])) continue
+      if (!isNearWhite(orig[np], orig[np + 1], orig[np + 2])) continue
       visited[vi] = 1
       q.push([nx, ny])
-    }
-  }
-
-  // --- 2) Distance from any red or white pixel (8-neighbor BFS) ---
-  const dist = new Uint16Array(w * h)
-  dist.fill(65535)
-  const q2 = []
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const p = (y * w + x) * 4
-      const r = orig[p],
-        g0 = orig[p + 1],
-        b0 = orig[p + 2]
-      if (isRed(r, g0, b0) || isWhite(r, g0, b0)) {
-        const i = idx(x, y, w)
-        dist[i] = 0
-        q2.push([x, y])
-      }
-    }
-  }
-
-  let head = 0
-  while (head < q2.length) {
-    const [x, y] = q2[head++]
-    const d0 = dist[idx(x, y, w)]
-    for (let dy = -1; dy <= 1; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
-        if (dx === 0 && dy === 0) continue
-        const nx = x + dx
-        const ny = y + dy
-        if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue
-        const ni = idx(nx, ny, w)
-        if (dist[ni] !== 65535) continue
-        dist[ni] = d0 + 1
-        q2.push([nx, ny])
-      }
-    }
-  }
-
-  const maxDist = Math.min(140, Math.max(64, Math.floor(0.2 * Math.hypot(w, h))))
-
-  const touchesWhite = (x, y) => {
-    for (let dy = -1; dy <= 1; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
-        if (dx === 0 && dy === 0) continue
-        const nx = x + dx
-        const ny = y + dy
-        if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue
-        const p = (ny * w + nx) * 4
-        if (isWhite(orig[p], orig[p + 1], orig[p + 2])) return true
-      }
-    }
-    return false
-  }
-
-  // --- 3) Restore bug blacks that were wrongly cleared ---
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const p = (y * w + x) * 4
-      if (pixels[p + 3] !== 0) continue
-      if (!isNearBlack(orig[p], orig[p + 1], orig[p + 2])) continue
-
-      const d = dist[idx(x, y, w)]
-      const nearArt = d <= maxDist && d >= 2
-      const nextToWhiteHead = touchesWhite(x, y)
-
-      if (nearArt || nextToWhiteHead) {
-        pixels[p] = orig[p]
-        pixels[p + 1] = orig[p + 1]
-        pixels[p + 2] = orig[p + 2]
-        pixels[p + 3] = 255
-      }
     }
   }
 
@@ -184,7 +95,7 @@ async function main() {
     .jpeg({ quality: 92, mozjpeg: true })
     .toFile(outputJpg)
 
-  console.log('Wrote', output, outputJpg, `(maxDist=${maxDist})`)
+  console.log('Wrote', output, outputJpg)
 }
 
 main().catch((e) => {
