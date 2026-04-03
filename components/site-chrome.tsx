@@ -28,12 +28,12 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
     <>
       <Navbar />
       <main className="flex min-h-0 flex-1 flex-col">{children}</main>
-      <footer className="border-t border-gray-100 bg-white py-4 text-center">
+      <footer className="border-t border-white/40 bg-gradient-to-b from-white/50 to-slate-50/60 py-6 text-center backdrop-blur-md">
         <p className="text-xs text-gray-500">
-          Contact us:{' '}
+          Contact:{' '}
           <a
             href="mailto:teferi.business@gmail.com"
-            className="text-gray-600 underline underline-offset-2 hover:text-gray-900"
+            className="font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
           >
             teferi.business@gmail.com
           </a>

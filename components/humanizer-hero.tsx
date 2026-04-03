@@ -1,24 +1,33 @@
-import { Star } from 'lucide-react'
-
 export function HumanizerHero() {
   return (
-    <div className="border-b border-amber-200/70 bg-gradient-to-r from-amber-50/90 via-white to-rose-50/80">
-      <div className="container mx-auto px-2 py-4 text-center md:px-4 md:py-5">
-        <p
-          className="inline-flex max-w-full flex-nowrap items-center justify-center gap-1 whitespace-nowrap text-[9px] font-bold uppercase leading-none tracking-[0.1em] text-amber-900/90 sm:gap-1.5 sm:text-[11px] sm:tracking-[0.14em] md:text-xs md:tracking-[0.18em]"
-          title="5 Star rated Humanizer by American Students"
-        >
-          <span className="inline-flex shrink-0 items-center gap-px" aria-hidden="true">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                className="h-2.5 w-2.5 shrink-0 fill-amber-500 text-amber-500 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5"
-                strokeWidth={0}
-              />
-            ))}
-          </span>
-          <span>5 Star rated Humanizer by American Students</span>
-        </p>
+    <div className="relative overflow-hidden border-b border-white/20">
+      {/* Hero background glow (Ryne-style soft blobs + liquid glass vibe) */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-50/90 via-white to-rose-50/40"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -top-32 left-1/2 h-[min(28rem,80vw)] w-[min(42rem,95vw)] -translate-x-1/2 rounded-full bg-gradient-to-r from-fuchsia-400/35 via-rose-300/40 to-amber-300/35 blur-3xl"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -bottom-24 right-[10%] h-72 w-72 rounded-full bg-cyan-400/25 blur-3xl"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute bottom-0 left-[5%] h-56 w-56 rounded-full bg-violet-400/20 blur-3xl"
+        aria-hidden
+      />
+
+      <div className="container relative mx-auto px-4 py-10 md:py-14">
+        <div className="mx-auto flex max-w-3xl justify-center">
+          {/* Frosted bubble */}
+          <div className="liquid-glass-bubble rounded-[2rem] px-8 py-4 shadow-[0_12px_48px_rgba(0,0,0,0.08)] md:px-12 md:py-5">
+            <p className="text-center text-sm font-semibold tracking-tight text-gray-900 md:text-base">
+              #1 Ranked AI Humanizer
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )

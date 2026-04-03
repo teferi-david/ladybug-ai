@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
-import { Copy, Check, Lock } from 'lucide-react'
+import { Copy, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
 import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
@@ -226,7 +226,7 @@ export function HomePageClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50/90 via-white to-gray-50/90">
       <HumanizerHero />
       <UpgradeModal
         open={upgradeModalOpen}

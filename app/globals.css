@@ -55,5 +55,17 @@
   .animate-upgrade-soft-glow {
     animation: upgrade-soft-glow 4.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   }
+
+  /* Apple-style liquid glass (nav + hero bubbles) */
+  .liquid-glass-nav {
+    @apply supports-[backdrop-filter]:bg-white/40;
+  }
+
+  .liquid-glass-bubble {
+    @apply border border-white/60 bg-white/45 backdrop-blur-2xl ring-1 ring-white/70;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.9) inset,
+      0 12px 40px rgba(0, 0, 0, 0.06);
+  }
 }
 
