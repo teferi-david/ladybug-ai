@@ -12,7 +12,8 @@ import { AuthEmailDivider } from '@/components/auth-email-divider'
 import { AuthSplitLayout } from '@/components/auth-split-layout'
 import { proUpgradeButtonClassName } from '@/components/pro-upgrade-button'
 import { cn } from '@/lib/utils'
-import { getOAuthRedirectHostname, getOAuthRedirectUrl } from '@/lib/oauth-redirect'
+import { Loader2 } from 'lucide-react'
+import { getOAuthRedirectUrl } from '@/lib/oauth-redirect'
 
 const authPrimaryCtaClass = cn(proUpgradeButtonClassName, 'w-full')
 
@@ -87,18 +88,23 @@ export default function RegisterPage() {
         </div>
       )}
 
-      <Button
-        type="button"
-        variant="outline"
-        className="flex h-11 w-full items-center justify-center gap-3 border-gray-300 bg-white font-medium text-gray-800 hover:bg-gray-50"
-        onClick={handleGoogleSignIn}
-        disabled={loading || googleLoading}
-      >
-        <GoogleBrandIcon className="shrink-0" />
-        {googleLoading
-          ? 'Redirecting to Google...'
-          : `Continue to ${getOAuthRedirectHostname()}`}
-      </Button>
+      <div className="flex justify-center">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-12 w-12 shrink-0 rounded-full border-gray-300 bg-white hover:bg-gray-50"
+          onClick={handleGoogleSignIn}
+          disabled={loading || googleLoading}
+          aria-label={googleLoading ? 'Connecting with Google' : 'Continue with Google'}
+        >
+          {googleLoading ? (
+            <Loader2 className="h-6 w-6 animate-spin text-gray-700" aria-hidden />
+          ) : (
+            <GoogleBrandIcon className="h-6 w-6" />
+          )}
+        </Button>
+      </div>
 
       <AuthEmailDivider />
 

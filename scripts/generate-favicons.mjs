@@ -1,5 +1,6 @@
 /**
- * One-shot: build favicons from public/logo.jpg (square center-crop, small files for Google / browsers).
+ * One-shot: build favicons from public/logo.png (transparent mark on white — readable at 16–32px in tabs).
+ * Open Graph / social previews stay on /logo.jpg (see app/layout.tsx).
  * Run: node scripts/generate-favicons.mjs
  */
 import fs from 'node:fs'
@@ -10,11 +11,14 @@ import toIco from 'to-ico'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, '..')
-const src = path.join(root, 'public', 'logo.jpg')
+const src = path.join(root, 'public', 'logo.png')
 const publicDir = path.join(root, 'public')
+
+const white = { r: 255, g: 255, b: 255, alpha: 1 }
+
 async function squarePng(size, outPath) {
   await sharp(src)
-    .resize(size, size, { fit: 'cover', position: 'centre' })
+    .resize(size, size, { fit: 'contain', background: white, position: 'centre' })
     .png({ compressionLevel: 9 })
     .toFile(outPath)
 }
@@ -39,7 +43,7 @@ async function main() {
 
   const buf32 = fs.readFileSync(icon32)
   const buf16 = await sharp(src)
-    .resize(16, 16, { fit: 'cover', position: 'centre' })
+    .resize(16, 16, { fit: 'contain', background: white, position: 'centre' })
     .png({ compressionLevel: 9 })
     .toBuffer()
 

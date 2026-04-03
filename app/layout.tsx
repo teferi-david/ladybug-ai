@@ -58,6 +58,7 @@ export const metadata: Metadata = {
     title: 'Undetectable AI Humanizer: Ladybug AI',
     description:
       'Ladybug AI humanizer: AI humanizer and humanizer AI tool for natural, student-friendly rewrites. Try free.',
+    // Opaque JPEG for link previews (Google/social); in-app brand mark is transparent /logo.png.
     images: [{ url: '/logo.jpg', width: 512, height: 512, alt: 'Ladybug AI logo' }],
   },
   twitter: {

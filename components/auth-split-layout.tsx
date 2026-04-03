@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { LogoMark } from '@/components/logo-mark'
 import { Check } from 'lucide-react'
 
 const BULLETS = [
@@ -45,13 +46,7 @@ export function AuthSplitLayout({ children, title, subtitle }: AuthSplitLayoutPr
       <div className="flex flex-1 flex-col justify-center bg-white px-6 py-10 sm:px-10 lg:px-14 lg:py-16">
         <div className="mx-auto w-full max-w-md">
           <Link href="/" className="mb-8 inline-flex items-center gap-2">
-            <Image
-              src="/logo.jpg"
-              alt="Ladybug AI"
-              width={40}
-              height={40}
-              className="h-10 w-10 rounded-lg object-cover"
-            />
+            <LogoMark size={40} className="h-10 w-10" />
             <span className="text-lg font-bold tracking-tight text-gray-900">Ladybug AI</span>
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900 md:text-3xl">{title}</h1>

@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
+import { logoFloatingClass } from '@/components/logo-mark'
 
 /**
  * Ryne-style hero: badge, glossy logo orb, split headline, CTAs, trust metrics.
@@ -16,20 +17,20 @@ export function LandingHero() {
           <span>#1 Ranked AI Humanizer</span>
         </div>
 
-        {/* Logo orb (liquid glass gloss over existing asset) */}
+        {/* Logo orb (liquid glass + floating transparent mark) */}
         <div className="relative mx-auto mb-8 flex h-32 w-32 items-center justify-center md:h-40 md:w-40">
           <div
             className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-rose-400/50 via-fuchsia-400/30 to-amber-200/40 blur-2xl"
             aria-hidden
           />
           <div className="relative h-full w-full rounded-full bg-gradient-to-br from-white/90 to-rose-50/80 p-1 shadow-[0_20px_60px_-15px_rgba(225,29,72,0.35)] ring-2 ring-white/80 backdrop-blur-xl">
-            <div className="relative h-full w-full overflow-hidden rounded-full ring-1 ring-black/5">
+            <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full ring-1 ring-black/5">
               <Image
-                src="/logo.jpg"
+                src="/logo.png"
                 alt=""
                 width={160}
                 height={160}
-                className="h-full w-full object-cover"
+                className={`h-[88%] w-[88%] ${logoFloatingClass}`}
                 priority
               />
               <div
