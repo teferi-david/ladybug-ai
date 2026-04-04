@@ -35,17 +35,22 @@ export async function extractTextFromTxtFile(file: File): Promise<string> {
   return truncateSample(text)
 }
 
+type MammothLike = { extractRawText: (opts: { arrayBuffer: ArrayBuffer }) => Promise<{ value: string }> }
+
 export async function extractTextFromDocxFile(file: File): Promise<string> {
-  const mammoth = await import('mammoth')
+  const mod = await import('mammoth')
+  const api = (mod as { default?: MammothLike }).default ?? (mod as unknown as MammothLike)
   const arrayBuffer = await file.arrayBuffer()
-  const result = await mammoth.extractRawText({ arrayBuffer })
+  const result = await api.extractRawText({ arrayBuffer })
   return truncateSample((result.value || '').trim())
 }
 
 export async function extractTextFromPdfFile(file: File): Promise<string> {
   const pdfjs = await import('pdfjs-dist')
-  const version = pdfjs.version ?? '5.6.205'
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.worker.min.mjs`
+  // Same-origin worker avoids CDN/CSP issues that silently break PDF parsing in dialogs.
+  if (typeof window !== 'undefined') {
+    pdfjs.GlobalWorkerOptions.workerSrc = `${window.location.origin}/pdf.worker.min.mjs`
+  }
 
   const data = new Uint8Array(await file.arrayBuffer())
   const pdf = await pdfjs.getDocument({ data }).promise

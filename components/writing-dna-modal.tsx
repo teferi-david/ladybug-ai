@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -42,14 +42,25 @@ export function WritingDnaModal({ open, onOpenChange, initialSamples = [], onExt
   const [extractError, setExtractError] = useState<string | null>(null)
   const samplesRef = useRef(samples)
   samplesRef.current = samples
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const wasOpenRef = useRef(false)
 
-  const initKey = initialSamples.join('\u0001').slice(0, 4000)
+  // Only reset when the dialog transitions closed → open (not on every render while open).
+  // Otherwise Radix/re-renders can wipe samples right after a successful file upload.
   useEffect(() => {
-    if (!open) return
-    setSamples(initialSamples.slice(0, MAX_SAMPLES))
-    setDraft('')
-    setExtractError(null)
-  }, [open, initKey])
+    if (open) {
+      if (!wasOpenRef.current) {
+        const next = initialSamples.slice(0, MAX_SAMPLES)
+        samplesRef.current = next
+        setSamples(next)
+        setDraft('')
+        setExtractError(null)
+      }
+      wasOpenRef.current = true
+    } else {
+      wasOpenRef.current = false
+    }
+  }, [open, initialSamples])
 
   const draftChars = charCount(draft)
   const canAddPaste =
@@ -59,12 +70,20 @@ export function WritingDnaModal({ open, onOpenChange, initialSamples = [], onExt
 
   const addSampleFromPaste = () => {
     if (!canAddPaste) return
-    setSamples((s) => [...s, draft.trim()])
+    setSamples((s) => {
+      const next = [...s, draft.trim()]
+      samplesRef.current = next
+      return next
+    })
     setDraft('')
   }
 
   const removeAt = (i: number) => {
-    setSamples((s) => s.filter((_, j) => j !== i))
+    setSamples((s) => {
+      const next = s.filter((_, j) => j !== i)
+      samplesRef.current = next
+      return next
+    })
   }
 
   const ready = samples.length >= MIN_SAMPLES && samples.length <= MAX_SAMPLES
@@ -78,9 +97,9 @@ export function WritingDnaModal({ open, onOpenChange, initialSamples = [], onExt
     onOpenChange(false)
   }
 
-  const handleFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const list = e.target.files
-    e.target.value = ''
+  const handleFilesChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputEl = e.target
+    const list = inputEl.files
     if (!list?.length) return
 
     setExtractError(null)
@@ -89,6 +108,7 @@ export function WritingDnaModal({ open, onOpenChange, initialSamples = [], onExt
     const slotsLeft = MAX_SAMPLES - prev.length
     if (slotsLeft <= 0) {
       setExtractError('You already have the maximum number of samples (5).')
+      inputEl.value = ''
       return
     }
 
@@ -111,23 +131,29 @@ export function WritingDnaModal({ open, onOpenChange, initialSamples = [], onExt
             continue
           }
           merged.push(text)
-        } catch {
-          errors.push(`${file.name}: could not read`)
+        } catch (err) {
+          const detail = err instanceof Error ? err.message : String(err)
+          errors.push(`${file.name}: ${detail || 'could not read'}`)
         }
       }
 
+      samplesRef.current = merged
       setSamples(merged)
       if (files.length > slotsLeft) {
         errors.push(`Only ${slotsLeft} file(s) added (max ${MAX_SAMPLES} total).`)
       }
-      if (errors.length) setExtractError(errors.slice(0, 3).join(' '))
+      if (errors.length) setExtractError(errors.slice(0, 4).join(' · '))
+      if (merged.length === prev.length && toProcess.length > 0 && errors.length === 0) {
+        setExtractError('No samples were added. Check file type (.txt, .docx, .pdf) and try again.')
+      }
     } finally {
       setExtracting(false)
+      inputEl.value = ''
     }
-  }
+  }, [])
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-left text-xl text-slate-900 dark:text-zinc-50">Mimic (Writing DNA)</DialogTitle>
@@ -140,11 +166,24 @@ export function WritingDnaModal({ open, onOpenChange, initialSamples = [], onExt
 
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <label
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".txt,.pdf,.docx,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              className="sr-only"
+              tabIndex={-1}
+              disabled={samples.length >= MAX_SAMPLES || extracting}
+              onChange={handleFilesChange}
+            />
+            <button
+              type="button"
               className={cn(
                 'inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800',
                 (samples.length >= MAX_SAMPLES || extracting) && 'pointer-events-none opacity-50'
               )}
+              disabled={samples.length >= MAX_SAMPLES || extracting}
+              onClick={() => fileInputRef.current?.click()}
             >
               {extracting ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -152,15 +191,7 @@ export function WritingDnaModal({ open, onOpenChange, initialSamples = [], onExt
                 <Upload className="h-4 w-4" aria-hidden />
               )}
               {extracting ? 'Extracting text…' : 'Upload files'}
-              <input
-                type="file"
-                multiple
-                accept=".txt,.pdf,.docx,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                className="hidden"
-                disabled={samples.length >= MAX_SAMPLES || extracting}
-                onChange={handleFilesChange}
-              />
-            </label>
+            </button>
             <span className="text-xs text-slate-500 dark:text-zinc-500">
               Up to {MAX_SAMPLES} files total; long files trimmed to {WRITING_SAMPLE_MAX_CHARS.toLocaleString()} chars
               each.
