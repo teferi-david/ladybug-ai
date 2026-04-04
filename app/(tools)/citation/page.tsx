@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LoadingSpinner } from '@/components/loading-spinner'
 import { broadcastCoinBalanceUpdated } from '@/lib/coin-balance-sync'
+import { recordToolVisit } from '@/lib/dashboard-recents'
+import { loadCitationDraft, saveCitationDraft } from '@/lib/tool-drafts'
 import { Quote, Copy } from 'lucide-react'
 
 function countWordsFromForm(d: Record<string, string>): number {
@@ -41,6 +43,7 @@ export default function CitationPage() {
   })
   const [output, setOutput] = useState('')
   const [processing, setProcessing] = useState(false)
+  const [draftHydrated, setDraftHydrated] = useState(false)
 
   const wordCount = useMemo(() => countWordsFromForm(formData), [formData])
   const maxWords = premium
@@ -97,6 +100,29 @@ export default function CitationPage() {
     })
     return () => subscription.unsubscribe()
   }, [load])
+
+  useEffect(() => {
+    if (!signedIn) {
+      setDraftHydrated(false)
+      return
+    }
+    recordToolVisit('/citation', 'Citations')
+    const d = loadCitationDraft()
+    if (d) {
+      setCitationType(d.citationType)
+      setFormData(d.formData)
+      setOutput(d.output)
+    }
+    setDraftHydrated(true)
+  }, [signedIn])
+
+  useEffect(() => {
+    if (!signedIn || !draftHydrated) return
+    const id = window.setTimeout(() => {
+      saveCitationDraft({ citationType, formData, output })
+    }, 450)
+    return () => window.clearTimeout(id)
+  }, [signedIn, draftHydrated, citationType, formData, output])
 
   const handleGenerate = async () => {
     setProcessing(true)

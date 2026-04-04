@@ -1,14 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { LoadingSpinner } from '@/components/loading-spinner'
-import { BookOpen, Quote, RefreshCw, Sparkles, Wand2 } from 'lucide-react'
+import { BookOpen, ChevronRight, Quote, RefreshCw, Sparkles, Wand2 } from 'lucide-react'
 import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { cn } from '@/lib/utils'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
+import {
+  DASHBOARD_RECENTS_UPDATED_EVENT,
+  formatRecentTime,
+  getRecentVisits,
+  recordToolVisit,
+  type DashboardRecent,
+} from '@/lib/dashboard-recents'
+import { draftPreviewForHref } from '@/lib/tool-drafts'
 import type { Database } from '@/types/database.types'
 
 type UserRow = Database['public']['Tables']['users']['Row']
@@ -56,6 +64,22 @@ export function DashboardPageClient() {
   const [email, setEmail] = useState<string | null>(null)
   const [coins, setCoins] = useState<number | null>(null)
   const [premium, setPremium] = useState(false)
+  const [recents, setRecents] = useState<DashboardRecent[]>([])
+
+  const refreshRecents = useCallback(() => {
+    setRecents(getRecentVisits())
+  }, [])
+
+  useEffect(() => {
+    refreshRecents()
+    const onUpdate = () => refreshRecents()
+    window.addEventListener(DASHBOARD_RECENTS_UPDATED_EVENT, onUpdate)
+    window.addEventListener('focus', onUpdate)
+    return () => {
+      window.removeEventListener(DASHBOARD_RECENTS_UPDATED_EVENT, onUpdate)
+      window.removeEventListener('focus', onUpdate)
+    }
+  }, [refreshRecents])
 
   useEffect(() => {
     let cancelled = false
@@ -132,6 +156,7 @@ export function DashboardPageClient() {
               <Link
                 key={t.href}
                 href={t.href}
+                onClick={() => recordToolVisit(t.href, t.label)}
                 className={cn(
                   'group relative flex flex-col rounded-2xl border border-violet-100/80 bg-gradient-to-br from-white to-violet-50/40 p-5 shadow-sm transition',
                   'hover:border-violet-200 hover:shadow-md dark:border-zinc-800 dark:from-zinc-950 dark:to-violet-950/30 dark:hover:border-violet-800'
@@ -159,9 +184,49 @@ export function DashboardPageClient() {
           })}
         </div>
 
-        <div className="mt-12 rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 p-8 text-center text-sm text-gray-500 dark:border-zinc-800 dark:bg-zinc-950/40 dark:text-zinc-500">
-          <p className="font-medium text-gray-700 dark:text-zinc-300">Recents</p>
-          <p className="mt-2">Your recent work will appear here in a future update.</p>
+        <div className="mt-12">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-zinc-100">Recents</h2>
+          {recents.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 p-8 text-center text-sm text-gray-500 dark:border-zinc-800 dark:bg-zinc-950/40 dark:text-zinc-500">
+              <p>Open a tool above to see it here. Your drafts are saved automatically so you can pick up where you left off.</p>
+            </div>
+          ) : (
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {recents.map((r) => {
+                const preview = draftPreviewForHref(r.href)
+                return (
+                  <li key={r.href}>
+                    <Link
+                      href={r.href}
+                      onClick={() => recordToolVisit(r.href, r.label)}
+                      className={cn(
+                        'flex flex-col gap-1 rounded-2xl border border-violet-100/80 bg-white p-4 text-left shadow-sm transition',
+                        'hover:border-violet-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-violet-800'
+                      )}
+                    >
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-gray-900 dark:text-zinc-50">{r.label}</span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-violet-500" aria-hidden />
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-zinc-500">{formatRecentTime(r.visitedAt)}</span>
+                      {preview ? (
+                        <>
+                          <span className="text-[11px] font-medium uppercase tracking-wide text-violet-600 dark:text-violet-400">
+                            Saved draft
+                          </span>
+                          <span className="line-clamp-2 text-xs text-gray-600 dark:text-zinc-400">
+                            &ldquo;{preview}&rdquo;
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-xs font-medium text-violet-700 dark:text-violet-300">Continue where you left off</span>
+                      )}
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </div>
       </div>
     </div>

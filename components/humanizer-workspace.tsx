@@ -22,6 +22,8 @@ import {
 } from '@/lib/humanizer-priority'
 import { WritingDnaModal } from '@/components/writing-dna-modal'
 import { broadcastCoinBalanceUpdated } from '@/lib/coin-balance-sync'
+import { recordToolVisit } from '@/lib/dashboard-recents'
+import { loadHumanizerDraft, saveHumanizerDraft } from '@/lib/tool-drafts'
 
 const HUMANIZE_LOADING_MESSAGES = [
   'Refining phrasing and tone',
@@ -47,12 +49,31 @@ export function HumanizerWorkspace() {
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const loadingMsgIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [loadingPhase, setLoadingPhase] = useState(0)
+  const [draftHydrated, setDraftHydrated] = useState(false)
 
   useEffect(() => {
+    recordToolVisit('/humanizer', 'Humanizer')
     const p = getStoredPriority()
     if (p) setPriority(p)
     setDnaSamples(getStoredWritingDna())
+    const d = loadHumanizerDraft()
+    if (d) {
+      setInput(d.input)
+      setOutput(d.output)
+      setHumanizeLevel(d.humanizeLevel)
+      setPriority(d.priority)
+      setStoredPriority(d.priority)
+    }
+    setDraftHydrated(true)
   }, [])
+
+  useEffect(() => {
+    if (!draftHydrated) return
+    const id = window.setTimeout(() => {
+      saveHumanizerDraft({ input, output, humanizeLevel, priority })
+    }, 450)
+    return () => window.clearTimeout(id)
+  }, [input, output, humanizeLevel, priority, draftHydrated])
 
   const getAccessTokenForApi = useCallback(async () => {
     await supabase.auth.getUser()

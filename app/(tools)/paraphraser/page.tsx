@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea'
 import { LoadingSpinner } from '@/components/loading-spinner'
 import { broadcastCoinBalanceUpdated } from '@/lib/coin-balance-sync'
+import { recordToolVisit } from '@/lib/dashboard-recents'
+import { loadParaphraseDraft, saveParaphraseDraft } from '@/lib/tool-drafts'
 import { RefreshCw, Copy } from 'lucide-react'
 
 export default function ParaphraserPage() {
@@ -23,6 +25,7 @@ export default function ParaphraserPage() {
   const [input, setInput] = useState('')
   const [output, setOutput] = useState('')
   const [processing, setProcessing] = useState(false)
+  const [draftHydrated, setDraftHydrated] = useState(false)
 
   const wordCount = input.trim().split(/\s+/).filter((w) => w.length > 0).length
   const maxWords = premium
@@ -80,6 +83,28 @@ export default function ParaphraserPage() {
     })
     return () => subscription.unsubscribe()
   }, [load])
+
+  useEffect(() => {
+    if (!signedIn) {
+      setDraftHydrated(false)
+      return
+    }
+    recordToolVisit('/paraphraser', 'Paraphraser')
+    const d = loadParaphraseDraft()
+    if (d) {
+      setInput(d.input)
+      setOutput(d.output)
+    }
+    setDraftHydrated(true)
+  }, [signedIn])
+
+  useEffect(() => {
+    if (!signedIn || !draftHydrated) return
+    const id = window.setTimeout(() => {
+      saveParaphraseDraft({ input, output })
+    }, 450)
+    return () => window.clearTimeout(id)
+  }, [signedIn, draftHydrated, input, output])
 
   const handleParaphrase = async () => {
     if (!input.trim() || wordCount > maxWords) return

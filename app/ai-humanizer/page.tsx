@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getSiteUrl } from '@/lib/site-url'
 import { Button } from '@/components/ui/button'
+import { RecordDashboardVisit } from '@/components/record-dashboard-visit'
 
 const siteUrl = getSiteUrl()
 
@@ -31,6 +32,7 @@ export const metadata: Metadata = {
 export default function AiHumanizerLandingPage() {
   return (
     <div className="min-h-full bg-gradient-to-b from-white to-gray-50 dark:from-zinc-950 dark:to-black">
+      <RecordDashboardVisit href="/ai-humanizer" label="Blog" />
       <article className="container mx-auto max-w-3xl px-4 py-12 md:py-16">
         <p className="text-center text-sm font-semibold uppercase tracking-wide text-primary">
           AI Humanizer
