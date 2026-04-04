@@ -173,11 +173,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const DNA_MAX_CHARS_PER_SAMPLE = 20_000
     let writingDnaSamples: string[] | undefined
     if (Array.isArray(rawDna)) {
       const parts = rawDna
         .filter((x): x is string => typeof x === 'string' && x.trim().length > 0)
-        .map((s) => s.trim())
+        .map((s) => s.trim().slice(0, DNA_MAX_CHARS_PER_SAMPLE))
       if (parts.length > 0) {
         writingDnaSamples = parts.slice(0, 8)
       }

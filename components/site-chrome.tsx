@@ -25,7 +25,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative flex min-h-screen flex-col">
       {/* Slow-moving red / rose ambient layer (liquid glass site background) */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden>
         <div className="absolute inset-0 bg-gradient-to-b from-rose-50/95 via-white to-amber-50/40 dark:from-zinc-950 dark:via-black dark:to-zinc-950" />

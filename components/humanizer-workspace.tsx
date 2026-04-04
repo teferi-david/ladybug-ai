@@ -2,9 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
 import { Copy, Check, Dna } from 'lucide-react'
@@ -245,7 +244,7 @@ export function HumanizerWorkspace() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-0 flex-1 flex-col">
       <UpgradeModal
         open={upgradeModalOpen}
         onClose={() => setUpgradeModalOpen(false)}
@@ -258,39 +257,17 @@ export function HumanizerWorkspace() {
         onExtracted={() => setDnaSamples(getStoredWritingDna())}
       />
 
-      <section id="humanizer-tool" className="py-8 md:py-12">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            className="mx-auto mb-8 max-w-2xl text-center"
-          >
-            <h2 className="text-lg font-bold tracking-tight text-gray-900 md:text-xl dark:text-zinc-100">
-              Humanize your text
-            </h2>
-            <p className="mt-2 text-sm text-gray-600 md:text-base dark:text-zinc-400">
-              Choose mode, priority (Balanced or Stealth), and optional Mimic. Each word costs 1 coin on the free
-              plan.
-            </p>
-            {!hasProAccess && coinsRemaining !== null && (
-              <p className="mt-2 text-sm font-medium text-violet-800 dark:text-violet-300">
-                Coins: {coinsRemaining.toLocaleString()}
-              </p>
-            )}
-          </motion.div>
-
-          <div className="mx-auto grid max-w-6xl items-stretch gap-6 lg:grid-cols-2">
-            <Card className="liquid-glass-bubble flex flex-col border-2 border-primary/25 shadow-lg shadow-rose-950/10 dark:border-primary/30 dark:shadow-none">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="text-base font-semibold text-gray-500 dark:text-zinc-400">Input</span>
-                </CardTitle>
-                <CardDescription className="dark:text-zinc-500">
-                  Toolbar: level, priority, and Mimic (writing samples) when you want your voice in the output.
-                </CardDescription>
+      <section
+        id="humanizer-tool"
+        className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-1 md:px-4 md:pb-4 md:pt-2"
+      >
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-[1920px] flex-1 flex-col">
+          <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-2 lg:gap-4 lg:items-stretch">
+            <Card className="liquid-glass-bubble flex h-full min-h-[28rem] flex-col border-2 border-primary/25 shadow-lg shadow-rose-950/10 dark:border-primary/30 dark:shadow-none lg:min-h-0">
+              <CardHeader className="shrink-0 space-y-1 pb-3">
+                <CardTitle className="text-base font-semibold text-gray-500 dark:text-zinc-400">Input</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 flex-1 flex flex-col">
+              <CardContent className="flex min-h-0 flex-1 flex-col space-y-4">
                 <div className="flex flex-col gap-3 rounded-xl border border-gray-200/80 bg-white/50 p-3 sm:flex-row sm:flex-wrap sm:items-end dark:border-zinc-700 dark:bg-zinc-900/50">
                   <div className="min-w-0 flex-1 space-y-1.5 sm:min-w-[140px]">
                     <label htmlFor="humanize-level" className="block text-xs font-medium text-gray-600 dark:text-zinc-400">
@@ -364,21 +341,26 @@ export function HumanizerWorkspace() {
                   </Button>
                 </div>
 
-                <div className="flex-1 flex flex-col min-h-0">
-                  <div className="flex justify-between items-center mb-2">
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                     <label className="text-sm font-medium dark:text-zinc-200">AI text</label>
                     <span className="text-sm text-gray-500 dark:text-zinc-400">
                       {wordCount} words
                       {!hasProAccess && coinsRemaining !== null && (
-                        <span className="ml-2 text-violet-700 dark:text-violet-300">
-                          · {wordCount} coins
-                        </span>
+                        <>
+                          <span className="ml-2 text-violet-700 dark:text-violet-300">
+                            · {wordCount} coins this run
+                          </span>
+                          <span className="ml-2 font-medium text-violet-800 tabular-nums dark:text-violet-300">
+                            · {coinsRemaining.toLocaleString()} left
+                          </span>
+                        </>
                       )}
                     </span>
                   </div>
                   <Textarea
                     placeholder="Paste the AI text you want to humanize..."
-                    className="min-h-[280px] flex-1 resize-y dark:border-zinc-600 dark:bg-zinc-950"
+                    className="min-h-[12rem] flex-1 resize-y dark:border-zinc-600 dark:bg-zinc-950 lg:min-h-0"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     disabled={processing}
@@ -407,12 +389,13 @@ export function HumanizerWorkspace() {
               </CardContent>
             </Card>
 
-            <Card className="liquid-glass-bubble flex min-h-[420px] flex-col border-2 border-white/50 shadow-lg shadow-rose-950/10 dark:border-zinc-700 dark:shadow-none">
-              <CardHeader>
-                <CardTitle className="text-base font-semibold text-gray-500 dark:text-zinc-400">Human-like output</CardTitle>
-                <CardDescription className="dark:text-zinc-500">Read it, tweak it, copy when you are happy.</CardDescription>
+            <Card className="liquid-glass-bubble flex h-full min-h-[20rem] flex-col border-2 border-white/50 shadow-lg shadow-rose-950/10 dark:border-zinc-700 dark:shadow-none lg:min-h-0">
+              <CardHeader className="shrink-0 pb-3">
+                <CardTitle className="text-base font-semibold text-gray-500 dark:text-zinc-400">
+                  Human-like output
+                </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 flex flex-col gap-4">
+              <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
                 {processing && (
                   <div className="space-y-4 py-2">
                     <p
@@ -429,14 +412,14 @@ export function HumanizerWorkspace() {
                 )}
 
                 {!processing && !output && (
-                  <div className="flex-1 flex items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50/80 px-6 py-12 text-center text-gray-500 text-sm dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
+                  <div className="flex min-h-[12rem] flex-1 items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50/80 px-6 py-8 text-center text-sm text-gray-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400 lg:min-h-0">
                     Your humanized text lands here after you run the tool.
                   </div>
                 )}
 
                 {!processing && output && (
                   <>
-                    <div className="flex-1 min-h-[200px] p-4 bg-gray-50 rounded-lg border text-sm whitespace-pre-wrap overflow-y-auto max-h-[min(420px,50vh)] dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-100">
+                    <div className="min-h-[12rem] flex-1 overflow-y-auto whitespace-pre-wrap rounded-lg border bg-gray-50 p-4 text-sm dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-100 lg:min-h-0">
                       {output}
                     </div>
                     <Button

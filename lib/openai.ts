@@ -35,7 +35,11 @@ function writingDnaBlock(samples: string[] | undefined): string {
     .map((s) => s.trim())
     .filter(Boolean)
     .join('\n\n---\n\n')
-  const capped = joined.length > 12000 ? `${joined.slice(0, 12000)}\n\n[Samples truncated for length]` : joined
+  const DNA_CONTEXT_CHAR_CAP = 40_000
+  const capped =
+    joined.length > DNA_CONTEXT_CHAR_CAP
+      ? `${joined.slice(0, DNA_CONTEXT_CHAR_CAP)}\n\n[Samples truncated for length]`
+      : joined
   return `
 
 The user provided writing samples below. Study rhythm, vocabulary level, and typical sentence length. Imitate that voice in your rewrite. Do not copy sentences verbatim. Do not invent facts from the samples.

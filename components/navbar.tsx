@@ -194,7 +194,20 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 flex justify-center px-3 pt-3 md:px-4 md:pt-4">
-      <div className="liquid-glass-nav mx-auto flex w-full max-w-[min(40rem,calc(100%-1.5rem))] items-center justify-between gap-2 rounded-full border border-white/55 bg-white/50 px-2.5 py-[0.3125rem] shadow-[0_8px_40px_rgba(230,57,70,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/75 dark:shadow-[0_8px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] sm:px-4 sm:py-1">
+      <div
+        className={cn(
+          'mx-auto',
+          user
+            ? 'flex w-full max-w-[min(43.5rem,calc(100%-1.5rem))] items-center gap-2 md:gap-2.5'
+            : 'w-full max-w-[min(40rem,calc(100%-1.5rem))]'
+        )}
+      >
+        <div
+          className={cn(
+            'liquid-glass-nav flex items-center justify-between gap-2 rounded-full border border-white/55 bg-white/50 px-2.5 py-[0.3125rem] shadow-[0_8px_40px_rgba(230,57,70,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/75 dark:shadow-[0_8px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] sm:px-4 sm:py-1',
+            user ? 'min-w-0 flex-1' : 'w-full'
+          )}
+        >
         <Link
           href="/"
           className="flex shrink-0 items-center rounded-lg p-0.5 ring-offset-2 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
@@ -248,123 +261,6 @@ export function Navbar() {
                 </ProUpgradeButton>
               )}
               <ThemeToggle className="h-7 w-7 max-h-7 shrink-0 rounded-full text-gray-700 dark:text-zinc-200 lg:h-8 lg:w-8 lg:max-h-8" />
-              <DropdownMenu
-                modal={false}
-                open={userMenu.open}
-                onOpenChange={userMenu.setOpen}
-              >
-                <div
-                  className="inline-flex h-7 max-h-7 items-center lg:h-8 lg:max-h-8"
-                  onMouseEnter={userMenu.openMenu}
-                  onMouseLeave={userMenu.scheduleClose}
-                >
-                  <DropdownMenuTrigger
-                    className={cn(
-                      'inline-flex h-7 max-h-7 min-h-0 min-w-0 shrink-0 items-center justify-center gap-1 rounded-full border-0 bg-transparent px-2 text-xs font-semibold tabular-nums text-gray-900 shadow-none ring-0 outline-none transition-colors hover:bg-black/[0.06] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30 data-[state=open]:bg-black/[0.08] dark:text-zinc-100 dark:hover:bg-white/[0.08] dark:data-[state=open]:bg-white/[0.1] lg:h-8 lg:max-h-8 lg:gap-1.5 lg:px-2.5 lg:text-sm'
-                    )}
-                    aria-label="Account and coins menu"
-                  >
-                    {isPremium ? (
-                      <>
-                        <span className="text-[10px] uppercase tracking-wide text-violet-600 dark:text-violet-400 lg:text-[11px]">
-                          Pro
-                        </span>
-                        <ChevronDown className="h-3 w-3 shrink-0 opacity-60 lg:h-3.5 lg:w-3.5" aria-hidden />
-                      </>
-                    ) : (
-                      <>
-                        <span
-                          className="h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500 lg:h-2 lg:w-2"
-                          aria-hidden
-                        />
-                        <span className="leading-none">{coinBalance ?? '—'}</span>
-                        <ChevronDown className="h-3 w-3 shrink-0 opacity-60 lg:h-3.5 lg:w-3.5" aria-hidden />
-                      </>
-                    )}
-                  </DropdownMenuTrigger>
-                </div>
-                <DropdownMenuContent
-                  align="end"
-                  sideOffset={6}
-                  className="min-w-[17rem] p-0 dark:border-zinc-800 dark:bg-zinc-950"
-                  onMouseEnter={userMenu.openMenu}
-                  onMouseLeave={userMenu.scheduleClose}
-                  onCloseAutoFocus={(e) => e.preventDefault()}
-                >
-                  <DropdownMenuLabel className="border-b border-border px-3 py-3 font-normal">
-                    <NavAccountProfileHeader
-                      displayName={displayName}
-                      email={user.email}
-                      isPremium={isPremium}
-                      coinBalance={coinBalance}
-                    />
-                  </DropdownMenuLabel>
-
-                  <div className="p-1.5">
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
-                        <LayoutDashboard className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/settings" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
-                        <User className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
-                        Account
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/settings" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
-                        <Settings className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
-                        Settings
-                      </Link>
-                    </DropdownMenuItem>
-                    {!isPremium && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/pricing" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
-                          <Sparkles className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
-                          Get coins / Upgrade
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem asChild>
-                      <Link href="/ai-humanizer" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
-                        <BookOpen className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
-                        Blog
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <a
-                        href="mailto:teferi.business@gmail.com"
-                        className="flex cursor-pointer items-center gap-2.5 px-2 py-2"
-                      >
-                        <HelpCircle className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
-                        Help
-                      </a>
-                    </DropdownMenuItem>
-                  </div>
-
-                  <DropdownMenuSeparator className="dark:bg-zinc-800" />
-
-                  <div className="p-1.5 pt-0">
-                    <DropdownMenuItem
-                      className="flex cursor-pointer items-center gap-2.5 px-2 py-2 text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
-                      onSelect={(e) => {
-                        e.preventDefault()
-                        void (async () => {
-                          userMenu.setOpen(false)
-                          await supabase.auth.signOut()
-                          router.push('/')
-                          router.refresh()
-                        })()
-                      }}
-                    >
-                      <LogOut className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
-                      Log out
-                    </DropdownMenuItem>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           ) : (
             <div className="ml-1 flex items-center gap-1.5 border-l border-gray-200/80 pl-3 lg:ml-3 lg:gap-2 lg:pl-4 dark:border-zinc-700">
@@ -420,6 +316,129 @@ export function Navbar() {
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
+        </div>
+
+        {user && (
+          <div className="hidden shrink-0 md:flex md:items-center">
+            <DropdownMenu
+              modal={false}
+              open={userMenu.open}
+              onOpenChange={userMenu.setOpen}
+            >
+              <div
+                className="inline-flex h-7 max-h-7 items-center lg:h-8 lg:max-h-8"
+                onMouseEnter={userMenu.openMenu}
+                onMouseLeave={userMenu.scheduleClose}
+              >
+                <DropdownMenuTrigger
+                  className={cn(
+                    'inline-flex h-7 max-h-7 min-h-0 min-w-0 shrink-0 items-center justify-center gap-1 rounded-full border-0 bg-transparent px-2 text-xs font-semibold tabular-nums text-gray-900 shadow-none ring-0 outline-none transition-colors hover:bg-black/[0.06] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30 data-[state=open]:bg-black/[0.08] dark:text-zinc-100 dark:hover:bg-white/[0.08] dark:data-[state=open]:bg-white/[0.1] lg:h-8 lg:max-h-8 lg:gap-1.5 lg:px-2.5 lg:text-sm'
+                  )}
+                  aria-label="Account and coins menu"
+                >
+                  {isPremium ? (
+                    <>
+                      <span className="text-[10px] uppercase tracking-wide text-violet-600 dark:text-violet-400 lg:text-[11px]">
+                        Pro
+                      </span>
+                      <ChevronDown className="h-3 w-3 shrink-0 opacity-60 lg:h-3.5 lg:w-3.5" aria-hidden />
+                    </>
+                  ) : (
+                    <>
+                      <span
+                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500 lg:h-2 lg:w-2"
+                        aria-hidden
+                      />
+                      <span className="leading-none">{coinBalance ?? '—'}</span>
+                      <ChevronDown className="h-3 w-3 shrink-0 opacity-60 lg:h-3.5 lg:w-3.5" aria-hidden />
+                    </>
+                  )}
+                </DropdownMenuTrigger>
+              </div>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={6}
+                className="min-w-[17rem] p-0 dark:border-zinc-800 dark:bg-zinc-950"
+                onMouseEnter={userMenu.openMenu}
+                onMouseLeave={userMenu.scheduleClose}
+                onCloseAutoFocus={(e) => e.preventDefault()}
+              >
+                <DropdownMenuLabel className="border-b border-border px-3 py-3 font-normal">
+                  <NavAccountProfileHeader
+                    displayName={displayName}
+                    email={user.email}
+                    isPremium={isPremium}
+                    coinBalance={coinBalance}
+                  />
+                </DropdownMenuLabel>
+
+                <div className="p-1.5">
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
+                      <LayoutDashboard className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
+                      <User className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                      Account
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
+                      <Settings className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  {!isPremium && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/pricing" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
+                        <Sparkles className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                        Get coins / Upgrade
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem asChild>
+                    <Link href="/ai-humanizer" className="flex cursor-pointer items-center gap-2.5 px-2 py-2">
+                      <BookOpen className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                      Blog
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a
+                      href="mailto:teferi.business@gmail.com"
+                      className="flex cursor-pointer items-center gap-2.5 px-2 py-2"
+                    >
+                      <HelpCircle className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                      Help
+                    </a>
+                  </DropdownMenuItem>
+                </div>
+
+                <DropdownMenuSeparator className="dark:bg-zinc-800" />
+
+                <div className="p-1.5 pt-0">
+                  <DropdownMenuItem
+                    className="flex cursor-pointer items-center gap-2.5 px-2 py-2 text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                    onSelect={(e) => {
+                      e.preventDefault()
+                      void (async () => {
+                        userMenu.setOpen(false)
+                        await supabase.auth.signOut()
+                        router.push('/')
+                        router.refresh()
+                      })()
+                    }}
+                  >
+                    <LogOut className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+                    Log out
+                  </DropdownMenuItem>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
 
       {mobileOpen && (
