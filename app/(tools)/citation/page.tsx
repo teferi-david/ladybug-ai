@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LoadingSpinner } from '@/components/loading-spinner'
+import { broadcastCoinBalanceUpdated } from '@/lib/coin-balance-sync'
 import { Quote, Copy } from 'lucide-react'
 
 function countWordsFromForm(d: Record<string, string>): number {
@@ -76,6 +77,7 @@ export default function CitationPage() {
         setCoinsRemaining(null)
       } else if (typeof data.coinsRemaining === 'number') {
         setCoinsRemaining(data.coinsRemaining)
+        broadcastCoinBalanceUpdated(data.coinsRemaining)
       } else {
         setCoinsRemaining(null)
       }
@@ -125,6 +127,7 @@ export default function CitationPage() {
         alert(data.message || data.error || 'Error')
         if (typeof data.coinsRemaining === 'number') {
           setCoinsRemaining(data.coinsRemaining)
+          broadcastCoinBalanceUpdated(data.coinsRemaining)
         }
         return
       }
@@ -132,6 +135,7 @@ export default function CitationPage() {
       setOutput(data.result)
       if (typeof data.coinsRemaining === 'number') {
         setCoinsRemaining(data.coinsRemaining)
+        broadcastCoinBalanceUpdated(data.coinsRemaining)
       }
     } catch {
       alert('Request failed')

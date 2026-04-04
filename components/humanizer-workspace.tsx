@@ -21,6 +21,7 @@ import {
   setStoredPriority,
 } from '@/lib/humanizer-priority'
 import { WritingDnaModal } from '@/components/writing-dna-modal'
+import { broadcastCoinBalanceUpdated } from '@/lib/coin-balance-sync'
 
 const HUMANIZE_LOADING_MESSAGES = [
   'Refining phrasing and tone',
@@ -108,6 +109,7 @@ export function HumanizerWorkspace() {
       setHasProAccess(false)
       if (typeof data.coinsRemaining === 'number') {
         setCoinsRemaining(data.coinsRemaining)
+        broadcastCoinBalanceUpdated(data.coinsRemaining)
       } else {
         setCoinsRemaining(null)
       }
@@ -207,6 +209,7 @@ export function HumanizerWorkspace() {
       if (typeof afterCoins === 'number') {
         setCoinsRemaining(afterCoins)
         setHasProAccess(false)
+        broadcastCoinBalanceUpdated(afterCoins)
       }
       void refreshCoins()
     } catch (error) {
@@ -218,6 +221,7 @@ export function HumanizerWorkspace() {
       }
       if (typeof e.coinsRemaining === 'number') {
         setCoinsRemaining(e.coinsRemaining)
+        broadcastCoinBalanceUpdated(e.coinsRemaining)
       }
       if (e.upgradeRequired || e.status === 403) {
         setUpgradeMessage(e.message)

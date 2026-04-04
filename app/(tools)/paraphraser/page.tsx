@@ -10,6 +10,7 @@ import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { LoadingSpinner } from '@/components/loading-spinner'
+import { broadcastCoinBalanceUpdated } from '@/lib/coin-balance-sync'
 import { RefreshCw, Copy } from 'lucide-react'
 
 export default function ParaphraserPage() {
@@ -59,6 +60,7 @@ export default function ParaphraserPage() {
         setCoinsRemaining(null)
       } else if (typeof data.coinsRemaining === 'number') {
         setCoinsRemaining(data.coinsRemaining)
+        broadcastCoinBalanceUpdated(data.coinsRemaining)
       } else {
         setCoinsRemaining(null)
       }
@@ -107,6 +109,7 @@ export default function ParaphraserPage() {
         alert(data.message || data.error || 'Something went wrong')
         if (typeof data.coinsRemaining === 'number') {
           setCoinsRemaining(data.coinsRemaining)
+          broadcastCoinBalanceUpdated(data.coinsRemaining)
         }
         return
       }
@@ -114,6 +117,7 @@ export default function ParaphraserPage() {
       setOutput(data.result)
       if (typeof data.coinsRemaining === 'number') {
         setCoinsRemaining(data.coinsRemaining)
+        broadcastCoinBalanceUpdated(data.coinsRemaining)
       }
     } catch {
       alert('Request failed. Try again.')

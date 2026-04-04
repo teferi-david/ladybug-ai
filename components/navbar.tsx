@@ -35,6 +35,7 @@ import {
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { COIN_BALANCE_UPDATED_EVENT, type CoinBalanceUpdatedDetail } from '@/lib/coin-balance-sync'
 import { LogoMark } from '@/components/logo-mark'
 import { ThemeToggle } from '@/components/theme-toggle'
 import type { Database } from '@/types/database.types'
@@ -178,6 +179,17 @@ export function Navbar() {
     })
 
     return () => subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    const onCoinsUpdated = (e: Event) => {
+      const ce = e as CustomEvent<CoinBalanceUpdatedDetail>
+      if (typeof ce.detail?.balance === 'number') {
+        setCoinBalance(ce.detail.balance)
+      }
+    }
+    window.addEventListener(COIN_BALANCE_UPDATED_EVENT, onCoinsUpdated)
+    return () => window.removeEventListener(COIN_BALANCE_UPDATED_EVENT, onCoinsUpdated)
   }, [])
 
   useEffect(() => {
