@@ -1,6 +1,6 @@
 /**
- * Keeps the navbar coin counter in sync with tool pages that use /api/*/usage
- * (same balance as Supabase `users.coin_balance` for non‑Pro users).
+ * Keeps the navbar coin counter in sync with tool pages that fetch usage from the API
+ * (same balance as Supabase users.coin_balance for non-Pro accounts).
  */
 export const COIN_BALANCE_UPDATED_EVENT = 'ladybug:coin-balance-updated'
 
