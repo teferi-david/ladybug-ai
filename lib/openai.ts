@@ -13,10 +13,16 @@ const openai = new OpenAI({
 })
 
 /** Shared default for humanize, paraphrase, citation. Override with OPENAI_MODEL. */
-const DEFAULT_OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'gpt-5.4-nano'
+const DEFAULT_OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'o4-mini'
 
 /** Humanize can still be overridden alone with OPENAI_HUMANIZE_MODEL. */
 const HUMANIZE_MODEL = process.env.OPENAI_HUMANIZE_MODEL ?? DEFAULT_OPENAI_MODEL
+
+/** o-series reasoning models reject custom temperature on Chat Completions. */
+function modelSupportsChatTemperature(model: string): boolean {
+  const base = model.replace(/^[\w-]+\//, '').toLowerCase()
+  return !/^o\d/i.test(base)
+}
 
 /** Replace em dash punctuation with commas (keeps numeric ranges with hyphen-minus intact). */
 function stripEmDashPunctuation(text: string): string {
@@ -58,7 +64,7 @@ export type HumanizeOptions = {
 }
 
 /**
- * Humanize text using OpenAI (default: gpt-5.4-nano) and the student-voice system prompt.
+ * Humanize text using OpenAI (default: o4-mini) and the formal-rewrite system prompt.
  */
 export async function humanizeText(
   text: string,
@@ -131,7 +137,7 @@ export async function paraphraseText(text: string): Promise<string> {
           content: `Paraphrase this:\n\n${cleanedText}`,
         },
       ],
-      temperature: 0.6,
+      ...(modelSupportsChatTemperature(DEFAULT_OPENAI_MODEL) ? { temperature: 0.6 } : {}),
       max_completion_tokens: 4096,
     })
 
@@ -146,7 +152,7 @@ export async function paraphraseText(text: string): Promise<string> {
 }
 
 /**
- * Generate citation using OpenAI (default: gpt-5.4-nano)
+ * Generate citation using OpenAI (default: o4-mini)
  */
 export async function generateCitation(citationData: {
   type: 'apa' | 'mla'
@@ -182,7 +188,7 @@ export async function generateCitation(citationData: {
         },
         { role: 'user', content: prompt },
       ],
-      temperature: 0.2,
+      ...(modelSupportsChatTemperature(DEFAULT_OPENAI_MODEL) ? { temperature: 0.2 } : {}),
       max_completion_tokens: 400,
     })
 

@@ -24,6 +24,7 @@ import { WritingDnaModal } from '@/components/writing-dna-modal'
 import { broadcastCoinBalanceUpdated } from '@/lib/coin-balance-sync'
 import { recordToolVisit } from '@/lib/dashboard-recents'
 import { loadHumanizerDraft, saveHumanizerDraft } from '@/lib/tool-drafts'
+import { HumanizerFakeDetectorStrip } from '@/components/humanizer-fake-detector-strip'
 
 const HUMANIZE_LOADING_MESSAGES = [
   'Refining phrasing and tone',
@@ -465,6 +466,7 @@ export function HumanizerWorkspace() {
                         </>
                       )}
                     </Button>
+                    <HumanizerFakeDetectorStrip />
                   </>
                 )}
               </CardContent>
