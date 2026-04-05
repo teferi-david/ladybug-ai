@@ -1,7 +1,11 @@
 import OpenAI from 'openai'
 import type { HumanizeLevel } from '@/lib/humanize-levels'
 import type { HumanizePriority } from '@/lib/humanizer-priority'
-import { HUMANIZE_STUDENT_SYSTEM_PROMPT, LEVEL_VOICE_HINTS } from '@/lib/prompts/humanize-student-system'
+import {
+  HUMANIZE_STUDENT_SYSTEM_PROMPT,
+  LEVEL_VOICE_HINTS,
+  buildStealthPriorityInstruction,
+} from '@/lib/prompts/humanize-student-system'
 
 // Initialize OpenAI client (set OPENAI_API_KEY in env — never commit keys)
 const openai = new OpenAI({
@@ -22,7 +26,7 @@ function stripEmDashPunctuation(text: string): string {
 function priorityInstruction(priority: HumanizePriority | undefined): string {
   switch (priority) {
     case 'stealth':
-      return 'USER PRIORITY (STEALTH): Maximize human-like variation—mix short and long sentences, avoid repetitive openers and template phrases, prefer concrete verbs, and reduce patterns typical of AI-generated text while preserving meaning and factual accuracy.'
+      return buildStealthPriorityInstruction()
     case 'balanced':
     default:
       return 'USER PRIORITY (BALANCED): Balance natural voice with clear structure and readable flow.'

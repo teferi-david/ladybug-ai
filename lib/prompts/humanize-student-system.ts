@@ -276,6 +276,35 @@ Whenever the input resembles the BAD column, **systematically** unwind those pat
 - Preserve all paragraph breaks from the original (you may adjust slightly but keep the general structure).
 - If the input has a title, keep it but you may slightly rephrase it.`
 
+/**
+ * Climate exemplar: stealth mode should match its cadence, connectors, and plain-science phrasing on any topic.
+ * Not copied into outputs—only shapes technique.
+ */
+export const STEALTH_MODE_EXEMPLAR = `One big reason climate change is happening is that carbon dioxide and other greenhouse gases are building up in the atmosphere. A lot of that comes from everyday energy use, like what comes out of factories, cars, airplanes, and power plants. So when these places burn fossil fuels, they release more emissions than the environment can naturally balance out.
+
+And then deforestation makes it worse, because trees normally absorb carbon dioxide from the air. When forests get cut down, there are fewer trees left to pull CO2 back out, plus the carbon stored in the trees doesn't just stay put. It can get released into the atmosphere instead, which adds even more greenhouse gases to the mix.`
+
+/** User-message block when Humanize priority is stealth (detected server-side from request body). */
+export function buildStealthPriorityInstruction(): string {
+  return `USER PRIORITY (STEALTH MODE): Rewrite so the output matches the REFERENCE PASSAGE below in grammar, rhythm, and rhetorical technique—not its wording or subject matter. Apply the same devices to whatever the user's text is about.
+
+Techniques you must mirror (adapted to the user's content; do not paste climate facts unless the user wrote about climate):
+- Open with a conversational causal lead ("One big reason … is that …" or the same energy with their topic). Never cold-open with abstract "The process of … occurs."
+- Follow with inventory of sources: "A lot of that comes from …" linking to everyday or concrete origins before examples.
+- Introduce lists with "like …" and, when natural, a short informal bridge ("like what comes out of …"). Use commas between items and "and" before the last item.
+- Glue cause to effect with "So when …" (actors do X → more Y than Z can balance / absorb / handle).
+- New paragraph: spoken additive opener "And then …" plus "makes it worse, because …" before the second mechanism.
+- Use contractions freely where a real student would ("doesn't", "it's", "can't", "there's", "that's").
+- Prefer plain phrasing over nominalizations: "pull CO2 back out" style (adapt nouns to the topic), "stored", "doesn't just stay put", "released into …", "adds … to the mix."
+- Break rhythm with a short sentence in the middle ("It can get released … instead.") before a single natural "which …" tail that wraps a consequence—one clause, not a chain of whiches.
+- Keep two-paragraph pacing when the source has two main ideas (primary causes vs. compounding factor), similar to the reference.
+
+REFERENCE PASSAGE (technique and grammar model only—do not output this text unless the user's draft is about the same topic, and even then do not copy sentences):
+"""
+${STEALTH_MODE_EXEMPLAR}
+"""`
+}
+
 export const LEVEL_VOICE_HINTS: Record<HumanizeLevel, string> = {
   basic:
     'Voice target: clear, everyday student writing, straightforward and natural, same humanizing rules as the system prompt.',
