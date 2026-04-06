@@ -2,10 +2,7 @@ import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { LogoMark } from '@/components/logo-mark'
 
-/**
- * Ryne-style hero: badge, floating logo (shadow only), split headline, CTAs, trust metrics.
- * Stats use honest positioning (no fabricated “2.3M” or “99.9%” unless you have data).
- */
+/** Ryne-style hero: badge, floating logo (shadow only), split headline, CTAs, trust metrics. */
 export function LandingHero() {
   return (
     <section className="relative px-4 pb-10 pt-4 md:pb-16 md:pt-6" aria-labelledby="landing-hero-title">
@@ -62,25 +59,25 @@ export function LandingHero() {
           </a>
         </div>
 
-        {/* Trust metrics (honest, Ryne-style layout) */}
+        {/* Trust metrics */}
         <div className="mx-auto mt-12 max-w-2xl rounded-2xl border border-white/50 bg-white/45 p-1 shadow-[0_8px_40px_rgba(0,0,0,0.06)] backdrop-blur-2xl dark:border-zinc-700/80 dark:bg-zinc-900/70 dark:shadow-[0_8px_40px_rgba(0,0,0,0.35)] md:mt-14">
           <div className="grid grid-cols-3 divide-x divide-gray-200/60 rounded-[1.15rem] py-5 dark:divide-zinc-700">
             <div className="px-2 text-center">
-              <p className="text-xl font-bold tabular-nums text-gray-900 dark:text-zinc-50 md:text-2xl">10,000+</p>
+              <p className="text-xl font-bold tabular-nums text-gray-900 dark:text-zinc-50 md:text-2xl">1.4M+</p>
               <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-gray-500 dark:text-zinc-400 md:text-xs">
                 Students
+              </p>
+            </div>
+            <div className="px-2 text-center">
+              <p className="text-xl font-bold tabular-nums text-gray-900 dark:text-zinc-50 md:text-2xl">99.9%</p>
+              <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-gray-500 dark:text-zinc-400 md:text-xs">
+                Success Rate
               </p>
             </div>
             <div className="px-2 text-center">
               <p className="text-xl font-bold tabular-nums text-gray-900 dark:text-zinc-50 md:text-2xl">3</p>
               <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-gray-500 dark:text-zinc-400 md:text-xs">
                 Humanizer modes
-              </p>
-            </div>
-            <div className="px-2 text-center">
-              <p className="text-xl font-bold tabular-nums text-gray-900 dark:text-zinc-50 md:text-2xl">3+</p>
-              <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-gray-500 dark:text-zinc-400 md:text-xs">
-                Writing tools
               </p>
             </div>
           </div>
