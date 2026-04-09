@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from 'react'
 
 /** Ladybug AI promo shorts: load when scrolled into view (muted autoplay for browser policy). */
-const YOUTUBE_SHORT_IDS = ['EyVwMoqsyQo', 'WAzcIw23xPE', 'QUNeEr9qNvQ'] as const
+const TEF_PROMO_SHORT_ID = 'EyVwMoqsyQo' as const
+/** Left-to-right on desktop: newest short, then Teferi's, then the other promo. */
+const YOUTUBE_SHORT_IDS = ['QUNeEr9qNvQ', TEF_PROMO_SHORT_ID, 'WAzcIw23xPE'] as const
 
 function embedUrl(id: string) {
   return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1`
@@ -45,11 +47,11 @@ export function JoinStudentsVideoSection() {
           Join the 1.4M+ students who use Ladybug to Bypass AI detectors!
         </h2>
 
-        <div className="mx-auto mt-10 flex w-full flex-wrap items-center justify-center gap-6 md:gap-8 lg:gap-10">
+        <div className="mx-auto mt-10 flex w-full max-w-6xl flex-wrap items-center justify-center gap-6 md:gap-8 lg:flex-nowrap lg:gap-10">
           {YOUTUBE_SHORT_IDS.map((id, index) => (
             <div
               key={id}
-              className="w-full max-w-[280px] shrink-0 sm:max-w-[300px] md:max-w-[320px]"
+              className="mx-auto w-full max-w-[280px] shrink-0 sm:max-w-[300px] md:mx-0 md:max-w-[300px] lg:max-w-[320px]"
             >
               <div
                 className="relative mx-auto overflow-hidden rounded-2xl bg-black shadow-[0_20px_50px_-12px_rgba(0,0,0,0.35)] ring-1 ring-gray-200/80 dark:ring-zinc-700"
