@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 /** Ladybug AI promo shorts: load when scrolled into view (muted autoplay for browser policy). */
-const YOUTUBE_SHORT_IDS = ['EyVwMoqsyQo', 'WAzcIw23xPE'] as const
+const YOUTUBE_SHORT_IDS = ['EyVwMoqsyQo', 'WAzcIw23xPE', 'QUNeEr9qNvQ'] as const
 
 function embedUrl(id: string) {
   return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1`
@@ -45,7 +45,7 @@ export function JoinStudentsVideoSection() {
           Join the 1.4M+ students who use Ladybug to Bypass AI detectors!
         </h2>
 
-        <div className="mx-auto mt-10 flex w-full flex-wrap items-start justify-center gap-6 md:gap-8 lg:gap-10">
+        <div className="mx-auto mt-10 flex w-full flex-wrap items-center justify-center gap-6 md:gap-8 lg:gap-10">
           {YOUTUBE_SHORT_IDS.map((id, index) => (
             <div
               key={id}
