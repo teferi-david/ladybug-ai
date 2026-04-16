@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { User as SupabaseUser } from '@supabase/supabase-js'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
+import { TRIAL_START_PRICE_USD } from '@/lib/stripe-plans'
 import {
   ArrowRight,
   BookOpen,
@@ -269,7 +270,7 @@ export function Navbar() {
                   asChild
                   className="h-7 max-h-7 min-h-0 shrink-0 rounded-full px-2.5 py-0 text-[10px] leading-none lg:h-8 lg:max-h-8 lg:min-h-8 lg:px-3 lg:text-[11px] xl:px-4 xl:text-xs"
                 >
-                  <Link href="/pricing">Start for free</Link>
+                  <Link href="/pricing">{`Start trial ($${TRIAL_START_PRICE_USD.toFixed(2)})`}</Link>
                 </ProUpgradeButton>
               )}
               <ThemeToggle className="h-7 w-7 max-h-7 shrink-0 rounded-full text-gray-700 dark:text-zinc-200 lg:h-8 lg:w-8 lg:max-h-8" />

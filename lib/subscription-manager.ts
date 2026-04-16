@@ -1,4 +1,5 @@
 // Subscription management system like popular SaaS sites
+import { TRIAL_START_PRICE_USD } from '@/lib/stripe-plans'
 export interface SubscriptionStatus {
   isActive: boolean
   planType: string
@@ -70,7 +71,7 @@ export class SubscriptionManager {
     }
     
     if (!status.isActive) {
-      return 'Start a 1-day free trial on the pricing page for unlimited AI Humanizer and Pro tools.'
+      return `Start a 1 day Trial on the pricing page for unlimited AI Humanizer and Pro tools ($${TRIAL_START_PRICE_USD.toFixed(2)} to begin).`
     }
     
     if (status.isNearExpiry) {

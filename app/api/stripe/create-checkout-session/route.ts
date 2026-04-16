@@ -51,16 +51,30 @@ export async function POST(request: NextRequest) {
 
     const stripe = getStripe()
 
-    // 1-day trial: set STRIPE_TRIAL_PERIOD_DAYS=0 to rely only on trial configured on the Price in Stripe
+    // 1-day trial: set STRIPE_TRIAL_PERIOD_DAYS=0 to disable trial on checkout
     const trialRaw = process.env.STRIPE_TRIAL_PERIOD_DAYS
     const trialDays =
       trialRaw === '0' || trialRaw === ''
         ? null
         : Math.min(365, Math.max(1, parseInt(trialRaw ?? '1', 10) || 1))
 
+    /** One-time Price in Stripe (e.g. $4.99) charged at checkout when a trial applies */
+    const trialStartPriceId = process.env.STRIPE_TRIAL_START_PRICE_ID?.trim()
+
+    const lineItems: { price: string; quantity: number }[] = [{ price: priceId, quantity: 1 }]
+    if (trialDays != null) {
+      if (!trialStartPriceId?.startsWith('price_')) {
+        console.error(
+          'STRIPE_TRIAL_START_PRICE_ID must be set to a one-time Stripe Price when trial is enabled'
+        )
+        return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+      }
+      lineItems.push({ price: trialStartPriceId, quantity: 1 })
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: lineItems,
       success_url: successUrl,
       cancel_url: cancelUrl,
       client_reference_id: user.id,

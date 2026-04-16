@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { TRIAL_START_PRICE_USD } from '@/lib/stripe-plans'
 
 const BASIC_EQ = (59.4 / 12).toFixed(2)
 const UNLIMITED_EQ = (119.4 / 12).toFixed(2)
@@ -14,8 +15,7 @@ export function PricingTeaser() {
           Flexible plans
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-center text-sm text-gray-600 dark:text-zinc-300 md:text-base">
-          Start with a 1-day free trial. Annual billing shows as a simple monthly number. Cancel anytime in
-          Stripe.
+          {`Pay $${TRIAL_START_PRICE_USD.toFixed(2)} to start your 1 day Trial. Annual billing shows as a simple monthly number. Cancel anytime in Stripe.`}
         </p>
 
         <div className="mt-10 grid gap-6 md:grid-cols-2">
@@ -27,7 +27,7 @@ export function PricingTeaser() {
               <span className="text-gray-600 dark:text-zinc-400">/mo billed annually</span>
             </p>
             <ul className="mt-6 flex flex-col gap-2 text-sm text-gray-700 dark:text-zinc-200">
-              {['Humanizer (all modes)', 'Paraphraser & citations', '1-day free trial'].map((t) => (
+              {['Humanizer (all modes)', 'Paraphraser & citations', '1 day Trial'].map((t) => (
                 <li key={t} className="flex items-start gap-2">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   {t}
@@ -55,7 +55,7 @@ export function PricingTeaser() {
               <span className="text-gray-600 dark:text-zinc-400">/mo billed annually</span>
             </p>
             <ul className="mt-6 flex flex-col gap-2 text-sm text-gray-700 dark:text-zinc-200">
-              {['Everything in Basic', 'Unlimited words', '1-day free trial'].map((t) => (
+              {['Everything in Basic', 'Unlimited words', '1 day Trial'].map((t) => (
                 <li key={t} className="flex items-start gap-2">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   {t}

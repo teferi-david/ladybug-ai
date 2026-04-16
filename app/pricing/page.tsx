@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase/client'
 import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Check } from 'lucide-react'
-import { STRIPE_PRICE_IDS } from '@/lib/stripe-plans'
+import { STRIPE_PRICE_IDS, TRIAL_START_PRICE_USD } from '@/lib/stripe-plans'
 import { cn } from '@/lib/utils'
 import { JoinStudentsVideoSection } from '@/components/join-students-video-section'
 
@@ -33,14 +33,14 @@ const BASIC_FEATURES = [
   '500,000 words per year (all tools combined)',
   'AI Humanizer: Basic, Advanced, and Academic (Turnitin) modes',
   'Paraphraser & citation tools',
-  '1-day free trial, then billing continues',
+  '1 day Trial, then billing continues',
   'Cancel anytime in the Stripe customer portal',
 ]
 
 const UNLIMITED_FEATURES = [
   'Unlimited words across all tools',
   'Everything in Basic, without usage limits',
-  '1-day free trial, then billing continues',
+  '1 day Trial, then billing continues',
   'Cancel anytime in the Stripe customer portal',
 ]
 
@@ -112,10 +112,9 @@ export default function PricingPage() {
       <div className="mx-auto max-w-5xl">
         {/* No big Pricing H1; page context is obvious */}
         <div className="mb-10 text-center">
-          <p className="mb-2 text-2xl font-bold text-primary md:text-3xl">1 Day free trial</p>
+          <p className="mb-2 text-2xl font-bold text-primary md:text-3xl">1 day Trial</p>
           <p className="mx-auto mb-8 max-w-lg text-sm text-gray-500 dark:text-zinc-400">
-            Start with a 1-day free trial, then continue on the plan you choose. Annual pricing shows as a
-            simple monthly equivalent.
+            {`Pay $${TRIAL_START_PRICE_USD.toFixed(2)} today to start your 1 day Trial, then continue on the plan you choose. Annual pricing shows as a simple monthly equivalent.`}
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -189,7 +188,9 @@ export default function PricingPage() {
                 className="w-full"
                 size="lg"
               >
-                {loadingId === basicPriceId ? 'Redirecting to Stripe…' : 'Start for free'}
+                {loadingId === basicPriceId
+                  ? 'Redirecting to Stripe…'
+                  : `Start trial ($${TRIAL_START_PRICE_USD.toFixed(2)})`}
               </ProUpgradeButton>
             </CardFooter>
           </Card>
@@ -234,7 +235,9 @@ export default function PricingPage() {
                 className="w-full"
                 size="lg"
               >
-                {loadingId === unlimitedPriceId ? 'Redirecting to Stripe…' : 'Start for free'}
+                {loadingId === unlimitedPriceId
+                  ? 'Redirecting to Stripe…'
+                  : `Start trial ($${TRIAL_START_PRICE_USD.toFixed(2)})`}
               </ProUpgradeButton>
             </CardFooter>
           </Card>
@@ -247,8 +250,7 @@ export default function PricingPage() {
           <div>
             <h3 className="mb-1 font-semibold text-foreground">How does billing work?</h3>
             <p className="text-sm text-gray-600 dark:text-zinc-300">
-              After the 1-day trial, Stripe charges your selected plan. Annual plans are billed once per year.
-              Manage or cancel in the Stripe billing portal.
+              {`You pay $${TRIAL_START_PRICE_USD.toFixed(2)} at checkout to begin your 1 day Trial. After the trial, Stripe charges your selected plan. Annual plans are billed once per year. Manage or cancel in the Stripe billing portal.`}
             </p>
           </div>
           <div>

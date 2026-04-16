@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getSiteUrl } from '@/lib/site-url'
 import { Button } from '@/components/ui/button'
+import { TRIAL_START_PRICE_USD } from '@/lib/stripe-plans'
 import { RecordDashboardVisit } from '@/components/record-dashboard-visit'
 
 const siteUrl = getSiteUrl()
@@ -61,14 +62,14 @@ export default function AiHumanizerLandingPage() {
             <p className="mt-3 leading-relaxed">
               The main tool lives on the home page: paste your text, pick a level (including Academic /
               Turnitin), and run <strong>Humanize</strong>. Free tier includes daily limits and a per-run word
-              cap; a 1-day Pro trial adds higher word caps, unlimited runs, plus Paraphraser and Citations.
+              cap; a 1 day Trial adds higher word caps, unlimited runs, plus Paraphraser and Citations.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild size="lg">
                 <Link href="/humanizer">Open AI humanizer</Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link href="/pricing">Start for free</Link>
+                <Link href="/pricing">{`Start trial ($${TRIAL_START_PRICE_USD.toFixed(2)})`}</Link>
               </Button>
             </div>
           </section>

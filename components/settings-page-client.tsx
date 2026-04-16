@@ -23,6 +23,7 @@ import {
   BASIC_YEARLY_WORD_CAP,
   getPlanDisplayName,
   isBasicPlanKey,
+  TRIAL_START_PRICE_USD,
 } from '@/lib/stripe-plans'
 import type { User } from '@supabase/supabase-js'
 import type { Database } from '@/types/database.types'
@@ -286,12 +287,11 @@ export function SettingsPageClient() {
               {!isPremium && (
                 <div className="mt-2 space-y-6 border-t border-gray-100 pt-8 dark:border-zinc-800">
                   <p className="max-w-prose text-sm leading-relaxed tracking-tight text-gray-600 dark:text-zinc-300">
-                    Start a 1-day free trial for unlimited AI Humanizer, Paraphraser, Citations, and higher
-                    word limits. After that you are billed annually if you stay subscribed.
+                    {`Pay $${TRIAL_START_PRICE_USD.toFixed(2)} to start your 1 day Trial for unlimited AI Humanizer, Paraphraser, Citations, and higher word limits. After that you are billed on the plan you choose if you stay subscribed.`}
                   </p>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <ProUpgradeButton asChild className="w-full sm:w-auto sm:min-w-[220px]">
-                      <Link href="/pricing">Start for free</Link>
+                      <Link href="/pricing">{`Start trial ($${TRIAL_START_PRICE_USD.toFixed(2)})`}</Link>
                     </ProUpgradeButton>
                   </div>
                 </div>
