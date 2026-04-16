@@ -188,9 +188,7 @@ export default function PricingPage() {
                 className="w-full"
                 size="lg"
               >
-                {loadingId === basicPriceId
-                  ? 'Redirecting to Stripe…'
-                  : `Start trial ($${TRIAL_START_PRICE_USD.toFixed(2)})`}
+                {loadingId === basicPriceId ? 'Redirecting to Stripe…' : 'Start trial'}
               </ProUpgradeButton>
             </CardFooter>
           </Card>
@@ -235,9 +233,7 @@ export default function PricingPage() {
                 className="w-full"
                 size="lg"
               >
-                {loadingId === unlimitedPriceId
-                  ? 'Redirecting to Stripe…'
-                  : `Start trial ($${TRIAL_START_PRICE_USD.toFixed(2)})`}
+                {loadingId === unlimitedPriceId ? 'Redirecting to Stripe…' : 'Start trial'}
               </ProUpgradeButton>
             </CardFooter>
           </Card>
