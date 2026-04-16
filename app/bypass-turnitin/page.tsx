@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getSiteUrl } from '@/lib/site-url'
 import { Button } from '@/components/ui/button'
-import { TRIAL_START_PRICE_USD } from '@/lib/stripe-plans'
 import { RecordDashboardVisit } from '@/components/record-dashboard-visit'
 
 const siteUrl = getSiteUrl()
@@ -92,7 +91,7 @@ export default function BypassTurnitinLandingPage() {
                 <Link href="/humanizer">Open AI Humanizer</Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link href="/pricing">{`Start trial ($${TRIAL_START_PRICE_USD.toFixed(2)})`}</Link>
+                <Link href="/pricing">Start trial</Link>
               </Button>
             </div>
           </section>

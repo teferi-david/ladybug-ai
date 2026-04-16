@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { ArrowRight, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { TRIAL_START_PRICE_USD } from '@/lib/stripe-plans'
 
 const BASIC_EQ = (59.4 / 12).toFixed(2)
 const UNLIMITED_EQ = (119.4 / 12).toFixed(2)
@@ -15,7 +14,8 @@ export function PricingTeaser() {
           Flexible plans
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-center text-sm text-gray-600 dark:text-zinc-300 md:text-base">
-          {`Pay $${TRIAL_START_PRICE_USD.toFixed(2)} to start your 1 day Trial. Annual billing shows as a simple monthly number. Cancel anytime in Stripe.`}
+          Start your 1 day Trial from the pricing page. Annual billing shows as a simple monthly number.
+          Cancel anytime in Stripe.
         </p>
 
         <div className="mt-10 grid gap-6 md:grid-cols-2">

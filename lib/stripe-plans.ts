@@ -1,6 +1,3 @@
-/** Shown in UI; must match the Stripe one-time Price amount for trial checkout. */
-export const TRIAL_START_PRICE_USD = 4.99
-
 /** Stripe Price IDs: Basic and Unlimited, monthly and annual (env overrides). */
 export const STRIPE_PRICE_IDS = {
   basicMonthly: process.env.STRIPE_PRICE_BASIC_MONTHLY ?? 'price_1THQqDDds2fevCulVdKNDgkM',
