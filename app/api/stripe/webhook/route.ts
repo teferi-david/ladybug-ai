@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe-server'
-import { getPeriodEndIsoFromSubscriptionObject } from '@/lib/stripe-subscription-period'
-import { planKeyFromStripePriceId } from '@/lib/stripe-plans'
-import { updateUserPlan, supabaseServer } from '@/lib/supabaseServer'
+import {
+  reconcileStripeSubscriptionForUser,
+  resolveSupabaseUserIdForStripeSubscription,
+} from '@/lib/stripe-reconcile-user-plan'
 import type Stripe from 'stripe'
-
-function planKeyFromSubscription(sub: Stripe.Subscription): string {
-  const priceId = sub.items.data[0]?.price?.id
-  return planKeyFromStripePriceId(priceId) ?? 'unlimited_annual'
-}
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -51,82 +47,30 @@ export async function POST(request: NextRequest) {
 
         const subRef = session.subscription
         const subId = typeof subRef === 'string' ? subRef : subRef?.id
-        if (!subId) break
 
-        const subscription = await stripe.subscriptions.retrieve(subId)
-        const periodEnd = getPeriodEndIsoFromSubscriptionObject(subscription)
-        const planKey = planKeyFromSubscription(subscription)
-        await updateUserPlan(userId, planKey, periodEnd, undefined, {
-          cancelAtPeriodEnd: subscription.cancel_at_period_end === true,
+        await reconcileStripeSubscriptionForUser(stripe, userId, {
+          includeSubscriptionIds: subId ? [subId] : undefined,
         })
-
-        const c = session.customer
-        let customerId: string | null = null
-        if (typeof c === 'string') {
-          customerId = c
-        } else if (c && typeof c === 'object' && 'deleted' in c && (c as Stripe.DeletedCustomer).deleted) {
-          customerId = null
-        } else if (c && typeof c === 'object' && 'id' in c) {
-          customerId = (c as Stripe.Customer).id
-        }
-
-        if (customerId) {
-          await supabaseServer
-            .from('users')
-            .update({
-              stripe_customer_id: customerId,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', userId)
-        }
         break
       }
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
-        const userId = subscription.metadata?.supabase_user_id
+        const userId = await resolveSupabaseUserIdForStripeSubscription(subscription)
         if (!userId) break
 
-        if (subscription.status === 'active' || subscription.status === 'trialing') {
-          const periodEnd = getPeriodEndIsoFromSubscriptionObject(subscription)
-          const planKey = planKeyFromSubscription(subscription)
-          await updateUserPlan(userId, planKey, periodEnd, undefined, {
-            cancelAtPeriodEnd: subscription.cancel_at_period_end === true,
-          })
-        } else if (
-          subscription.status === 'canceled' ||
-          subscription.status === 'unpaid' ||
-          subscription.status === 'incomplete_expired'
-        ) {
-          await supabaseServer
-            .from('users')
-            .update({
-              subscription_status: 'cancelled',
-              current_plan: 'free',
-              plan_expiry: null,
-              subscription_cancel_at_period_end: false,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', userId)
-        }
+        await reconcileStripeSubscriptionForUser(stripe, userId, {
+          includeSubscriptionIds: [subscription.id],
+        })
         break
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
-        const userId = subscription.metadata?.supabase_user_id
+        const userId = await resolveSupabaseUserIdForStripeSubscription(subscription)
         if (!userId) break
 
-        await supabaseServer
-          .from('users')
-          .update({
-            subscription_status: 'cancelled',
-            current_plan: 'free',
-            plan_expiry: null,
-            subscription_cancel_at_period_end: false,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', userId)
+        await reconcileStripeSubscriptionForUser(stripe, userId)
         break
       }
 

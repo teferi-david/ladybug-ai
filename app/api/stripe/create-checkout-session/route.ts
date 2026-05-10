@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe-server'
 import { isValidCheckoutPriceId, STRIPE_PRICE_IDS } from '@/lib/stripe-plans'
-import { validateUserSession } from '@/lib/supabaseServer'
+import { validateUserSession, getUserById, supabaseServer } from '@/lib/supabaseServer'
+import type Stripe from 'stripe'
+
+function isStripeInvalidCustomerError(e: unknown): boolean {
+  const err = e as Stripe.errors.StripeError | { code?: string; message?: string }
+  if (err?.code === 'resource_missing') return true
+  const msg = typeof err?.message === 'string' ? err.message : ''
+  return /no such customer/i.test(msg)
+}
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -72,7 +80,12 @@ export async function POST(request: NextRequest) {
       lineItems.push({ price: trialStartPriceId, quantity: 1 })
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const profile = await getUserById(user.id)
+    const storedCus = profile === null ? undefined : profile.stripe_customer_id
+    const existingCustomerId =
+      typeof storedCus === 'string' && storedCus.startsWith('cus_') ? storedCus : undefined
+
+    const sessionBase: Stripe.Checkout.SessionCreateParams = {
       mode: 'subscription',
       line_items: lineItems,
       success_url: successUrl,
@@ -83,9 +96,33 @@ export async function POST(request: NextRequest) {
         metadata: { supabase_user_id: user.id },
         ...(trialDays != null ? { trial_period_days: trialDays } : {}),
       },
-      customer_email: user.email,
       allow_promotion_codes: true,
-    })
+    }
+
+    let session: Stripe.Checkout.Session
+    try {
+      session = await stripe.checkout.sessions.create(
+        existingCustomerId
+          ? { ...sessionBase, customer: existingCustomerId }
+          : { ...sessionBase, customer_email: user.email }
+      )
+    } catch (e) {
+      if (existingCustomerId && isStripeInvalidCustomerError(e)) {
+        await supabaseServer
+          .from('users')
+          .update({
+            stripe_customer_id: null,
+            updated_at: new Date().toISOString(),
+          } as never)
+          .eq('id', user.id)
+        session = await stripe.checkout.sessions.create({
+          ...sessionBase,
+          customer_email: user.email,
+        })
+      } else {
+        throw e
+      }
+    }
 
     return NextResponse.json({
       url: session.url,

@@ -20,7 +20,9 @@ const supabaseServer = createClient<Database>(
  * @param userId - User ID from Supabase auth
  * @returns User data or null if not found
  */
-export async function getUserById(userId: string) {
+export async function getUserById(
+  userId: string
+): Promise<Database['public']['Tables']['users']['Row'] | null> {
   try {
     const { data, error } = await supabaseServer
       .from('users')
@@ -33,7 +35,7 @@ export async function getUserById(userId: string) {
       return null
     }
 
-    return data
+    return data as Database['public']['Tables']['users']['Row']
   } catch (error) {
     console.error('Unexpected error fetching user:', error)
     return null

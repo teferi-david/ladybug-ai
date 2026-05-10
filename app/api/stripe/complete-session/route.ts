@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe-server'
-import { getSubscriptionPeriodEndIso } from '@/lib/stripe-subscription-period'
-import { validateUserSession, updateUserPlan, supabaseServer } from '@/lib/supabaseServer'
-import { planKeyFromStripePriceId } from '@/lib/stripe-plans'
+import { validateUserSession, getUserById } from '@/lib/supabaseServer'
+import { reconcileStripeSubscriptionForUser } from '@/lib/stripe-reconcile-user-plan'
 import type Stripe from 'stripe'
-
-function planKeyFromSubscription(sub: Stripe.Subscription): string {
-  const priceId = sub.items.data[0]?.price?.id
-  return planKeyFromStripePriceId(priceId) ?? 'unlimited_annual'
-}
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -45,7 +39,11 @@ async function resolveSubscription(
   const inv = session.invoice
   const invoiceId = typeof inv === 'string' ? inv : inv && typeof inv === 'object' && 'id' in inv ? inv.id : null
   if (invoiceId) {
-    const invoice = await stripe.invoices.retrieve(invoiceId, { expand: ['subscription'] })
+    const invoice = (await stripe.invoices.retrieve(invoiceId, {
+      expand: ['subscription'],
+    })) as Stripe.Invoice & {
+      subscription?: string | Stripe.Subscription | null
+    }
     const invSub = invoice.subscription
     if (typeof invSub === 'string' && invSub.length > 0) {
       return stripe.subscriptions.retrieve(invSub)
@@ -124,25 +122,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const periodEnd = await getSubscriptionPeriodEndIso(stripe, subscription)
-    const planKey = planKeyFromSubscription(subscription)
-    await updateUserPlan(user.id, planKey, periodEnd, undefined, {
-      cancelAtPeriodEnd: subscription.cancel_at_period_end === true,
+    await reconcileStripeSubscriptionForUser(stripe, user.id, {
+      includeSubscriptionIds: [subscription.id],
     })
 
-    const customerId = getCustomerId(session)
+    const row = await getUserById(user.id)
 
-    if (customerId) {
-      await supabaseServer
-        .from('users')
-        .update({
-          stripe_customer_id: customerId,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id)
-    }
-
-    return NextResponse.json({ ok: true, plan: planKey, plan_expiry: periodEnd })
+    return NextResponse.json({
+      ok: true,
+      plan: row === null ? null : row.current_plan,
+      plan_expiry: row === null ? null : row.plan_expiry,
+    })
   } catch (e: any) {
     console.error('complete-session error:', e)
     return NextResponse.json(
