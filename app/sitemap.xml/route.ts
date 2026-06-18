@@ -15,6 +15,7 @@ export async function GET() {
     { loc: `${base}/pricing`, changefreq: 'monthly', priority: '0.9' },
     { loc: `${base}/paraphraser`, changefreq: 'weekly', priority: '0.85' },
     { loc: `${base}/citation`, changefreq: 'weekly', priority: '0.85' },
+    { loc: `${base}/support`, changefreq: 'monthly', priority: '0.6' },
     { loc: `${base}/register`, changefreq: 'monthly', priority: '0.55' },
     { loc: `${base}/login`, changefreq: 'monthly', priority: '0.45' },
     { loc: `${base}/forgot-password`, changefreq: 'yearly', priority: '0.25' },

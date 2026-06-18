@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Navbar } from '@/components/navbar'
 
@@ -37,7 +38,27 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
       <Navbar />
       <main className="relative z-10 flex min-h-0 flex-1 flex-col">{children}</main>
       <footer className="relative z-10 border-t border-white/40 bg-white/40 py-6 text-center backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/60">
-        <p className="text-xs text-gray-500 dark:text-zinc-500">
+        <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs">
+          <Link
+            href="/support"
+            className="font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900 dark:text-zinc-300 dark:hover:text-white"
+          >
+            Support
+          </Link>
+          <Link
+            href="/pricing"
+            className="font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900 dark:text-zinc-300 dark:hover:text-white"
+          >
+            Pricing
+          </Link>
+          <Link
+            href="/support#refunds"
+            className="font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900 dark:text-zinc-300 dark:hover:text-white"
+          >
+            Refund policy
+          </Link>
+        </nav>
+        <p className="mt-2 text-xs text-gray-500 dark:text-zinc-500">
           Contact:{' '}
           <a
             href="mailto:teferi.business@gmail.com"
