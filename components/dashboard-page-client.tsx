@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client'
 import { LoadingSpinner } from '@/components/loading-spinner'
 import { BookOpen, ChevronRight, Quote, RefreshCw, Sparkles, Wand2 } from 'lucide-react'
 import { ProUpgradeButton } from '@/components/pro-upgrade-button'
+import { RefreshSubscriptionButton } from '@/components/refresh-subscription-button'
 import { cn } from '@/lib/utils'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
 import {
@@ -148,6 +149,26 @@ export function DashboardPageClient() {
             <Link href="/pricing">Upgrade now</Link>
           </ProUpgradeButton>
         </div>
+
+        {!premium && (
+          <div className="mb-8 rounded-2xl border border-violet-100 bg-violet-50/50 p-5 dark:border-violet-900/60 dark:bg-violet-950/20">
+            <p className="text-sm font-medium text-gray-900 dark:text-zinc-100">
+              Already paid but don&apos;t see your plan?
+            </p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
+              Re-sync your subscription from Stripe. This usually restores access right away.
+            </p>
+            <RefreshSubscriptionButton
+              className="mt-3"
+              onRefreshed={(hasAccess) => {
+                if (hasAccess) {
+                  setPremium(true)
+                  setCoins(null)
+                }
+              }}
+            />
+          </div>
+        )}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {tools.map((t) => {
