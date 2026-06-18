@@ -32,8 +32,24 @@ const HUMANIZE_LOADING_MESSAGES = [
   'Preparing your humanized text',
 ] as const
 
+/** Hard cap on how many words can be entered/pasted per run. */
+const MAX_INPUT_WORDS = PREMIUM_MAX_WORDS_PER_REQUEST
+
+/**
+ * Trim text to at most maxWords words while preserving the original spacing/newlines
+ * up to the end of the last allowed word. Returns whether anything was removed.
+ */
+function limitToWords(text: string, maxWords: number): { text: string; truncated: boolean } {
+  const matches = Array.from(text.matchAll(/\S+/g))
+  if (matches.length <= maxWords) return { text, truncated: false }
+  const lastAllowed = matches[maxWords - 1]
+  const end = (lastAllowed.index ?? 0) + lastAllowed[0].length
+  return { text: text.slice(0, end), truncated: true }
+}
+
 export function HumanizerWorkspace() {
   const [input, setInput] = useState('')
+  const [inputTrimmed, setInputTrimmed] = useState(false)
   const [output, setOutput] = useState('')
   const [processing, setProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -59,7 +75,7 @@ export function HumanizerWorkspace() {
     setDnaSamples(getStoredWritingDna())
     const d = loadHumanizerDraft()
     if (d) {
-      setInput(d.input)
+      setInput(limitToWords(d.input, MAX_INPUT_WORDS).text)
       setOutput(d.output)
       setHumanizeLevel(d.humanizeLevel)
       setPriority(d.priority)
@@ -176,6 +192,12 @@ export function HumanizerWorkspace() {
       clearInterval(loadingMsgIntervalRef.current)
       loadingMsgIntervalRef.current = null
     }
+  }
+
+  const handleInputChange = (value: string) => {
+    const { text, truncated } = limitToWords(value, MAX_INPUT_WORDS)
+    setInput(text)
+    setInputTrimmed(truncated)
   }
 
   const handlePriorityChange = (p: HumanizePriority) => {
@@ -371,7 +393,9 @@ export function HumanizerWorkspace() {
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                     <label className="text-sm font-medium dark:text-zinc-200">AI text</label>
                     <span className="text-sm text-gray-500 dark:text-zinc-400">
-                      {wordCount} words
+                      <span className={cn(wordCount >= MAX_INPUT_WORDS && 'font-medium text-amber-700 dark:text-amber-300')}>
+                        {wordCount} / {MAX_INPUT_WORDS.toLocaleString()} words
+                      </span>
                       {!hasProAccess && coinsRemaining !== null && (
                         <>
                           <span className="ml-2 text-violet-700 dark:text-violet-300">
@@ -385,12 +409,18 @@ export function HumanizerWorkspace() {
                     </span>
                   </div>
                   <Textarea
-                    placeholder="Paste the AI text you want to humanize..."
+                    placeholder="Paste the AI text you want to humanize (up to 1,000 words)..."
                     className="min-h-[12rem] flex-1 resize-y dark:border-zinc-600 dark:bg-zinc-950 lg:min-h-0"
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={(e) => handleInputChange(e.target.value)}
                     disabled={processing}
                   />
+                  {inputTrimmed && (
+                    <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
+                      Text is limited to {MAX_INPUT_WORDS.toLocaleString()} words per run — extra text was
+                      removed. Humanize longer documents in batches.
+                    </p>
+                  )}
                   {wordCount > maxWords && (
                     <p className="text-sm text-red-500 mt-2">
                       {hasProAccess
