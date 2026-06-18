@@ -150,26 +150,6 @@ export function DashboardPageClient() {
           </ProUpgradeButton>
         </div>
 
-        {!premium && (
-          <div className="mb-8 rounded-2xl border border-violet-100 bg-violet-50/50 p-5 dark:border-violet-900/60 dark:bg-violet-950/20">
-            <p className="text-sm font-medium text-gray-900 dark:text-zinc-100">
-              Already paid but don&apos;t see your plan?
-            </p>
-            <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
-              Re-sync your subscription from Stripe. This usually restores access right away.
-            </p>
-            <RefreshSubscriptionButton
-              className="mt-3"
-              onRefreshed={(hasAccess) => {
-                if (hasAccess) {
-                  setPremium(true)
-                  setCoins(null)
-                }
-              }}
-            />
-          </div>
-        )}
-
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {tools.map((t) => {
             const Icon = t.icon
@@ -249,6 +229,25 @@ export function DashboardPageClient() {
             </ul>
           )}
         </div>
+
+        {!premium && (
+          <div className="mt-8 rounded-xl border border-violet-100 bg-violet-50/40 p-3.5 dark:border-violet-900/50 dark:bg-violet-950/15">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+              <p className="text-xs text-gray-600 dark:text-zinc-400">
+                <span className="font-medium text-gray-900 dark:text-zinc-100">Already paid but don&apos;t see your plan?</span>{' '}
+                Re-sync your subscription from Stripe.
+              </p>
+              <RefreshSubscriptionButton
+                onRefreshed={(hasAccess) => {
+                  if (hasAccess) {
+                    setPremium(true)
+                    setCoins(null)
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

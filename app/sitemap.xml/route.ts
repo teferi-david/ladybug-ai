@@ -9,6 +9,7 @@ export async function GET() {
 
   const entries: SitemapEntry[] = [
     { loc: base, changefreq: 'weekly', priority: '1.0' },
+    { loc: `${base}/best-ai-humanizer`, changefreq: 'weekly', priority: '0.98' },
     { loc: `${base}/ai-humanizer`, changefreq: 'weekly', priority: '0.98' },
     { loc: `${base}/bypass-turnitin`, changefreq: 'weekly', priority: '0.95' },
     { loc: `${base}/pricing`, changefreq: 'monthly', priority: '0.9' },

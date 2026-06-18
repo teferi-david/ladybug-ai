@@ -71,6 +71,13 @@ export default function AiHumanizerLandingPage() {
                 <Link href="/pricing">Start trial</Link>
               </Button>
             </div>
+            <p className="mt-4 leading-relaxed">
+              Comparing options? See why Ladybug AI is the{' '}
+              <Link href="/best-ai-humanizer" className="font-semibold text-primary underline underline-offset-4">
+                best AI humanizer
+              </Link>{' '}
+              and how it stacks up against the competition.
+            </p>
           </section>
         </div>
       </article>
