@@ -7,6 +7,7 @@ import { ProUpgradeButton } from '@/components/pro-upgrade-button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Check } from 'lucide-react'
 import { STRIPE_PRICE_IDS } from '@/lib/stripe-plans'
+import { trackFunnel } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 import { JoinStudentsVideoSection } from '@/components/join-students-video-section'
 
@@ -51,6 +52,7 @@ export default function PricingPage() {
   const [cycle, setCycle] = useState<'annual' | 'monthly'>('annual')
 
   useEffect(() => {
+    trackFunnel('pricing_viewed')
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
     })
@@ -61,6 +63,12 @@ export default function PricingPage() {
       router.push('/register')
       return
     }
+
+    const plan =
+      priceId === STRIPE_PRICE_IDS.basicAnnual || priceId === STRIPE_PRICE_IDS.basicMonthly
+        ? 'basic'
+        : 'unlimited'
+    trackFunnel('checkout_started', { plan, cycle })
 
     setLoadingId(priceId)
 

@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 import { getOAuthRedirectUrl } from '@/lib/oauth-redirect'
 import { safeNextPath } from '@/lib/safe-next-path'
+import { trackFunnel } from '@/lib/analytics'
 
 const authPrimaryCtaClass = cn(proUpgradeButtonClassName, 'w-full')
 
@@ -51,6 +52,7 @@ function RegisterPageInner() {
       }
 
       if (data.user) {
+        trackFunnel('signup', { method: 'email' })
         router.push(nextPath)
       }
     } catch {
@@ -66,6 +68,7 @@ function RegisterPageInner() {
 
     try {
       const redirectTo = getOAuthRedirectUrl(nextPath)
+      trackFunnel('signup', { method: 'google' })
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo },

@@ -10,6 +10,7 @@ import { Copy, Check, Dna } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
 import { PREMIUM_MAX_WORDS_PER_REQUEST } from '@/lib/premium-config'
+import { trackFunnel, classifyLimitReason } from '@/lib/analytics'
 import { UpgradeModal } from '@/components/upgrade-modal'
 import type { HumanizeLevel } from '@/lib/humanize-levels'
 import { cn } from '@/lib/utils'
@@ -18,6 +19,8 @@ import {
   type HumanizePriority,
   getStoredPriority,
   getStoredWritingDna,
+  setStoredWritingDna,
+  clearStoredWritingDna,
   setStoredPriority,
 } from '@/lib/humanizer-priority'
 import { WritingDnaModal } from '@/components/writing-dna-modal'
@@ -58,6 +61,8 @@ export function HumanizerWorkspace() {
   const [priority, setPriority] = useState<HumanizePriority>('balanced')
   const [dnaSamples, setDnaSamples] = useState<string[]>([])
   const [dnaOpen, setDnaOpen] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const userIdRef = useRef<string | null>(null)
   const [hasProAccess, setHasProAccess] = useState(false)
   const [planLoaded, setPlanLoaded] = useState(false)
   const [coinsRemaining, setCoinsRemaining] = useState<number | null>(null)
@@ -72,7 +77,6 @@ export function HumanizerWorkspace() {
     recordToolVisit('/humanizer', 'Humanizer')
     const p = getStoredPriority()
     if (p) setPriority(p)
-    setDnaSamples(getStoredWritingDna())
     const d = loadHumanizerDraft()
     if (d) {
       setInput(limitToWords(d.input, MAX_INPUT_WORDS).text)
@@ -121,14 +125,27 @@ export function HumanizerWorkspace() {
       data: { session },
     } = await supabase.auth.getSession()
     if (!session?.user) {
+      // Signed out: drop in-memory samples and this device's stored copy for the previous user.
+      if (userIdRef.current) clearStoredWritingDna(userIdRef.current)
+      userIdRef.current = null
+      setUserId(null)
+      setDnaSamples([])
       setHasProAccess(false)
       setPlanLoaded(true)
       return
     }
+    const uid = session.user.id
+    // A different account signed in on this browser — never carry over the previous user's samples.
+    if (userIdRef.current && userIdRef.current !== uid) {
+      setDnaSamples([])
+    }
+    userIdRef.current = uid
+    setUserId(uid)
+    setDnaSamples(getStoredWritingDna(uid))
     const { data: row } = await supabase
       .from('users')
       .select('current_plan, plan_expiry, subscription_status, uses_left')
-      .eq('id', session.user.id)
+      .eq('id', uid)
       .single()
     setHasProAccess(hasProHumanizeAccess(row))
     setPlanLoaded(true)
@@ -250,6 +267,12 @@ export function HumanizerWorkspace() {
 
       setProgress(100)
       setOutput(result)
+      trackFunnel('humanize_run', {
+        words: wordCount,
+        level: humanizeLevel,
+        paid: hasProAccess,
+        used_mimic: dnaSamples.length >= 3,
+      })
       if (typeof afterCoins === 'number') {
         setCoinsRemaining(afterCoins)
         setHasProAccess(false)
@@ -268,6 +291,11 @@ export function HumanizerWorkspace() {
         broadcastCoinBalanceUpdated(e.coinsRemaining)
       }
       if (e.upgradeRequired || e.status === 403) {
+        trackFunnel('limit_hit', {
+          reason: classifyLimitReason(e.message),
+          paid: hasProAccess,
+          words: wordCount,
+        })
         setUpgradeMessage(e.message)
         setUpgradeModalOpen(true)
         void refreshCoins()
@@ -302,7 +330,14 @@ export function HumanizerWorkspace() {
         open={dnaOpen}
         onOpenChange={setDnaOpen}
         initialSamples={dnaSamples}
-        onExtracted={() => setDnaSamples(getStoredWritingDna())}
+        onSave={(samples) => {
+          setStoredWritingDna(samples, userId)
+          setDnaSamples(getStoredWritingDna(userId))
+        }}
+        onClear={() => {
+          clearStoredWritingDna(userId)
+          setDnaSamples([])
+        }}
       />
 
       <section

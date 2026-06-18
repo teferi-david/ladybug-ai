@@ -40,16 +40,14 @@ function priorityInstruction(priority: HumanizePriority | undefined): string {
 }
 
 function writingDnaBlock(samples: string[] | undefined): string {
-  if (!samples?.length) return ''
-  const joined = samples
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .join('\n\n---\n\n')
+  const cleaned = (samples ?? []).map((s) => s.trim()).filter(Boolean)
+  if (cleaned.length === 0) return ''
   const DNA_CONTEXT_CHAR_CAP = 40_000
-  const capped =
-    joined.length > DNA_CONTEXT_CHAR_CAP
-      ? `${joined.slice(0, DNA_CONTEXT_CHAR_CAP)}\n\n[Samples truncated for length]`
-      : joined
+  // Give every sample a fair share of the budget so later samples are not dropped entirely.
+  const perSample = Math.max(500, Math.floor(DNA_CONTEXT_CHAR_CAP / cleaned.length))
+  const capped = cleaned
+    .map((s) => (s.length > perSample ? `${s.slice(0, perSample)}…` : s))
+    .join('\n\n---\n\n')
   return `
 
 The user provided writing samples below. Study rhythm, vocabulary level, and typical sentence length. Imitate that voice in your rewrite. Do not copy sentences verbatim. Do not invent facts from the samples.
@@ -102,8 +100,19 @@ ${cleanedText}`
       max_completion_tokens: 16384,
     })
 
-    const raw = completion.choices[0]?.message?.content?.trim() || cleanedText
-    const result = stripEmDashPunctuation(raw)
+    const choice = completion.choices[0]
+    const content = choice?.message?.content?.trim()
+    if (!content) {
+      // Empty output (e.g. a reasoning model spent its whole token budget, or the run was cut off).
+      // Never silently hand back the user's own text — throw so the API refunds coins and shows an error.
+      console.error('humanizeText: empty completion', { finish_reason: choice?.finish_reason })
+      throw new Error(
+        choice?.finish_reason === 'length'
+          ? 'The rewrite was cut off before it finished. Try shorter text or fewer Mimic samples.'
+          : 'The humanizer returned an empty response. Please try again.'
+      )
+    }
+    const result = stripEmDashPunctuation(content)
     console.log('OpenAI result:', result.substring(0, 100) + '...')
 
     return result

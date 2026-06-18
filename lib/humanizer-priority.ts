@@ -39,10 +39,17 @@ export function getStoredPriority(): HumanizePriority | null {
   return null
 }
 
-export function getStoredWritingDna(): string[] {
-  if (typeof window === 'undefined') return []
+/**
+ * Writing DNA is scoped per Supabase user so samples never leak between accounts
+ * sharing a browser (e.g. a school/library computer). `userId` omitted = anonymous bucket.
+ */
+function writingDnaKey(userId?: string | null): string {
+  return userId ? `${WRITING_DNA_STORAGE_KEY}:${userId}` : `${WRITING_DNA_STORAGE_KEY}:anon`
+}
+
+function readWritingDnaAtKey(key: string): string[] {
   try {
-    const raw = localStorage.getItem(WRITING_DNA_STORAGE_KEY)
+    const raw = localStorage.getItem(key)
     if (!raw) return []
     const parsed = JSON.parse(raw) as unknown
     if (!Array.isArray(parsed)) return []
@@ -50,6 +57,26 @@ export function getStoredWritingDna(): string[] {
   } catch {
     return []
   }
+}
+
+export function getStoredWritingDna(userId?: string | null): string[] {
+  if (typeof window === 'undefined') return []
+  const key = writingDnaKey(userId)
+  const scoped = readWritingDnaAtKey(key)
+  if (scoped.length > 0) return scoped
+
+  // One-time migration off the old unscoped key (which leaked across users on shared devices).
+  const legacy = readWritingDnaAtKey(WRITING_DNA_STORAGE_KEY)
+  if (legacy.length > 0) {
+    try {
+      localStorage.setItem(key, JSON.stringify(legacy.slice(0, 8)))
+      localStorage.removeItem(WRITING_DNA_STORAGE_KEY)
+    } catch {
+      /* ignore */
+    }
+    return legacy
+  }
+  return scoped
 }
 
 export function setStoredPriority(p: HumanizePriority) {
@@ -63,8 +90,19 @@ export function hasCompletedPriorityOnboarding(): boolean {
   return localStorage.getItem(PRIORITY_SET_KEY) === '1'
 }
 
-export function setStoredWritingDna(samples: string[]) {
+export function setStoredWritingDna(samples: string[], userId?: string | null) {
   if (typeof window === 'undefined') return
   const trimmed = samples.map((s) => s.trim()).filter(Boolean).slice(0, 8)
-  localStorage.setItem(WRITING_DNA_STORAGE_KEY, JSON.stringify(trimmed))
+  localStorage.setItem(writingDnaKey(userId), JSON.stringify(trimmed))
+}
+
+/** Remove a user's stored samples (and any legacy unscoped residue) so Mimic can be fully turned off. */
+export function clearStoredWritingDna(userId?: string | null) {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.removeItem(writingDnaKey(userId))
+    localStorage.removeItem(WRITING_DNA_STORAGE_KEY)
+  } catch {
+    /* ignore */
+  }
 }

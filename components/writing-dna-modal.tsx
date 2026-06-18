@@ -11,7 +11,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Dna, Loader2, Upload, X } from 'lucide-react'
-import { setStoredWritingDna } from '@/lib/humanizer-priority'
 import {
   extractTextFromWritingFile,
   isSupportedWritingFile,
@@ -26,14 +25,17 @@ type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   initialSamples?: string[]
-  onExtracted?: () => void
+  /** Persist the chosen samples (parent scopes storage by user id). */
+  onSave: (samples: string[]) => void
+  /** Clear all saved samples (turns Mimic off). */
+  onClear?: () => void
 }
 
 function charCount(s: string) {
   return s.length
 }
 
-export function WritingDnaModal({ open, onOpenChange, initialSamples = [], onExtracted }: Props) {
+export function WritingDnaModal({ open, onOpenChange, initialSamples = [], onSave, onClear }: Props) {
   const [draft, setDraft] = useState('')
   const [samples, setSamples] = useState<string[]>(() =>
     initialSamples.length ? initialSamples.slice(0, MAX_SAMPLES) : []
@@ -92,9 +94,16 @@ export function WritingDnaModal({ open, onOpenChange, initialSamples = [], onExt
 
   const handleExtract = () => {
     if (!ready) return
-    setStoredWritingDna(samples)
-    onExtracted?.()
+    onSave(samples)
     onOpenChange(false)
+  }
+
+  const handleClear = () => {
+    setSamples([])
+    samplesRef.current = []
+    setDraft('')
+    setExtractError(null)
+    onClear?.()
   }
 
   const handleFilesChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -271,10 +280,23 @@ export function WritingDnaModal({ open, onOpenChange, initialSamples = [], onExt
               {ready ? 'Ready' : `${needed} more needed`}
             </span>
           </div>
-          <Button variant="default" disabled={!ready} onClick={handleExtract} className="gap-2">
-            <Dna className="h-4 w-4" aria-hidden />
-            Save & use with Humanize
-          </Button>
+          <div className="flex items-center gap-2">
+            {samples.length > 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClear}
+                className="text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+              >
+                Clear all
+              </Button>
+            )}
+            <Button variant="default" disabled={!ready} onClick={handleExtract} className="gap-2">
+              <Dna className="h-4 w-4" aria-hidden />
+              Save &amp; use with Humanize
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { hasProHumanizeAccess } from '@/lib/plan-access'
+import { trackFunnel } from '@/lib/analytics'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, Loader2 } from 'lucide-react'
@@ -104,6 +105,10 @@ function PaymentSuccessContent() {
 
     processPaymentSuccess()
   }, [router, searchParams])
+
+  useEffect(() => {
+    if (success) trackFunnel('subscription_activated')
+  }, [success])
 
   if (loading) {
     return (
