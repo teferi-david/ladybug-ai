@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { RefreshSubscriptionButton } from '@/components/refresh-subscription-button'
-import { CreditCard, KeyRound, LifeBuoy, RefreshCw, Receipt, Mail, ExternalLink } from 'lucide-react'
+import { CreditCard, KeyRound, LifeBuoy, RefreshCw, Receipt, ExternalLink } from 'lucide-react'
 
 const SUPPORT_EMAIL = 'teferi.business@gmail.com'
 
@@ -13,6 +13,7 @@ export function SupportPageClient() {
   const [signedIn, setSignedIn] = useState<boolean | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
   const [portalError, setPortalError] = useState<string | null>(null)
+  const [showEmail, setShowEmail] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -193,24 +194,29 @@ export function SupportPageClient() {
             </p>
           </section>
 
-          {/* Contact */}
-          <section className="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 text-center dark:border-zinc-800 dark:bg-zinc-950/60">
-            <h2 className="flex items-center justify-center gap-2 text-lg font-semibold text-gray-900 dark:text-zinc-50">
-              <Mail className="h-5 w-5 text-gray-500" aria-hidden />
-              Still need help?
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-zinc-300">
-              Email us and include your <strong>account email</strong> and a short description. We&apos;ll get
-              back to you as soon as we can.
-            </p>
-            <a
-              href={`mailto:${SUPPORT_EMAIL}?subject=Ladybug%20AI%20support`}
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              <Mail className="h-4 w-4" aria-hidden />
-              {SUPPORT_EMAIL}
-            </a>
-          </section>
+          {/* Contact — kept intentionally subtle so self-service comes first */}
+          <div className="pt-2 text-center">
+            {!showEmail ? (
+              <button
+                type="button"
+                onClick={() => setShowEmail(true)}
+                className="text-xs text-gray-400 underline underline-offset-2 hover:text-gray-600 dark:text-zinc-600 dark:hover:text-zinc-400"
+              >
+                Still need help?
+              </button>
+            ) : (
+              <p className="text-[11px] leading-relaxed text-gray-400 dark:text-zinc-600">
+                Email{' '}
+                <a
+                  href={`mailto:${SUPPORT_EMAIL}?subject=Ladybug%20AI%20support`}
+                  className="underline underline-offset-2 hover:text-gray-600 dark:hover:text-zinc-400"
+                >
+                  {SUPPORT_EMAIL}
+                </a>{' '}
+                with your account email and a short description.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

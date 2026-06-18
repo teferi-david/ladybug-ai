@@ -58,15 +58,6 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
             Refund policy
           </Link>
         </nav>
-        <p className="mt-2 text-xs text-gray-500 dark:text-zinc-500">
-          Contact:{' '}
-          <a
-            href="mailto:teferi.business@gmail.com"
-            className="font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900 dark:text-zinc-300 dark:hover:text-white"
-          >
-            teferi.business@gmail.com
-          </a>
-        </p>
       </footer>
     </div>
   )
